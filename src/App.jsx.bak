@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './lib/supabase';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardPage from './pages/DashboardPage';
-import ProductionBoardPage from './pages/ProductionBoardPage';
 import StockPage from './pages/StockPage';
 import BipagemPage from './pages/BipagemPage';
 import ProductionPage from './pages/ProductionPage';
@@ -62,7 +61,6 @@ function App() {
       >
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/quadro-producao" element={<ProductionBoardPage />} />
         <Route path="/estoque" element={<StockPage />} />
         <Route path="/bipagem" element={<BipagemPage />} />
         <Route path="/producao" element={<ProductionPage />} />

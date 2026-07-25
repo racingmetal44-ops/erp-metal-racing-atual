@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 function generateId() {
@@ -34,7 +34,6 @@ const pageOptions = [
   { path: '/bipagem', label: 'Bipagem' },
   { path: '/producao', label: 'Produção' },
   { path: '/pedidos', label: 'Pedidos' },
-  { path: '/quadro-producao', label: 'Quadro de Producao' },
   { path: '/nfe', label: 'NF-e' },
   { path: '/financeiro', label: 'Financeiro' },
   { path: '/ranking', label: 'Ranking' },
