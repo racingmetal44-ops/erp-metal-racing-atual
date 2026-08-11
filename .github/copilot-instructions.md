@@ -1,0 +1,137 @@
+# Tray API Plugin
+
+Documentação ativa da API da Tray para integração com GitHub Copilot.
+Este repositório contém a documentação completa de 150+ endpoints organizados
+em 35 skills, agentes especializados e fluxos de integração.
+
+Documentação oficial: https://developers.tray.com.br
+
+---
+
+## Regras obrigatórias para toda integração Tray
+
+### Autenticação OAuth 2.0
+
+- Fluxo de 3 etapas com redirect para `https://{dominio_loja}/auth.php`.
+- `access_token` passado como query parameter: `?access_token={token}`.
+- `access_token` expira em **3 horas**; renovar com `refresh_token` (válido 30 dias).
+- **Nunca** escrever `access_token`, `consumer_key` ou `consumer_secret` como literais — usar variáveis de ambiente.
+
+### Formato de requisições
+
+- URL base: `https://{api_address}/` — `api_address` retornado no callback OAuth.
+- Payload JSON sempre envolto na chave do recurso: `{"Product": {...}}`, `{"Order": {...}}`.
+- Paginação máxima: **50 itens** por requisição.
+- Datas: `YYYY-MM-DD`; timestamps: `YYYY-MM-DD HH:MM:SS`.
+
+### Rate limit
+
+- **180 req/min** e **10.000 req/dia** (50.000 para contas corporate).
+- Tratar `HTTP 429` com retry exponencial.
+- Em lotes: 150 itens por batch com pausa de 60 s.
+
+### Validações brasileiras
+
+- CPF (11 dígitos) e CNPJ (14 dígitos) — validar antes de enviar.
+- CEP: 8 dígitos numéricos.
+
+### Bloco MANDATORY e lint de skills
+
+- Toda skill nova **deve** ter `## MANDATORY: Tool Call(s) Required Before Answering` **imediatamente** após o frontmatter.
+- O bloco **deve** incluir chamada **OBRIGATÓRIA(S)** a `node skills/tray-dev/scripts/search_docs.mjs` (sempre).
+- Skills com schema local (categoria A: `autorizacao`, `produtos`, `pedidos`, `clientes`, `webhooks`, `variacoes`, `categorias`, `marcas`) **devem** incluir também chamada **OBRIGATÓRIA(S)** a `node skills/<recurso>/scripts/validate.mjs`.
+- Validar com `npm run lint:skills`. O CI roda `npm run lint:skills` antes do smoke.
+
+### Validação local
+
+- 8 skills têm `scripts/validate.mjs`: `autorizacao`, `produtos`, `pedidos`,
+  `clientes`, `webhooks`, `variacoes`, `categorias`, `marcas`.
+- Skills com múltiplos schemas exigem `--schema=<op>`. Use `--list-schemas`
+  para descobrir os disponíveis.
+- Output humano por default; `--json` para programático. Exit codes:
+  `0` válido · `1` inválido · `2` erro de uso.
+- Formats BR custom: `cpf`, `cnpj`, `cep`, `ean`, `ncm`, `date`, `datetime`,
+  `email`, `uri`. Detalhes em `scripts/lib/SUBSET.md`.
+
+### Busca em docs
+
+Para confirmar comportamento da API antes de gerar código, use a skill `tray-dev`:
+
+```bash
+node skills/tray-dev/scripts/search_docs.mjs "<termo>"
+node skills/tray-dev/scripts/search_docs.mjs --topic=<slug> "<termo>"
+node skills/tray-dev/scripts/search_docs.mjs --json "<termo>"
+```
+
+- Cache local em `~/.cache/tray-plugin/dev-docs/` (TTL 24h)
+- Exit codes: 0 (ok), 1 (erro execução), 2 (erro de uso)
+- Tópicos: `--list-topics` para a lista canônica
+- Privacidade: `OPT_OUT_INSTRUMENTATION=true` desativa telemetria
+
+**Servidor MCP:** `mcp/` — boot com `npm run mcp` ou `npx --package=@tray-tecnologia/tray-api-plugin tray-mcp`; tools `tray.search_docs` e `tray.validate`; `mcp/README.md` para clientes.
+
+---
+
+## Documentação por recurso
+
+Antes de gerar código para um recurso da Tray, consulte o skill correspondente
+neste repositório:
+
+### Entrada (carregar primeiro)
+- Visão geral da API Tray: `skills/visao-geral/SKILL.md`
+
+### Autenticação e infraestrutura
+- OAuth 2.0, tokens: `skills/autorizacao/SKILL.md`
+- Webhooks / notificações: `skills/webhooks/SKILL.md`
+- Dados da loja: `skills/informacoes-loja/SKILL.md`
+- Scripts na vitrine: `skills/scripts-externos/SKILL.md`
+- Usuários admin: `skills/usuarios/SKILL.md`
+
+### Catálogo
+- Produtos: `skills/produtos/SKILL.md`
+- Variações / SKUs: `skills/variacoes/SKILL.md`
+- Imagens: `skills/imagens-produtos/SKILL.md`
+- Categorias: `skills/categorias/SKILL.md`
+- Marcas: `skills/marcas/SKILL.md`
+- Kits / combos: `skills/kits/SKILL.md`
+- Características: `skills/caracteristicas/SKILL.md`
+- Campos extras: `skills/informacoes-adicionais/SKILL.md`
+
+### Pedidos e logística
+- Pedidos: `skills/pedidos/SKILL.md`
+- Status: `skills/status-pedido/SKILL.md`
+- Notas fiscais: `skills/notas-fiscais/SKILL.md`
+- Frete (cálculo): `skills/frete/SKILL.md`
+- Frete (configuração): `skills/configuracao-frete/SKILL.md`
+- Etiquetas HUB: `skills/etiquetas-hub/SKILL.md`
+- Etiquetas ML: `skills/etiquetas-mercado-livre/SKILL.md`
+- Emissores de etiqueta: `skills/emissores-etiqueta/SKILL.md`
+- Multi-CD: `skills/multicd/SKILL.md`
+- Carrinho: `skills/carrinho-compras/SKILL.md`
+
+### Clientes e pagamentos
+- Clientes: `skills/clientes/SKILL.md`
+- Endereços: `skills/enderecos-cliente/SKILL.md`
+- Perfis: `skills/perfis-cliente/SKILL.md`
+- Pagamentos: `skills/pagamentos/SKILL.md`
+- Cupons: `skills/cupons/SKILL.md`
+- Preços B2B: `skills/listas-preco-b2b/SKILL.md`
+
+### Analytics e outros
+- Vendas: `skills/produtos-vendidos/SKILL.md`
+- SEO: `skills/palavras-chave/SKILL.md`
+- Parceiros: `skills/parceiros/SKILL.md`
+- Newsletter: `skills/newsletter/SKILL.md`
+
+### Busca em docs (`tray-dev`)
+- `skills/tray-dev/SKILL.md` — busca lexical local em developers.tray.com.br (BM25 + sinônimos PT-BR + cache 24h)
+
+---
+
+## Agentes para fluxos complexos
+
+- Setup e OAuth: `agents/configuracao-aplicativo.md`
+- Gestão de catálogo: `agents/gestor-catalogo.md`
+- Gestão de pedidos: `agents/gestor-pedidos.md`
+- Debug de integração: `agents/debug-integracao.md`
+- Migração de plataforma: `agents/assistente-migracao.md`

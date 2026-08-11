@@ -10,6 +10,7 @@ import BipagemPage from './pages/BipagemPage';
 import ProductionPage from './pages/ProductionPage';
 import OrdersPage from './pages/OrdersPage';
 import NfePage from './pages/NfePage';
+import ContabilidadePage from './pages/ContabilidadePage';
 import FinancePage from './pages/FinancePage';
 import RankingPage from './pages/RankingPage';
 import AlertsPage from './pages/AlertsPage';
@@ -68,6 +69,7 @@ function App() {
         <Route path="/producao" element={<ProductionPage />} />
         <Route path="/pedidos" element={<OrdersPage />} />
         <Route path="/nfe" element={<NfePage />} />
+        <Route path="/contabilidade/*" element={<ContabilidadePage />} />
         <Route path="/financeiro" element={<FinancePage />} />
         <Route path="/ranking" element={<RankingPage />} />
         <Route path="/avisos" element={<AlertsPage />} />

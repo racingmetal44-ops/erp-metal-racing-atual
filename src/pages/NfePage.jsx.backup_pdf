@@ -1,0 +1,747 @@
+﻿import { useEffect, useState, useRef } from 'react';
+import { 
+  FileText, Search, Printer, Download, 
+  ChevronDown, ChevronRight, Save, X,
+  Truck, MapPin, CreditCard, Building,
+  User, Calendar, DollarSign, Percent,
+  Package, Box, Eye, FileDown
+} from 'lucide-react';
+
+export default function NfePage() {
+  const [notas, setNotas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [expandedNotas, setExpandedNotas] = useState(new Set());
+  const [printNota, setPrintNota] = useState(null);
+  const printRef = useRef(null);
+
+  // === VALORES FIXOS ===
+  const FIXOS = {
+    cest: '01.026.00',
+    ncm: '8302.30.00',
+    origem: '0 - Nacional',
+    csosn: '102 - Tributada sem permissão de crédito',
+    cfop: '6107',
+    regime_tributario: 'Simples Nacional',
+    finalidade: 'NF-e normal',
+    indicador_presenca: '9 - Operação não presencial, outros',
+    destino_operacao: '1 - Operação interna'
+  };
+
+  useEffect(() => {
+    loadNotas();
+  }, []);
+
+  async function loadNotas() {
+    setLoading(true);
+    try {
+      setNotas(getExampleNotas());
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function getExampleNotas() {
+    return [{
+      id: 1,
+      tipo_saida: 'Emissão Própria',
+      serie: '2',
+      numero: '000506',
+      loja: 'XCompetition Shopee (03)',
+      unidade_negocio: 'Matriz',
+      natureza_operacao: 'Venda de mercadoria a não contribuinte',
+      data_emissao: '2026-07-31',
+      hora_emissao: '09:03:19',
+      data_saida: '2026-07-31',
+      hora_saida: '09:03:19',
+      regime_tributario: FIXOS.regime_tributario,
+      finalidade: 'NF-e normal',
+      indicador_presenca: FIXOS.indicador_presenca,
+      destino_operacao: FIXOS.destino_operacao,
+      destinatario: {
+        nome: 'Onorina De Oliveira',
+        tipo_pessoa: 'Física',
+        cpf: '165.557.788-30',
+        vendedor: 'Gabriel Monteiro',
+        consumidor_final: 'Consumidor Final',
+        cep: '16220-079',
+        uf: 'SP',
+        municipio: 'Gabriel Monteiro',
+        bairro: 'Centro',
+        endereco: 'Rua Valério Vendrame Vidoto',
+        numero: '55',
+        complemento: '',
+        fone: '',
+        email: ''
+      },
+      items: [{
+        id: 1,
+        descricao: 'Soleira Aço Inox Premium para Toyota Yaris Cross',
+        codigo: 'S-2284',
+        unidade: 'UN',
+        quantidade: 1.00,
+        preco_unitario: 194.64,
+        preco_total: 194.64,
+        ncm: FIXOS.ncm
+      }],
+      totais: {
+        total_produtos: 194.64,
+        valor_frete: 0.00,
+        valor_seguro: 0.00,
+        outras_despesas: 0.00,
+        desconto: 15.40,
+        total_nota: 179.24
+      },
+      calculo_imposto: {
+        total_produtos: 194.64,
+        valor_frete: 0.00,
+        valor_seguro: 0.00,
+        outras_despesas: 0.00,
+        desconto: 15.40,
+        total_nota: 179.24
+      },
+      transportador: {
+        nome: 'Logística Shopee',
+        frete_por_conta: '0 - Contratação do Frete por conta do Remetente (CIF)',
+        logistica: 'Logística Shopee',
+        objetos: [{
+          volume: 1,
+          servico: 'Shopee Xpress',
+          tracking: 'BR2697539481345'
+        }]
+      },
+      endereco_entrega: {
+        nome: 'Onorina De Oliveira',
+        cep: '16220079',
+        uf: 'SP',
+        municipio: 'Gabriel Monteiro',
+        endereco: 'Rua Valério Vendrame Vidoto',
+        numero: '55',
+        bairro: 'Centro',
+        complemento: '',
+        pais: 'Brasil'
+      },
+      pagamento: {
+        condicao: '0',
+        data: '31/07/2026',
+        valor: 179.24,
+        forma: 'Pix',
+        categoria: 'Vendas de mercadorias'
+      },
+      intermediador: {
+        sim: true,
+        cnpj: '35.635.824/0001-12',
+        identificacao: '1640309047'
+      },
+      informacoes_adicionais: {
+        numero_loja_virtual: '2608016AM3Y1K3',
+        origem_loja_virtual: 'Shopee',
+        origem_canal_venda: 'Outros',
+        informacoes_complementares: 'Total aproximado de tributos: R$ 59,42 (33,15%) Federais R$ 6,16 (3,44%) Estaduais R$ 7,32 (4,08%). Fonte IBPT.',
+        informacoes_fisco: 'Naturezas de operação'
+      }
+    }];
+  }
+
+  const filteredNotas = notas.filter(function(nota) {
+    var term = search.toLowerCase();
+    return (
+      nota.numero?.toLowerCase().includes(term) ||
+      nota.destinatario?.nome?.toLowerCase().includes(term) ||
+      nota.destinatario?.cpf?.includes(term)
+    );
+  });
+
+  function toggleExpand(id) {
+    var newSet = new Set(expandedNotas);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedNotas(newSet);
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+  }
+
+  function formatDate(date) {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('pt-BR');
+  }
+
+  // === FUNÇÃO DE IMPRESSÃO ===
+  function handlePrint(nota) {
+    setPrintNota(nota);
+    setTimeout(function() {
+      if (printRef.current) {
+        var printContents = printRef.current.innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+      setPrintNota(null);
+    }, 100);
+  }
+
+  // === FUNÇÃO DE DOWNLOAD ===
+  function handleDownload(nota) {
+    setPrintNota(nota);
+    setTimeout(function() {
+      if (printRef.current) {
+        var printContents = printRef.current.innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+        window.location.reload();
+      }
+      setPrintNota(null);
+    }, 100);
+  }
+
+  // === COMPONENTE DE IMPRESSÃO ===
+  function PrintContent({ nota }) {
+    if (!nota) return null;
+    return (
+      <div ref={printRef} className="hidden print:block">
+        <div className="p-8 max-w-4xl mx-auto bg-white text-black">
+          {/* Cabeçalho */}
+          <div className="text-center border-b-2 border-black pb-4 mb-4">
+            <h1 className="text-2xl font-bold">NOTA FISCAL ELETRÔNICA</h1>
+            <p className="text-sm">Série {nota.serie} - Nº {nota.numero}</p>
+            <p className="text-sm">{nota.loja}</p>
+          </div>
+
+          {/* Dados da Nota */}
+          <div className="grid grid-cols-3 gap-4 mb-4 text-sm">
+            <div><span className="font-bold">Tipo:</span> {nota.tipo_saida}</div>
+            <div><span className="font-bold">Natureza:</span> {nota.natureza_operacao}</div>
+            <div><span className="font-bold">Regime:</span> {nota.regime_tributario}</div>
+            <div><span className="font-bold">Emissão:</span> {formatDate(nota.data_emissao)} {nota.hora_emissao}</div>
+            <div><span className="font-bold">Saída:</span> {formatDate(nota.data_saida)} {nota.hora_saida}</div>
+            <div><span className="font-bold">Finalidade:</span> {nota.finalidade}</div>
+          </div>
+
+          {/* Destinatário */}
+          <div className="border p-3 mb-4 text-sm">
+            <h2 className="font-bold text-lg mb-2">DESTINATÁRIO</h2>
+            <div className="grid grid-cols-2 gap-2">
+              <div><span className="font-bold">Nome:</span> {nota.destinatario.nome}</div>
+              <div><span className="font-bold">CPF:</span> {nota.destinatario.cpf}</div>
+              <div><span className="font-bold">Vendedor:</span> {nota.destinatario.vendedor}</div>
+              <div><span className="font-bold">Consumidor Final:</span> {nota.destinatario.consumidor_final}</div>
+              <div className="col-span-2"><span className="font-bold">Endereço:</span> {nota.destinatario.endereco}, {nota.destinatario.numero} - {nota.destinatario.bairro}</div>
+              <div><span className="font-bold">CEP:</span> {nota.destinatario.cep}</div>
+              <div><span className="font-bold">UF:</span> {nota.destinatario.uf}</div>
+              <div><span className="font-bold">Município:</span> {nota.destinatario.municipio}</div>
+            </div>
+          </div>
+
+          {/* Itens */}
+          <div className="mb-4 text-sm">
+            <h2 className="font-bold text-lg mb-2">ITENS DA NOTA FISCAL</h2>
+            <table className="w-full border-collapse border border-black">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-black p-1 text-left">Produto</th>
+                  <th className="border border-black p-1 text-left">Código</th>
+                  <th className="border border-black p-1 text-center">UN</th>
+                  <th className="border border-black p-1 text-right">Qtde</th>
+                  <th className="border border-black p-1 text-right">Valor Un</th>
+                  <th className="border border-black p-1 text-right">Valor Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nota.items.map(function(item, index) {
+                  return (
+                    <tr key={index}>
+                      <td className="border border-black p-1">{item.descricao}</td>
+                      <td className="border border-black p-1">{item.codigo}</td>
+                      <td className="border border-black p-1 text-center">{item.unidade}</td>
+                      <td className="border border-black p-1 text-right">{item.quantidade.toFixed(2)}</td>
+                      <td className="border border-black p-1 text-right">{formatCurrency(item.preco_unitario)}</td>
+                      <td className="border border-black p-1 text-right">{formatCurrency(item.preco_total)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="bg-gray-50 font-bold">
+                  <td colSpan="5" className="border border-black p-1 text-right">TOTAL:</td>
+                  <td className="border border-black p-1 text-right">{formatCurrency(nota.totais.total_nota)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          {/* Totais */}
+          <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+            <div className="border p-2">
+              <h3 className="font-bold">Totais</h3>
+              <div><span className="font-bold">Produtos:</span> {formatCurrency(nota.calculo_imposto.total_produtos)}</div>
+              <div><span className="font-bold">Frete:</span> {formatCurrency(nota.calculo_imposto.valor_frete)}</div>
+              <div><span className="font-bold">Desconto:</span> {formatCurrency(nota.calculo_imposto.desconto)}</div>
+              <div className="text-lg font-bold text-green-700">Total: {formatCurrency(nota.calculo_imposto.total_nota)}</div>
+            </div>
+            <div className="border p-2">
+              <h3 className="font-bold">Valores Fiscais</h3>
+              <div><span className="font-bold">NCM:</span> {FIXOS.ncm}</div>
+              <div><span className="font-bold">CEST:</span> {FIXOS.cest}</div>
+              <div><span className="font-bold">CFOP:</span> {FIXOS.cfop}</div>
+              <div><span className="font-bold">CSOSN:</span> {FIXOS.csosn}</div>
+            </div>
+          </div>
+
+          {/* Pagamento e Entrega */}
+          <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+            <div className="border p-2">
+              <h3 className="font-bold">Pagamento</h3>
+              <div><span className="font-bold">Condição:</span> {nota.pagamento.condicao} dias</div>
+              <div><span className="font-bold">Forma:</span> {nota.pagamento.forma}</div>
+              <div><span className="font-bold">Data:</span> {nota.pagamento.data}</div>
+            </div>
+            <div className="border p-2">
+              <h3 className="font-bold">Endereço de Entrega</h3>
+              <div>{nota.endereco_entrega.nome}</div>
+              <div>{nota.endereco_entrega.endereco}, {nota.endereco_entrega.numero}</div>
+              <div>{nota.endereco_entrega.bairro} - {nota.endereco_entrega.municipio}/{nota.endereco_entrega.uf}</div>
+              <div>CEP: {nota.endereco_entrega.cep}</div>
+            </div>
+          </div>
+
+          {/* Rodapé */}
+          <div className="text-center text-xs border-t-2 border-black pt-2 mt-4">
+            <p>Documento emitido por XCompetition Motorsport - CNPJ: 13.862.162/0003-42</p>
+            <p>Nota Fiscal Eletrônica - Autorizada pela SEFAZ</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Cabeçalho */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <p className="text-sm text-orange-400">Documentos</p>
+        <h1 className="mt-2 text-3xl font-semibold">Notas Fiscais</h1>
+        <p className="mt-2 text-sm text-slate-400">Consulta e visualização de notas fiscais emitidas.</p>
+      </div>
+
+      {/* Busca */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              value={search}
+              onChange={function(e) { setSearch(e.target.value); }}
+              placeholder="Buscar por número, cliente ou CPF..."
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-10 py-2.5 text-sm"
+            />
+          </div>
+          <button className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600">
+            <Save size={16} />
+            Nova Nota
+          </button>
+        </div>
+      </div>
+
+      {/* Lista de Notas */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-center text-slate-400">
+            Carregando notas fiscais...
+          </div>
+        ) : filteredNotas.length === 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-center text-slate-400">
+            Nenhuma nota fiscal encontrada.
+          </div>
+        ) : (
+          filteredNotas.map(function(nota) {
+            return (
+              <div key={nota.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 overflow-hidden">
+                {/* Resumo da Nota */}
+                <div 
+                  className="flex cursor-pointer items-center justify-between p-6 transition hover:bg-slate-800/30"
+                  onClick={function() { toggleExpand(nota.id); }}
+                >
+                  <div className="flex items-center gap-4">
+                    <FileText size={24} className="text-orange-400" />
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-semibold text-white">
+                          Nota Fiscal {nota.serie}/{nota.numero}
+                        </span>
+                        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+                          {nota.finalidade || 'Normal'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-400">
+                        {nota.destinatario?.nome} • {formatDate(nota.data_emissao)} • {formatCurrency(nota.totais?.total_nota)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Botão de IMPRESSÃO */}
+                    <button 
+                      className="rounded-xl border border-slate-700 p-2 transition hover:border-orange-500/60"
+                      onClick={function(e) { 
+                        e.stopPropagation(); 
+                        handlePrint(nota);
+                      }}
+                      title="Imprimir Nota Fiscal"
+                    >
+                      <Printer size={16} className="text-slate-400" />
+                    </button>
+                    {/* Botão de DOWNLOAD */}
+                    <button 
+                      className="rounded-xl border border-slate-700 p-2 transition hover:border-orange-500/60"
+                      onClick={function(e) { 
+                        e.stopPropagation(); 
+                        handleDownload(nota);
+                      }}
+                      title="Baixar Nota Fiscal (PDF)"
+                    >
+                      <Download size={16} className="text-slate-400" />
+                    </button>
+                    {expandedNotas.has(nota.id) ? (
+                      <ChevronDown size={20} className="text-slate-400" />
+                    ) : (
+                      <ChevronRight size={20} className="text-slate-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Conteúdo Expandido */}
+                {expandedNotas.has(nota.id) && (
+                  <div className="border-t border-slate-800 p-6 space-y-6">
+                    {/* Dados da Nota */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Dados da Nota Fiscal</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-slate-500">Tipo de Saída</p>
+                          <p className="text-sm text-white">{nota.tipo_saida || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Série</p>
+                          <p className="text-sm text-white">{nota.serie || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Número</p>
+                          <p className="text-sm text-white font-mono">{nota.numero || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Loja</p>
+                          <p className="text-sm text-white">{nota.loja || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Unidade de Negócio</p>
+                          <p className="text-sm text-white">{nota.unidade_negocio || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Natureza da Operação</p>
+                          <p className="text-sm text-white">{nota.natureza_operacao || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Data de Emissão</p>
+                          <p className="text-sm text-white">{nota.data_emissao ? formatDate(nota.data_emissao) : '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Hora de Emissão</p>
+                          <p className="text-sm text-white">{nota.hora_emissao || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Data Saída</p>
+                          <p className="text-sm text-white">{nota.data_saida ? formatDate(nota.data_saida) : '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Hora Saída</p>
+                          <p className="text-sm text-white">{nota.hora_saida || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Regime Tributário</p>
+                          <p className="text-sm text-white font-mono text-orange-300">{nota.regime_tributario || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Finalidade</p>
+                          <p className="text-sm text-white">{nota.finalidade || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Indicador de Presença</p>
+                          <p className="text-sm text-white">{nota.indicador_presenca || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Destino da Operação</p>
+                          <p className="text-sm text-white">{nota.destino_operacao || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Destinatário */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Destinatário</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Nome do Contato</p>
+                          <p className="text-sm text-white font-semibold">{nota.destinatario?.nome || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Tipo da Pessoa</p>
+                          <p className="text-sm text-white">{nota.destinatario?.tipo_pessoa || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">CPF</p>
+                          <p className="text-sm text-white font-mono">{nota.destinatario?.cpf || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Vendedor</p>
+                          <p className="text-sm text-white">{nota.destinatario?.vendedor || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Consumidor Final</p>
+                          <p className="text-sm text-white">{nota.destinatario?.consumidor_final || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">CEP</p>
+                          <p className="text-sm text-white font-mono">{nota.destinatario?.cep || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">UF</p>
+                          <p className="text-sm text-white">{nota.destinatario?.uf || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Município</p>
+                          <p className="text-sm text-white">{nota.destinatario?.municipio || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Bairro</p>
+                          <p className="text-sm text-white">{nota.destinatario?.bairro || '-'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Endereço</p>
+                          <p className="text-sm text-white">
+                            {nota.destinatario?.endereco || '-'}, {nota.destinatario?.numero || '-'}
+                            {nota.destinatario?.complemento ? ' - ' + nota.destinatario.complemento : ''}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Fone/FAX</p>
+                          <p className="text-sm text-white">{nota.destinatario?.fone || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">E-mail</p>
+                          <p className="text-sm text-white">{nota.destinatario?.email || '-'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Itens da Nota */}
+                    <div>
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Itens da Nota Fiscal</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-left text-xs text-slate-500">
+                              <th className="pb-2">Produto ou Serviço</th>
+                              <th className="pb-2">Código</th>
+                              <th className="pb-2">UN</th>
+                              <th className="pb-2 text-right">Qtde</th>
+                              <th className="pb-2 text-right">Preço Un</th>
+                              <th className="pb-2 text-right">Preço Total</th>
+                              <th className="pb-2">NCM</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {nota.items.map(function(item, index) {
+                              return (
+                                <tr key={item.id || index} className="border-b border-slate-800/50">
+                                  <td className="py-3 text-white">{item.descricao}</td>
+                                  <td className="py-3 text-white">{item.codigo}</td>
+                                  <td className="py-3 text-white">{item.unidade}</td>
+                                  <td className="py-3 text-right text-white">{item.quantidade?.toFixed(2)}</td>
+                                  <td className="py-3 text-right text-white">{formatCurrency(item.preco_unitario)}</td>
+                                  <td className="py-3 text-right text-white">{formatCurrency(item.preco_total)}</td>
+                                  <td className="py-3 text-white font-mono text-orange-300">{FIXOS.ncm}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Cálculo de Imposto */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Cálculo de Imposto</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                        <div>
+                          <p className="text-xs text-slate-500">Total dos Produtos</p>
+                          <p className="text-sm text-white">{formatCurrency(nota.calculo_imposto.total_produtos)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Valor do Frete</p>
+                          <p className="text-sm text-white">{formatCurrency(nota.calculo_imposto.valor_frete)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Valor do Seguro</p>
+                          <p className="text-sm text-white">{formatCurrency(nota.calculo_imposto.valor_seguro)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Outras Despesas</p>
+                          <p className="text-sm text-white">{formatCurrency(nota.calculo_imposto.outras_despesas)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Desconto</p>
+                          <p className="text-sm text-white text-rose-400">{formatCurrency(nota.calculo_imposto.desconto)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Total da Nota</p>
+                          <p className="text-lg font-bold text-orange-400">{formatCurrency(nota.calculo_imposto.total_nota)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Transportador */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Transportador</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Logística</p>
+                          <p className="text-sm text-white">{nota.transportador.logistica}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Frete por Conta</p>
+                          <p className="text-sm text-white">{nota.transportador.frete_por_conta}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-left text-xs text-slate-500">
+                              <th className="pb-2">Vol.</th>
+                              <th className="pb-2">Serviço</th>
+                              <th className="pb-2">Tracking</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {nota.transportador.objetos.map(function(obj, index) {
+                              return (
+                                <tr key={index} className="border-b border-slate-800/50">
+                                  <td className="py-2 text-white">{obj.volume}</td>
+                                  <td className="py-2 text-white">{obj.servico}</td>
+                                  <td className="py-2 text-white font-mono">{obj.tracking}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Endereço de Entrega */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Endereço de Entrega</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Nome</p>
+                          <p className="text-sm text-white">{nota.endereco_entrega.nome}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">CEP</p>
+                          <p className="text-sm text-white font-mono">{nota.endereco_entrega.cep}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">UF</p>
+                          <p className="text-sm text-white">{nota.endereco_entrega.uf}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Município</p>
+                          <p className="text-sm text-white">{nota.endereco_entrega.municipio}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Bairro</p>
+                          <p className="text-sm text-white">{nota.endereco_entrega.bairro}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Endereço</p>
+                          <p className="text-sm text-white">
+                            {nota.endereco_entrega.endereco}, {nota.endereco_entrega.numero}
+                            {nota.endereco_entrega.complemento ? ' - ' + nota.endereco_entrega.complemento : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pagamento */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Pagamento</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-slate-500">Condição</p>
+                          <p className="text-sm text-white">{nota.pagamento.condicao} dias</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Data</p>
+                          <p className="text-sm text-white">{nota.pagamento.data}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Valor</p>
+                          <p className="text-sm text-white font-semibold">{formatCurrency(nota.pagamento.valor)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Forma</p>
+                          <p className="text-sm text-white uppercase">{nota.pagamento.forma}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Valores Fixos */}
+                    <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Valores Fiscais Fixos</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">CEST</p>
+                          <p className="text-sm font-mono font-bold text-orange-300">{FIXOS.cest}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">NCM</p>
+                          <p className="text-sm font-mono font-bold text-orange-300">{FIXOS.ncm}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">Origem</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.origem}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">CSOSN</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.csosn}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">CFOP</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.cfop}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs text-slate-500 border-t border-orange-500/20 pt-3">
+                        ⚡ Estes valores são padrão para todos os produtos da empresa.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Componente de Impressão (oculto) */}
+      {printNota && <PrintContent nota={printNota} />}
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ScanBarcode, Factory, ShoppingCart, FileText, Landmark, TrendingUp, Bell, Users, Tag, Truck, Tv, Settings, Bot, Table2, Map, Building2, RotateCcw, Lightbulb, ShieldCheck, Upload, LogOut, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Package, ScanBarcode, Factory, ShoppingCart, FileText, Landmark, TrendingUp, Bell, Users, Tag, Truck, Tv, Settings, Bot, Table2, Map, Building2, RotateCcw, Lightbulb, ShieldCheck, Upload, LogOut, ClipboardList, Calculator } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/pedidos', label: 'Pedidos', icon: ShoppingCart },
   { to: '/quadro-producao', label: 'Quadro de Producao', icon: ClipboardList },
   { to: '/nfe', label: 'NF-e', icon: FileText },
+  { to: '/contabilidade', label: 'Contabilidade', icon: Calculator },
   { to: '/financeiro', label: 'Financeiro', icon: Landmark },
   { to: '/ranking', label: 'Ranking', icon: TrendingUp },
   { to: '/avisos', label: 'Avisos', icon: Bell },

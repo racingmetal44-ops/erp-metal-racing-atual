@@ -1,0 +1,396 @@
+﻿import { useEffect, useState } from 'react';
+import { 
+  FileText, Search, Printer, Download, 
+  ChevronDown, ChevronRight
+} from 'lucide-react';
+
+export default function NfePage() {
+  const [notas, setNotas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [expandedNotas, setExpandedNotas] = useState(new Set());
+
+  // === VALORES FIXOS DA EMPRESA ===
+  const FIXOS = {
+    cest: '01.026.00',
+    ncm: '8302.30.00',
+    origem: '0 - Nacional',
+    csosn: '102 - Tributada sem permissão de crédito',
+    cfop: '6107'
+  };
+
+  useEffect(() => {
+    loadNotas();
+  }, []);
+
+  async function loadNotas() {
+    setLoading(true);
+    try {
+      setNotas(getExampleNotas());
+    } catch (error) {
+      console.error('Erro ao carregar notas:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function getExampleNotas() {
+    return [{
+      id: 1,
+      tipo_saida: 'Emissão Própria',
+      serie: '2',
+      numero: '000506',
+      loja: 'XCompetition Shopee (03)',
+      unidade_negocio: 'Matriz',
+      natureza_operacao: 'Venda de mercadoria a não contribuinte',
+      data_emissao: '2026-08-01',
+      hora_emissao: '09:03:19',
+      data_saida: '2026-08-01',
+      hora_saida: '09:03:19',
+      regime_tributario: 'Simples Nacional',
+      finalidade: 'NF-e normal',
+      indicador_presenca: '9 - Operação não presencial',
+      destinatario: {
+        nome: 'Onoima De Oliveira',
+        tipo_pessoa: 'Física',
+        cpf: '165.557.788-30',
+        vendedor: 'Gabriel Monteiro',
+        cep: '16220-079',
+        municipio: 'SP',
+        bairro: 'Centro',
+        endereco: 'Rua Valério Vendrame Vidoto',
+        numero: '55',
+        complemento: ''
+      },
+      items: [{
+        id: 1,
+        descricao: 'Soleira Aço Inox Premium Ram Dakota Inox Natural',
+        codigo: 'S-2286',
+        unidade: 'UN',
+        quantidade: 1.00,
+        valor_unitario: 153.39,
+        valor_total: 153.39,
+        ncm: '8302.30.00',
+        cfop: '6107',
+        cest: '01.026.00',
+        origem: '0 - Nacional',
+        csosn: '102 - Tributada sem permissão de crédito',
+        codigo_barras_interno: '01.026.00',
+        codigo_barras_tributario: '01.026.00',
+        valor_frete: 0.00,
+        valor_desconto: 0.00,
+        tipo_desconto: 'Condicional',
+        informacoes_complementares: 'Total aproximado de tributos: R$ [APROX_TRIB]. Fonte IBPT.'
+      }],
+      totais: {
+        total_produtos: 153.39,
+        valor_frete: 0.00,
+        valor_desconto: 0.00,
+        total_nota: 153.39
+      },
+      icms: {
+        csosn: '102 - Tributada sem permissão de crédito',
+        origem: '0 - Nacional',
+        informacoes_complementares: 'Informações adicionais de interesse do fisco do ICMS'
+      }
+    }];
+  }
+
+  const filteredNotas = notas.filter(function(nota) {
+    var term = search.toLowerCase();
+    return (
+      nota.numero?.toLowerCase().includes(term) ||
+      nota.destinatario?.nome?.toLowerCase().includes(term) ||
+      nota.destinatario?.cpf?.includes(term)
+    );
+  });
+
+  function toggleExpand(id) {
+    var newSet = new Set(expandedNotas);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setExpandedNotas(newSet);
+  }
+
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+  }
+
+  function formatDate(date) {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('pt-BR');
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Cabeçalho */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <p className="text-sm text-orange-400">Documentos</p>
+        <h1 className="mt-2 text-3xl font-semibold">Notas Fiscais</h1>
+        <p className="mt-2 text-sm text-slate-400">Consulta e visualização de notas fiscais emitidas.</p>
+      </div>
+
+      {/* Busca */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              value={search}
+              onChange={function(e) { setSearch(e.target.value); }}
+              placeholder="Buscar por número, cliente ou CPF..."
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-10 py-2.5 text-sm"
+            />
+          </div>
+          <button className="rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600">
+            + Nova Nota
+          </button>
+        </div>
+      </div>
+
+      {/* Lista de Notas */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-center text-slate-400">
+            Carregando notas fiscais...
+          </div>
+        ) : filteredNotas.length === 0 ? (
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-center text-slate-400">
+            Nenhuma nota fiscal encontrada.
+          </div>
+        ) : (
+          filteredNotas.map(function(nota) {
+            return (
+              <div key={nota.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 overflow-hidden">
+                {/* Resumo da Nota */}
+                <div 
+                  className="flex cursor-pointer items-center justify-between p-6 transition hover:bg-slate-800/30"
+                  onClick={function() { toggleExpand(nota.id); }}
+                >
+                  <div className="flex items-center gap-4">
+                    <FileText size={24} className="text-orange-400" />
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-semibold text-white">
+                          Nota Fiscal {nota.serie}/{nota.numero}
+                        </span>
+                        <span className="rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-300">
+                          {nota.finalidade || 'Normal'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-slate-400">
+                        {nota.destinatario?.nome} • {formatDate(nota.data_emissao)} • {formatCurrency(nota.totais?.total_nota)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      className="rounded-xl border border-slate-700 p-2 transition hover:border-orange-500/60"
+                      onClick={function(e) { e.stopPropagation(); }}
+                    >
+                      <Printer size={16} className="text-slate-400" />
+                    </button>
+                    <button 
+                      className="rounded-xl border border-slate-700 p-2 transition hover:border-orange-500/60"
+                      onClick={function(e) { e.stopPropagation(); }}
+                    >
+                      <Download size={16} className="text-slate-400" />
+                    </button>
+                    {expandedNotas.has(nota.id) ? (
+                      <ChevronDown size={20} className="text-slate-400" />
+                    ) : (
+                      <ChevronRight size={20} className="text-slate-400" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Detalhes Expandidos */}
+                {expandedNotas.has(nota.id) && (
+                  <div className="border-t border-slate-800 p-6 space-y-6">
+                    {/* Cabeçalho da Nota */}
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                      <div>
+                        <p className="text-xs text-slate-500">Tipo de Saída</p>
+                        <p className="text-sm text-white">{nota.tipo_saida || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Série</p>
+                        <p className="text-sm text-white">{nota.serie || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Número</p>
+                        <p className="text-sm text-white">{nota.numero || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Loja</p>
+                        <p className="text-sm text-white">{nota.loja || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Natureza da Operação</p>
+                        <p className="text-sm text-white">{nota.natureza_operacao || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Data de Emissão</p>
+                        <p className="text-sm text-white">{nota.data_emissao ? formatDate(nota.data_emissao) : '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Regime Tributário</p>
+                        <p className="text-sm text-white">{nota.regime_tributario || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Indicador de Presença</p>
+                        <p className="text-sm text-white">{nota.indicador_presenca || '-'}</p>
+                      </div>
+                    </div>
+
+                    {/* Destinatário */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Destinatário</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-slate-500">Nome</p>
+                          <p className="text-sm text-white">{nota.destinatario?.nome || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">CPF</p>
+                          <p className="text-sm text-white">{nota.destinatario?.cpf || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Vendedor</p>
+                          <p className="text-sm text-white">{nota.destinatario?.vendedor || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">CEP</p>
+                          <p className="text-sm text-white">{nota.destinatario?.cep || '-'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">Endereço</p>
+                          <p className="text-sm text-white">
+                            {nota.destinatario?.endereco || '-'}, {nota.destinatario?.numero || '-'}
+                            {nota.destinatario?.complemento ? ' - ' + nota.destinatario.complemento : ''}
+                            {nota.destinatario?.bairro ? ', ' + nota.destinatario.bairro : ''}
+                            {nota.destinatario?.municipio ? ' - ' + nota.destinatario.municipio : ''}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Itens da Nota */}
+                    <div>
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Itens da Nota Fiscal</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-left text-xs text-slate-500">
+                              <th className="pb-2">Produto</th>
+                              <th className="pb-2">Código</th>
+                              <th className="pb-2">UN</th>
+                              <th className="pb-2 text-right">Qtde</th>
+                              <th className="pb-2 text-right">Valor Unit.</th>
+                              <th className="pb-2 text-right">Valor Total</th>
+                              <th className="pb-2">NCM</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {nota.items?.map(function(item, index) {
+                              return (
+                                <tr key={item.id || index} className="border-b border-slate-800/50">
+                                  <td className="py-3 text-white">{item.descricao}</td>
+                                  <td className="py-3 text-white">{item.codigo}</td>
+                                  <td className="py-3 text-white">{item.unidade}</td>
+                                  <td className="py-3 text-right text-white">{item.quantidade?.toFixed(2)}</td>
+                                  <td className="py-3 text-right text-white">{formatCurrency(item.valor_unitario)}</td>
+                                  <td className="py-3 text-right text-white">{formatCurrency(item.valor_total)}</td>
+                                  <td className="py-3 text-white font-mono text-orange-300">{FIXOS.ncm}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* CAMPOS FIXOS DA NF-e */}
+                    <div className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Informações Fiscais (Fixas)</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">CEST</p>
+                          <p className="text-sm font-mono font-semibold text-orange-300">{FIXOS.cest}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">NCM</p>
+                          <p className="text-sm font-mono font-semibold text-orange-300">{FIXOS.ncm}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">Origem</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.origem}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3">
+                          <p className="text-xs text-slate-500">CSOSN</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.csosn}</p>
+                        </div>
+                        <div className="rounded-lg bg-slate-950/70 p-3 md:col-span-4">
+                          <p className="text-xs text-slate-500">CFOP</p>
+                          <p className="text-sm font-mono text-white">{FIXOS.cfop}</p>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-xs text-slate-500 border-t border-orange-500/20 pt-3">
+                        ⚡ Estes valores são padrão para todos os produtos da empresa.
+                      </p>
+                    </div>
+
+                    {/* Totais */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">Cálculo de Impostos</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                        <div>
+                          <p className="text-xs text-slate-500">Total dos Produtos</p>
+                          <p className="text-sm font-semibold text-white">{formatCurrency(nota.totais?.total_produtos)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Valor do Frete</p>
+                          <p className="text-sm font-semibold text-white">{formatCurrency(nota.totais?.valor_frete)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Valor do Desconto</p>
+                          <p className="text-sm font-semibold text-white">{formatCurrency(nota.totais?.valor_desconto)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500">Total da Nota</p>
+                          <p className="text-sm font-semibold text-orange-400">{formatCurrency(nota.totais?.total_nota)}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ICMS */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+                      <h3 className="mb-3 text-sm font-semibold text-orange-400">ICMS</h3>
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                        <div>
+                          <p className="text-xs text-slate-500">Origem</p>
+                          <p className="text-sm text-white font-mono">{FIXOS.origem}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-slate-500">CSOSN</p>
+                          <p className="text-sm text-white font-mono">{FIXOS.csosn}</p>
+                        </div>
+                        <div className="col-span-3">
+                          <p className="text-xs text-slate-500">Informações Complementares do ICMS</p>
+                          <p className="text-sm text-white">{nota.icms?.informacoes_complementares || 'Informações adicionais de interesse do fisco do ICMS'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,4 +1,12 @@
-﻿import { useEffect, useState } from 'react';
+﻿# Atualizar ReturnsPage com tratamento para reason
+$file = ".\src\pages\ReturnsPage.jsx"
+$backup = ".\src\pages\ReturnsPage.jsx.bak"
+
+# Backup
+Copy-Item $file $backup -Force
+
+$content = @"
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const emptyForm = {
@@ -6,7 +14,7 @@ const emptyForm = {
   order_number: '',
   customer_name: '',
   product_name: '',
-  reason: '',
+  reason: 'Outros',
   affected: '',
   product_value: '',
   cost: '',
@@ -38,7 +46,8 @@ export default function ReturnsPage() {
     
     const formData = {
       ...form,
-      original_nfe_number: form.original_nfe_number || 'SEM_NFE'
+      original_nfe_number: form.original_nfe_number || 'SEM_NFE',
+      reason: form.reason || 'Outros'
     };
     
     if (editingId) {
@@ -71,7 +80,7 @@ export default function ReturnsPage() {
       order_number: item.order_number ?? '',
       customer_name: item.customer_name ?? '',
       product_name: item.product_name ?? '',
-      reason: item.reason ?? '',
+      reason: item.reason ?? 'Outros',
       affected: item.affected ?? '',
       product_value: item.product_value ?? '',
       cost: item.cost ?? '',
@@ -143,13 +152,19 @@ export default function ReturnsPage() {
             onChange={(e) => setForm({ ...form, product_name: e.target.value })} 
             required 
           />
-          <input 
+          <select 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
-            placeholder="Motivo" 
             value={form.reason} 
-            onChange={(e) => setForm({ ...form, reason: e.target.value })} 
-            required 
-          />
+            onChange={(e) => setForm({ ...form, reason: e.target.value })}
+            required
+          >
+            <option value="Defeito">Defeito</option>
+            <option value="Arrependimento">Arrependimento</option>
+            <option value="Produto diferente">Produto diferente</option>
+            <option value="Produto danificado">Produto danificado</option>
+            <option value="Entrega atrasada">Entrega atrasada</option>
+            <option value="Outros">Outros</option>
+          </select>
           <input 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
             placeholder="Afetou (ex: embalagem, transporte)" 
@@ -276,3 +291,12 @@ export default function ReturnsPage() {
     </div>
   );
 }
+"@
+
+# Escreve o novo conteúdo
+Set-Content -Path $file -Value $content -Encoding UTF8
+
+Write-Host "✅ Arquivo $file atualizado!"
+Write-Host "📋 Backup salvo em: $backup"
+Write-Host ""
+Write-Host "Agora execute: npm run dev"

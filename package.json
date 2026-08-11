@@ -5,12 +5,18 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "start": "node server.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
+    "axios": "^1.19.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "html2pdf.js": "^0.14.0",
     "jsbarcode": "^3.11.6",
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
@@ -18,6 +24,7 @@
     "react-router-dom": "^6.20.0"
   },
   "devDependencies": {
+    "@tray-tecnologia/tray-api-plugin": "github:tray-tecnologia/tray-api-claude-plugin",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",

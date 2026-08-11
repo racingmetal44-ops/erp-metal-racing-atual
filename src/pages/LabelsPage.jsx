@@ -21,6 +21,7 @@ export default function LabelsPage() {
   const [showPrint, setShowPrint] = useState(false);
   const [selectedLabel, setSelectedLabel] = useState(null);
   const [selectedImage, setSelectedImage] = useState('');
+  const [selectedLabelIds, setSelectedLabelIds] = useState([]);
   const barcodeRef = useRef(null);
 
   async function loadLabels() {
@@ -164,12 +165,18 @@ export default function LabelsPage() {
   }
 
   function handleBulkPrint() {
-    if (filteredLabels.length === 0) {
-      setMessage('❌ Nenhuma etiqueta para imprimir.');
+    if (selectedLabelIds.length === 0) {
+      setMessage('❌ Selecione pelo menos uma etiqueta para imprimir.');
       return;
     }
-    setSelectedLabel({ id: 'bulk', product_code: filteredLabels.length + ' etiquetas' });
+    setSelectedLabel({ id: 'bulk', product_code: selectedLabelIds.length + ' etiquetas' });
     setShowPrint(true);
+  }
+
+  function handleToggleLabelSelection(labelId) {
+    setSelectedLabelIds((prev) =>
+      prev.includes(labelId) ? prev.filter((id) => id !== labelId) : [...prev, labelId]
+    );
   }
 
   function confirmPrint() {
@@ -310,39 +317,26 @@ export default function LabelsPage() {
       }
     };
 
-    if (selectedLabel.id === 'bulk') {
-      filteredLabels.forEach(label => {
-        const barcodeImage = generateBarcodeSVGInline(label.barcode || label.product_code || '1234567890');
-        html += `
-          <div class="label">
-            <div class="brand">● METAL RACING ●</div>
-            <div class="product-name">${label.product_name || 'PRODUTO'}</div>
-            <div class="product-code">${label.product_code || 'SEM CODIGO'}</div>
-            <div class="sku">SKU: ${label.sku || 'N/D'}</div>
-            <div class="batch">Lote: ${label.batch || 'N/D'}</div>
-            <div class="barcode-container">
-              ${barcodeImage ? `<img src="${barcodeImage}" alt="Codigo de Barras" />` : 
-                `<div class="barcode-text">${label.barcode || label.product_code || 'N/D'}</div>`}
-            </div>
-          </div>
-        `;
-      });
-    } else {
-      const barcodeImage = generateBarcodeSVGInline(selectedLabel.barcode || selectedLabel.product_code || '1234567890');
+    const selectedLabelsToPrint = selectedLabel?.id === 'bulk'
+      ? labels.filter((label) => selectedLabelIds.includes(label.id))
+      : [selectedLabel];
+
+    selectedLabelsToPrint.forEach((label) => {
+      const barcodeImage = generateBarcodeSVGInline(label.barcode || label.product_code || '1234567890');
       html += `
         <div class="label">
           <div class="brand">● METAL RACING ●</div>
-          <div class="product-name">${selectedLabel.product_name || 'PRODUTO'}</div>
-          <div class="product-code">${selectedLabel.product_code || 'SEM CODIGO'}</div>
-          <div class="sku">SKU: ${selectedLabel.sku || 'N/D'}</div>
-          <div class="batch">Lote: ${selectedLabel.batch || 'N/D'}</div>
+          <div class="product-name">${label.product_name || 'PRODUTO'}</div>
+          <div class="product-code">${label.product_code || 'SEM CODIGO'}</div>
+          <div class="sku">SKU: ${label.sku || 'N/D'}</div>
+          <div class="batch">Lote: ${label.batch || 'N/D'}</div>
           <div class="barcode-container">
             ${barcodeImage ? `<img src="${barcodeImage}" alt="Codigo de Barras" />` : 
-              `<div class="barcode-text">${selectedLabel.barcode || selectedLabel.product_code || 'N/D'}</div>`}
+              `<div class="barcode-text">${label.barcode || label.product_code || 'N/D'}</div>`}
           </div>
         </div>
       `;
-    }
+    });
 
     html += `
           </div>
@@ -360,6 +354,7 @@ export default function LabelsPage() {
     printWindow.document.write(html);
     printWindow.document.close();
   }
+
   const filteredLabels = labels.filter(label => {
     const search = searchTerm.toLowerCase().trim();
     if (!search) return true;
@@ -512,7 +507,28 @@ export default function LabelsPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredLabels.map(label => (
-              <div key={label.id} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5">
+              <div
+                key={label.id}
+                className={`rounded-2xl border p-5 ${selectedLabelIds.includes(label.id)
+                  ? 'border-orange-500/40 bg-orange-950/40'
+                  : 'border-slate-800 bg-slate-950/60'}`}
+              >
+                <div className="mb-4 flex items-center justify-between gap-2">
+                  <label className="inline-flex items-center gap-2 text-sm text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={selectedLabelIds.includes(label.id)}
+                      onChange={() => handleToggleLabelSelection(label.id)}
+                      className="h-4 w-4 rounded border-slate-600 bg-slate-950 text-orange-500"
+                    />
+                    Selecionar
+                  </label>
+                  {selectedLabelIds.includes(label.id) && (
+                    <span className="rounded-full bg-orange-500/10 px-2 py-0.5 text-[11px] text-orange-300">
+                      Selecionado
+                    </span>
+                  )}
+                </div>
                 <h2 className="text-lg font-semibold text-slate-100">
                   {label.product_code || 'Etiqueta'}
                 </h2>
@@ -585,7 +601,7 @@ export default function LabelsPage() {
 
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-400">
               {selectedLabel?.id === 'bulk' 
-                ? `🖨️ Impressão em massa para ${filteredLabels.length} etiqueta(s).`
+                ? `🖨️ Impressão em massa para ${selectedLabelIds.length} etiqueta(s).`
                 : `🖨️ Impressão para ${selectedLabel?.product_code || 'etiqueta'}.`}
             </div>
 

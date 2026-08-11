@@ -36,6 +36,7 @@ const pageOptions = [
   { path: '/pedidos', label: 'Pedidos' },
   { path: '/quadro-producao', label: 'Quadro de Producao' },
   { path: '/nfe', label: 'NF-e' },
+  { path: '/contabilidade', label: 'Contabilidade' },
   { path: '/financeiro', label: 'Financeiro' },
   { path: '/ranking', label: 'Ranking' },
   { path: '/avisos', label: 'Avisos' },

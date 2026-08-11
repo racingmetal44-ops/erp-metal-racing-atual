@@ -1,18 +1,25 @@
-﻿import { useEffect, useState } from 'react';
+﻿# Atualizar ReturnsPage com mapeamento correto das colunas
+$file = ".\src\pages\ReturnsPage.jsx"
+$backup = ".\src\pages\ReturnsPage.jsx.bak"
+
+# Backup
+Copy-Item $file $backup -Force
+
+$content = @"
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const emptyForm = {
   return_date: '',
   order_number: '',
   customer_name: '',
-  product_name: '',
   reason: '',
-  affected: '',
-  product_value: '',
+  reason_notes: '',
+  total_value: '',
   cost: '',
-  status: 'pendente',
-  notes: '',
-  original_nfe_number: '',
+  status: 'rascunho',
+  company_name: '',
+  original_access_key: '',
 };
 
 export default function ReturnsPage() {
@@ -37,8 +44,16 @@ export default function ReturnsPage() {
     setMessage('');
     
     const formData = {
-      ...form,
-      original_nfe_number: form.original_nfe_number || 'SEM_NFE'
+      return_date: form.return_date,
+      order_number: form.order_number,
+      customer_name: form.customer_name,
+      reason: form.reason,
+      reason_notes: form.reason_notes,
+      total_value: parseFloat(form.total_value) || 0,
+      status: form.status || 'rascunho',
+      company_name: form.company_name || '',
+      original_access_key: form.original_access_key || '',
+      cost: parseFloat(form.cost) || 0
     };
     
     if (editingId) {
@@ -49,7 +64,7 @@ export default function ReturnsPage() {
         setForm(emptyForm);
         await loadReturns();
       } else {
-        setMessage(error.message);
+        setMessage('Erro: ' + error.message);
       }
       return;
     }
@@ -60,7 +75,7 @@ export default function ReturnsPage() {
       setForm(emptyForm);
       await loadReturns();
     } else {
-      setMessage(error.message);
+      setMessage('Erro: ' + error.message);
     }
   }
 
@@ -70,14 +85,13 @@ export default function ReturnsPage() {
       return_date: item.return_date ?? '',
       order_number: item.order_number ?? '',
       customer_name: item.customer_name ?? '',
-      product_name: item.product_name ?? '',
       reason: item.reason ?? '',
-      affected: item.affected ?? '',
-      product_value: item.product_value ?? '',
+      reason_notes: item.reason_notes ?? '',
+      total_value: item.total_value ?? '',
       cost: item.cost ?? '',
-      status: item.status ?? 'pendente',
-      notes: item.notes ?? '',
-      original_nfe_number: item.original_nfe_number ?? '',
+      status: item.status ?? 'rascunho',
+      company_name: item.company_name ?? '',
+      original_access_key: item.original_access_key ?? '',
     });
   }
 
@@ -87,7 +101,7 @@ export default function ReturnsPage() {
       setMessage('Devolução removida com sucesso.');
       await loadReturns();
     } else {
-      setMessage(error.message);
+      setMessage('Erro: ' + error.message);
     }
   }
 
@@ -97,8 +111,8 @@ export default function ReturnsPage() {
       item.return_date || '', 
       item.order_number || '', 
       item.customer_name || '', 
-      item.product_name || '',
-      item.reason || ''
+      item.reason || '',
+      item.company_name || ''
     ].join(' ').toLowerCase().includes(term);
   });
 
@@ -138,31 +152,37 @@ export default function ReturnsPage() {
           />
           <input 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
-            placeholder="Produto" 
-            value={form.product_name} 
-            onChange={(e) => setForm({ ...form, product_name: e.target.value })} 
-            required 
+            placeholder="Empresa" 
+            value={form.company_name} 
+            onChange={(e) => setForm({ ...form, company_name: e.target.value })} 
           />
-          <input 
+          <select 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
-            placeholder="Motivo" 
             value={form.reason} 
-            onChange={(e) => setForm({ ...form, reason: e.target.value })} 
-            required 
-          />
+            onChange={(e) => setForm({ ...form, reason: e.target.value })}
+            required
+          >
+            <option value="">Selecione o motivo</option>
+            <option value="produto_com_defeito">Produto com defeito</option>
+            <option value="cliente_de_servico">Cliente de serviço</option>
+            <option value="arrependimento">Arrependimento</option>
+            <option value="produto_diferente">Produto diferente</option>
+            <option value="entrega_atrasada">Entrega atrasada</option>
+            <option value="outros">Outros</option>
+          </select>
           <input 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
-            placeholder="Afetou (ex: embalagem, transporte)" 
-            value={form.affected} 
-            onChange={(e) => setForm({ ...form, affected: e.target.value })} 
+            placeholder="Motivo (detalhes)" 
+            value={form.reason_notes} 
+            onChange={(e) => setForm({ ...form, reason_notes: e.target.value })} 
           />
           <input 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
             type="number"
             step="0.01"
-            placeholder="Valor do produto" 
-            value={form.product_value} 
-            onChange={(e) => setForm({ ...form, product_value: e.target.value })} 
+            placeholder="Valor total" 
+            value={form.total_value} 
+            onChange={(e) => setForm({ ...form, total_value: e.target.value })} 
             required 
           />
           <input 
@@ -175,25 +195,19 @@ export default function ReturnsPage() {
           />
           <input 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
-            placeholder="Nº Nota Fiscal Original" 
-            value={form.original_nfe_number} 
-            onChange={(e) => setForm({ ...form, original_nfe_number: e.target.value })} 
+            placeholder="Chave de acesso original" 
+            value={form.original_access_key} 
+            onChange={(e) => setForm({ ...form, original_access_key: e.target.value })} 
           />
           <select 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" 
             value={form.status} 
             onChange={(e) => setForm({ ...form, status: e.target.value })}
           >
-            <option value="pendente">Pendente</option>
-            <option value="aprovada">Aprovada</option>
-            <option value="rejeitada">Rejeitada</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="autorizada">Autorizada</option>
+            <option value="criado">Criado</option>
           </select>
-          <textarea 
-            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 md:col-span-2 xl:col-span-1" 
-            placeholder="Observações" 
-            value={form.notes} 
-            onChange={(e) => setForm({ ...form, notes: e.target.value })} 
-          />
           <div className="flex gap-2 md:col-span-2 xl:col-span-1">
             <button className="rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition">
               {editingId ? 'Salvar' : 'Cadastrar'}
@@ -217,7 +231,7 @@ export default function ReturnsPage() {
           <input 
             value={search} 
             onChange={(e) => setSearch(e.target.value)} 
-            placeholder="Buscar por data, pedido, cliente, produto ou motivo" 
+            placeholder="Buscar por pedido, cliente, motivo ou empresa" 
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 w-full md:w-96" 
           />
         </div>
@@ -235,8 +249,8 @@ export default function ReturnsPage() {
                   <div className="flex justify-between items-start">
                     <h2 className="text-lg font-semibold">#{item.order_number || 'N/A'}</h2>
                     <span className={'text-xs px-2 py-1 rounded-full ' + (
-                      item.status === 'aprovada' ? 'bg-green-500/20 text-green-400' :
-                      item.status === 'rejeitada' ? 'bg-red-500/20 text-red-400' :
+                      item.status === 'autorizada' ? 'bg-green-500/20 text-green-400' :
+                      item.status === 'criado' ? 'bg-blue-500/20 text-blue-400' :
                       'bg-yellow-500/20 text-yellow-400'
                     )}>
                       {item.status}
@@ -244,15 +258,16 @@ export default function ReturnsPage() {
                   </div>
                   <p className="mt-2 text-sm text-slate-400">Data: {item.return_date || 'N/D'}</p>
                   <p className="mt-1 text-sm text-slate-400">Cliente: {item.customer_name || 'N/D'}</p>
-                  <p className="mt-1 text-sm text-slate-400">Produto: {item.product_name || 'N/D'}</p>
                   <p className="mt-1 text-sm text-slate-400">Motivo: {item.reason || 'N/D'}</p>
-                  {item.affected && <p className="mt-1 text-sm text-slate-400">Afetou: {item.affected}</p>}
-                  {item.original_nfe_number && <p className="mt-1 text-sm text-slate-400">NF-e: {item.original_nfe_number}</p>}
+                  {item.reason_notes && <p className="mt-1 text-sm text-slate-400">Detalhes: {item.reason_notes}</p>}
+                  {item.company_name && <p className="mt-1 text-sm text-slate-400">Empresa: {item.company_name}</p>}
+                  {item.original_access_key && (
+                    <p className="mt-1 text-sm text-slate-400">Chave: {item.original_access_key.substring(0, 10)}...</p>
+                  )}
                   <div className="mt-2 flex gap-3 text-sm">
-                    <span className="text-slate-400">Valor: R$ {parseFloat(item.product_value || 0).toFixed(2)}</span>
+                    <span className="text-slate-400">Valor: R$ {parseFloat(item.total_value || 0).toFixed(2)}</span>
                     {item.cost && <span className="text-slate-400">Custo: R$ {parseFloat(item.cost).toFixed(2)}</span>}
                   </div>
-                  {item.notes && <p className="mt-2 text-sm text-slate-500">Obs: {item.notes}</p>}
                   <div className="mt-4 flex gap-2">
                     <button 
                       onClick={() => handleEdit(item)} 
@@ -276,3 +291,12 @@ export default function ReturnsPage() {
     </div>
   );
 }
+"@
+
+# Escreve o novo conteúdo
+Set-Content -Path $file -Value $content -Encoding UTF8
+
+Write-Host "✅ Arquivo $file atualizado com mapeamento correto das colunas!"
+Write-Host "📋 Backup salvo em: $backup"
+Write-Host ""
+Write-Host "Agora execute: npm run dev"

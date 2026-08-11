@@ -1,4 +1,12 @@
-﻿import { useEffect, useState } from 'react';
+﻿# Atualizar ReturnsPage com campo original_nfe_number
+$file = ".\src\pages\ReturnsPage.jsx"
+$backup = ".\src\pages\ReturnsPage.jsx.bak"
+
+# Backup
+Copy-Item $file $backup -Force
+
+$content = @"
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const emptyForm = {
@@ -276,3 +284,12 @@ export default function ReturnsPage() {
     </div>
   );
 }
+"@
+
+# Escreve o novo conteúdo
+Set-Content -Path $file -Value $content -Encoding UTF8
+
+Write-Host "✅ Arquivo $file atualizado com o campo original_nfe_number!"
+Write-Host "📋 Backup salvo em: $backup"
+Write-Host ""
+Write-Host "Agora execute: npm run dev"
