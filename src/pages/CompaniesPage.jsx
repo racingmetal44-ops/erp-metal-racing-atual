@@ -260,15 +260,25 @@ export default function CompaniesPage() {
     e.preventDefault();
     setMessage('');
 
-    const cnpjValue = onlyDigits(form.cnpj || '');
-    if (form.cnpj && !isValidCNPJ(form.cnpj)) {
-      setMessage('⚠️ CNPJ inválido.');
+    if (!form.name || !form.name.trim()) {
+      setMessage('⚠️ Preencha o nome da empresa.');
       return;
     }
 
-    if (form.cep && !/^\d{8}$/.test(onlyDigits(form.cep || ''))) {
-      setMessage('⚠️ CEP inválido.');
-      return;
+    const cnpjValue = onlyDigits(form.cnpj || '');
+    if (form.cnpj && form.cnpj.trim()) {
+      if (!isValidCNPJ(form.cnpj)) {
+        setMessage('⚠️ CNPJ inválido. Verifique o número digitado.');
+        return;
+      }
+    }
+
+    if (form.cep && form.cep.trim()) {
+      const cepDigits = onlyDigits(form.cep || '');
+      if (cepDigits.length !== 8) {
+        setMessage('⚠️ CEP inválido. Deve conter 8 dígitos.');
+        return;
+      }
     }
 
     const payload = buildPayloadFromForm(form);
@@ -282,7 +292,7 @@ export default function CompaniesPage() {
           setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('Empresa atualizada com sucesso.');
+        setMessage('✅ Empresa atualizada com sucesso.');
       } else {
         const { error } = await supabase.from('companies').insert(payload);
         if (error) {
@@ -290,16 +300,20 @@ export default function CompaniesPage() {
           setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('Empresa criada com sucesso.');
+        setMessage('✅ Empresa criada com sucesso.');
       }
 
-      setEditingId(null);
-      setForm(emptyForm);
-      setCertificateMeta(null);
+      setTimeout(() => {
+        setEditingId(null);
+        setForm(emptyForm);
+        setCertificateMeta(null);
+        setMessage('');
+      }, 1500);
+      
       await loadCompanies();
     } catch (error) {
       console.error('Erro ao salvar empresa:', error);
-      setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
+      setMessage('❌ Não foi possível salvar a empresa. Tente novamente.');
     }
   }
 
