@@ -40,7 +40,7 @@ const emptyForm = {
   tipo_ambiente: 'homologacao',
   cfop: '',
   ncm: '',
-  cest: '',
+
   origem_mercadoria: '',
   cst: '',
   csosn: '',
@@ -152,7 +152,7 @@ function getCompanyChecklist(company) {
     { label: 'Série configurada', ok: Boolean(company.serie_nfe) },
     { label: 'Numeração configurada', ok: Boolean(company.proximo_numero_nf) },
     { label: 'UF da SEFAZ', ok: Boolean(company.uf_sefaz || company.sefaz_uf) },
-    { label: 'Configuração fiscal', ok: Boolean(company.cfop || company.ncm || company.cest || company.icms) },
+    { label: 'Configuração fiscal', ok: Boolean(company.cfop || company.ncm || company.icms) },
     { label: 'Comunicação com SEFAZ', ok: Boolean(company.sefaz_configurada) },
   ];
 }
@@ -190,7 +190,7 @@ function buildPayloadFromForm(form) {
     uf_sefaz: form.uf_sefaz?.trim().toUpperCase() || '',
     cfop: form.cfop?.trim() || '',
     ncm: form.ncm?.trim() || '',
-    cest: form.cest?.trim() || '',
+
     origem_mercadoria: form.origem_mercadoria?.trim() || '',
     cst: form.cst?.trim() || '',
     csosn: form.csosn?.trim() || '',
@@ -352,7 +352,7 @@ export default function CompaniesPage() {
       uf_sefaz: company.uf_sefaz ?? '',
       cfop: company.cfop ?? '',
       ncm: company.ncm ?? '',
-      cest: company.cest ?? '',
+
       origem_mercadoria: company.origem_mercadoria ?? '',
       cst: company.cst ?? '',
       csosn: company.csosn ?? '',
@@ -594,7 +594,7 @@ export default function CompaniesPage() {
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CFOP" value={form.cfop} onChange={(e) => setForm({ ...form, cfop: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="NCM" value={form.ncm} onChange={(e) => setForm({ ...form, ncm: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CEST" value={form.cest} onChange={(e) => setForm({ ...form, cest: e.target.value })} />
+
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Origem da mercadoria" value={form.origem_mercadoria} onChange={(e) => setForm({ ...form, origem_mercadoria: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CST" value={form.cst} onChange={(e) => setForm({ ...form, cst: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CSOSN" value={form.csosn} onChange={(e) => setForm({ ...form, csosn: e.target.value })} />
