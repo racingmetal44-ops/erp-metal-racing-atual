@@ -51,9 +51,10 @@ export default function StockPage() {
   const [bipeCode, setBipeCode] = useState('');
   const [bipeProduct, setBipeProduct] = useState(null);
   const [bipeLoading, setBipeLoading] = useState(false);
-  const [bipeStatus, setBipeStatus] = useState(''); // NOVO: para controlar a cor
+  const [bipeStatus, setBipeStatus] = useState('');
   const bipeInputRef = useRef(null);
   const [stats, setStats] = useState({ total: 0, baixo: 0, alto: 0, totalItens: 0 });
+  const [bipeTimeout, setBipeTimeout] = useState(null);
 
   async function loadProducts() {
     setLoading(true);
@@ -315,7 +316,7 @@ export default function StockPage() {
     setBipeCode('');
     setBipeProduct(null);
     setBipeLoading(false);
-    setBipeStatus(''); // Resetar status
+    setBipeStatus('');
     setTimeout(() => bipeInputRef.current?.focus(), 100);
   }
 
@@ -324,6 +325,32 @@ export default function StockPage() {
     setBipeProduct(null);
     setBipeCode('');
     setBipeStatus('');
+    if (bipeTimeout) {
+      clearTimeout(bipeTimeout);
+      setBipeTimeout(null);
+    }
+  }
+
+  // =============================================
+  // LEITURA AUTOMÁTICA - SEM PRECISAR DE ENTER
+  // =============================================
+  function handleBipeCodeChange(e) {
+    const value = e.target.value;
+    setBipeCode(value);
+    
+    // Limpar timeout anterior
+    if (bipeTimeout) {
+      clearTimeout(bipeTimeout);
+      setBipeTimeout(null);
+    }
+    
+    // Se tiver pelo menos 3 caracteres, fazer busca automática após 300ms
+    if (value.length >= 3) {
+      const timeout = setTimeout(() => {
+        buscarProdutoParaBipe(value);
+      }, 300);
+      setBipeTimeout(timeout);
+    }
   }
 
   async function buscarProdutoParaBipe(codigo) {
@@ -342,7 +369,7 @@ export default function StockPage() {
 
       if (error || !data) {
         setBipeProduct(null);
-        setBipeStatus('nao-encontrado'); // AZUL - Produto não encontrado
+        setBipeStatus('nao-encontrado');
         setMessage('🔵 Produto não encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
@@ -358,7 +385,7 @@ export default function StockPage() {
         ...data,
         images: files ?? []
       });
-      setBipeStatus('encontrado'); // VERDE ou VERMELHO será definido na ação
+      setBipeStatus('encontrado');
       setMessage('');
     } catch (error) {
       setBipeLoading(false);
@@ -382,19 +409,23 @@ export default function StockPage() {
 
       if (error) throw error;
 
-      // Definir cor baseado na operação
       if (operacao === 'adicionar') {
-        setBipeStatus('entrada'); // VERDE
-        setMessage(`🟢 ${bipeProduct.name} - Entrada: +1 (Total: ${novaQuantidade})`);
+        setBipeStatus('entrada');
+        setMessage(`🟢 ENTRADA: ${bipeProduct.name} +1 (Total: ${novaQuantidade})`);
       } else {
-        setBipeStatus('saida'); // VERMELHO
-        setMessage(`🔴 ${bipeProduct.name} - Saída: -1 (Total: ${novaQuantidade})`);
+        setBipeStatus('saida');
+        setMessage(`🔴 SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`);
       }
 
+      // Limpar o produto após 2 segundos para permitir nova leitura
       setTimeout(() => {
-        fecharModalBipe();
-        setMessage('');
-      }, 2000);
+        setBipeProduct(null);
+        setBipeCode('');
+        setBipeStatus('');
+        if (bipeInputRef.current) {
+          bipeInputRef.current.focus();
+        }
+      }, 1500);
       
       await loadProducts();
     } catch (error) {
@@ -416,17 +447,16 @@ export default function StockPage() {
     return { label: 'OK', color: 'text-emerald-400', bg: 'bg-emerald-500/15', icon: CheckCircle };
   }
 
-  // Definir a cor do fundo do modal de bipe
   function getBipeBgColor() {
     switch (bipeStatus) {
       case 'entrada':
-        return 'border-emerald-500/50 bg-emerald-500/10'; // VERDE
+        return 'border-emerald-500/50 bg-emerald-500/10';
       case 'saida':
-        return 'border-rose-500/50 bg-rose-500/10'; // VERMELHO
+        return 'border-rose-500/50 bg-rose-500/10';
       case 'nao-encontrado':
-        return 'border-blue-500/50 bg-blue-500/10'; // AZUL
+        return 'border-blue-500/50 bg-blue-500/10';
       default:
-        return 'border-slate-800 bg-slate-900'; // PADRÃO
+        return 'border-slate-800 bg-slate-900';
     }
   }
 
@@ -449,7 +479,7 @@ export default function StockPage() {
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">Estoque</h1>
+        <h1 className="mt-2 text-3xl font-semibold">📡 Estoque</h1>
         <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com integração real ao Supabase.</p>
       </div>
 
@@ -638,7 +668,7 @@ export default function StockPage() {
       </div>
 
       {/* ============================================= */}
-      {/* MODAL DE BIPE COM CORES */}
+      {/* MODAL DE BIPE COM LEITURA AUTOMÁTICA */}
       {/* ============================================= */}
       {bipeModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
@@ -656,6 +686,7 @@ export default function StockPage() {
               </div>
               <h2 className="text-xl font-bold text-white">📡 Bipar Produto</h2>
               <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
+              <p className="text-xs text-emerald-400 mt-1">🔄 Leitura automática - não precisa de ENTER</p>
             </div>
 
             <input
@@ -669,8 +700,7 @@ export default function StockPage() {
               }`}
               placeholder="Digite ou leia o código..."
               value={bipeCode}
-              onChange={(e) => setBipeCode(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') { buscarProdutoParaBipe(bipeCode); } }}
+              onChange={handleBipeCodeChange}
               autoFocus
             />
 
@@ -700,7 +730,6 @@ export default function StockPage() {
                   </div>
                 </div>
 
-                {/* BOTÕES COM CORES */}
                 <div className="mt-4 flex gap-3">
                   <button
                     onClick={() => confirmarBipe('adicionar')}
@@ -721,7 +750,6 @@ export default function StockPage() {
               </div>
             )}
 
-            {/* MENSAGEM DE PRODUTO NÃO ENCONTRADO - AZUL */}
             {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
               <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
                 <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
@@ -731,7 +759,7 @@ export default function StockPage() {
             )}
 
             <p className="mt-4 text-center text-xs text-slate-500">
-              Pressione ENTER para buscar ou ESC para fechar
+              🔄 A busca é feita automaticamente após digitar o código
             </p>
           </div>
         </div>
