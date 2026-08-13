@@ -51,6 +51,7 @@ export default function StockPage() {
   const [bipeCode, setBipeCode] = useState('');
   const [bipeProduct, setBipeProduct] = useState(null);
   const [bipeLoading, setBipeLoading] = useState(false);
+  const [bipeStatus, setBipeStatus] = useState(''); // NOVO: para controlar a cor
   const bipeInputRef = useRef(null);
   const [stats, setStats] = useState({ total: 0, baixo: 0, alto: 0, totalItens: 0 });
 
@@ -314,6 +315,7 @@ export default function StockPage() {
     setBipeCode('');
     setBipeProduct(null);
     setBipeLoading(false);
+    setBipeStatus(''); // Resetar status
     setTimeout(() => bipeInputRef.current?.focus(), 100);
   }
 
@@ -321,11 +323,13 @@ export default function StockPage() {
     setBipeModalOpen(false);
     setBipeProduct(null);
     setBipeCode('');
+    setBipeStatus('');
   }
 
   async function buscarProdutoParaBipe(codigo) {
     if (!codigo || codigo.trim() === '') return;
     setBipeLoading(true);
+    setBipeStatus('');
 
     try {
       const { data, error } = await supabase
@@ -338,7 +342,8 @@ export default function StockPage() {
 
       if (error || !data) {
         setBipeProduct(null);
-        setMessage('❌ Produto não encontrado!');
+        setBipeStatus('nao-encontrado'); // AZUL - Produto não encontrado
+        setMessage('🔵 Produto não encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
       }
@@ -353,9 +358,11 @@ export default function StockPage() {
         ...data,
         images: files ?? []
       });
+      setBipeStatus('encontrado'); // VERDE ou VERMELHO será definido na ação
       setMessage('');
     } catch (error) {
       setBipeLoading(false);
+      setBipeStatus('nao-encontrado');
       setMessage(`❌ Erro: ${error.message}`);
     }
   }
@@ -375,10 +382,21 @@ export default function StockPage() {
 
       if (error) throw error;
 
-      setMessage(`✅ ${bipeProduct.name} - Nova quantidade: ${novaQuantidade}`);
-      fecharModalBipe();
+      // Definir cor baseado na operação
+      if (operacao === 'adicionar') {
+        setBipeStatus('entrada'); // VERDE
+        setMessage(`🟢 ${bipeProduct.name} - Entrada: +1 (Total: ${novaQuantidade})`);
+      } else {
+        setBipeStatus('saida'); // VERMELHO
+        setMessage(`🔴 ${bipeProduct.name} - Saída: -1 (Total: ${novaQuantidade})`);
+      }
+
+      setTimeout(() => {
+        fecharModalBipe();
+        setMessage('');
+      }, 2000);
+      
       await loadProducts();
-      setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage(`❌ Erro ao atualizar: ${error.message}`);
     }
@@ -398,6 +416,20 @@ export default function StockPage() {
     return { label: 'OK', color: 'text-emerald-400', bg: 'bg-emerald-500/15', icon: CheckCircle };
   }
 
+  // Definir a cor do fundo do modal de bipe
+  function getBipeBgColor() {
+    switch (bipeStatus) {
+      case 'entrada':
+        return 'border-emerald-500/50 bg-emerald-500/10'; // VERDE
+      case 'saida':
+        return 'border-rose-500/50 bg-rose-500/10'; // VERMELHO
+      case 'nao-encontrado':
+        return 'border-blue-500/50 bg-blue-500/10'; // AZUL
+      default:
+        return 'border-slate-800 bg-slate-900'; // PADRÃO
+    }
+  }
+
   const filtered = products.filter((product) => {
     const term = search.trim().toLowerCase();
     if (!term) return true;
@@ -414,12 +446,14 @@ export default function StockPage() {
 
   return (
     <div className="space-y-6">
+      {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
         <h1 className="mt-2 text-3xl font-semibold">Estoque</h1>
         <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com integração real ao Supabase.</p>
       </div>
 
+      {/* ESTATÍSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="flex items-center gap-2 text-slate-400"><Package size={18} /><span className="text-sm">Total</span></div>
@@ -439,6 +473,7 @@ export default function StockPage() {
         </div>
       </div>
 
+      {/* FORMULÁRIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{editingId ? '✏️ Editar produto' : '📦 Novo produto'}</h2>
@@ -513,6 +548,7 @@ export default function StockPage() {
         </form>
       </div>
 
+      {/* LISTAGEM */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
@@ -601,42 +637,107 @@ export default function StockPage() {
         )}
       </div>
 
+      {/* ============================================= */}
+      {/* MODAL DE BIPE COM CORES */}
+      {/* ============================================= */}
       {bipeModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+          <div className={`relative w-full max-w-lg rounded-2xl border-2 p-6 shadow-2xl transition-all duration-300 ${getBipeBgColor()}`}>
             <button onClick={fecharModalBipe} className="absolute top-4 right-4 text-slate-400 hover:text-white transition"><X size={24} /></button>
+            
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 mb-3"><QrCode size={32} /></div>
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 transition-all duration-300 ${
+                bipeStatus === 'entrada' ? 'bg-emerald-500/30 text-emerald-400' :
+                bipeStatus === 'saida' ? 'bg-rose-500/30 text-rose-400' :
+                bipeStatus === 'nao-encontrado' ? 'bg-blue-500/30 text-blue-400' :
+                'bg-emerald-500/20 text-emerald-400'
+              }`}>
+                <QrCode size={32} />
+              </div>
               <h2 className="text-xl font-bold text-white">📡 Bipar Produto</h2>
               <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
             </div>
-            <input ref={bipeInputRef} type="text" className="w-full rounded-xl border-2 border-orange-500/50 bg-slate-950 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:border-orange-500 focus:outline-none" placeholder="Digite ou leia o código..." value={bipeCode} onChange={(e) => setBipeCode(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { buscarProdutoParaBipe(bipeCode); } }} autoFocus />
+
+            <input
+              ref={bipeInputRef}
+              type="text"
+              className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${
+                bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' :
+                bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' :
+                bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' :
+                'border-orange-500/50 bg-slate-950 focus:border-orange-500'
+              }`}
+              placeholder="Digite ou leia o código..."
+              value={bipeCode}
+              onChange={(e) => setBipeCode(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { buscarProdutoParaBipe(bipeCode); } }}
+              autoFocus
+            />
+
             {bipeLoading && <div className="mt-4 text-center text-slate-400"><span className="animate-pulse">Buscando produto...</span></div>}
+
             {bipeProduct && !bipeLoading && (
-              <div className="mt-4 rounded-xl border border-slate-700 bg-slate-950/70 p-4">
+              <div className={`mt-4 rounded-xl border p-4 transition-all duration-300 ${
+                bipeStatus === 'entrada' ? 'border-emerald-500/50 bg-emerald-500/10' :
+                bipeStatus === 'saida' ? 'border-rose-500/50 bg-rose-500/10' :
+                'border-slate-700 bg-slate-950/70'
+              }`}>
                 <div className="flex items-center gap-4">
-                  {bipeProduct.images && bipeProduct.images.length > 0 ? <img src={bipeProduct.images[0].file_url} alt={bipeProduct.name} className="w-20 h-20 rounded-xl object-cover" /> : <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center"><Package size={32} className="text-slate-500" /></div>}
+                  {bipeProduct.images && bipeProduct.images.length > 0 ? (
+                    <img src={bipeProduct.images[0].file_url} alt={bipeProduct.name} className="w-20 h-20 rounded-xl object-cover" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center"><Package size={32} className="text-slate-500" /></div>
+                  )}
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-white">{bipeProduct.name}</h3>
                     <p className="text-sm text-slate-400">SKU: {bipeProduct.sku}</p>
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm text-slate-400">Quantidade atual:</span>
-                      <span className={`text-xl font-bold ${(bipeProduct.current_stock ?? 0) < (bipeProduct.min_stock ?? 0) ? 'text-rose-400' : 'text-emerald-400'}`}>{bipeProduct.current_stock ?? 0}</span>
+                      <span className={`text-xl font-bold ${(bipeProduct.current_stock ?? 0) < (bipeProduct.min_stock ?? 0) ? 'text-rose-400' : 'text-emerald-400'}`}>
+                        {bipeProduct.current_stock ?? 0}
+                      </span>
                     </div>
                   </div>
                 </div>
+
+                {/* BOTÕES COM CORES */}
                 <div className="mt-4 flex gap-3">
-                  <button onClick={() => confirmarBipe('adicionar')} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600 transition"><Plus size={18} /> Adicionar (+1)</button>
-                  <button onClick={() => confirmarBipe('remover')} disabled={(bipeProduct.current_stock ?? 0) <= 0} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white hover:bg-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed"><Minus size={18} /> Remover (-1)</button>
+                  <button
+                    onClick={() => confirmarBipe('adicionar')}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/30"
+                  >
+                    <Plus size={18} />
+                    🟢 Adicionar (+1)
+                  </button>
+                  <button
+                    onClick={() => confirmarBipe('remover')}
+                    disabled={(bipeProduct.current_stock ?? 0) <= 0}
+                    className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white hover:bg-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-rose-500/30"
+                  >
+                    <Minus size={18} />
+                    🔴 Remover (-1)
+                  </button>
                 </div>
               </div>
             )}
-            {!bipeProduct && !bipeLoading && bipeCode && <div className="mt-4 text-center text-rose-400"><AlertTriangle size={20} className="inline mr-2" /> Produto não encontrado</div>}
-            <p className="mt-4 text-center text-xs text-slate-500">Pressione ENTER para buscar ou ESC para fechar</p>
+
+            {/* MENSAGEM DE PRODUTO NÃO ENCONTRADO - AZUL */}
+            {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
+              <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
+                <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
+                <span className="text-blue-400 font-bold">🔵 Produto não encontrado!</span>
+                <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
+              </div>
+            )}
+
+            <p className="mt-4 text-center text-xs text-slate-500">
+              Pressione ENTER para buscar ou ESC para fechar
+            </p>
           </div>
         </div>
       )}
 
+      {/* MODAL DE IMAGENS */}
       {modalImage && modalImages.length > 0 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95" onClick={closeImageModal}>
           <div className="relative w-full h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
@@ -660,8 +761,15 @@ export default function StockPage() {
         </div>
       )}
 
-      {message && (message.includes('✅') || message.includes('❌') || message.includes('🗑️')) && (
-        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${message.includes('✅') || message.includes('🗑️') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+      {/* TOAST */}
+      {message && (message.includes('✅') || message.includes('❌') || message.includes('🗑️') || message.includes('🟢') || message.includes('🔴') || message.includes('🔵')) && (
+        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${
+          message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' :
+          message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
+          message.includes('✅') || message.includes('🗑️') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          'border-rose-500/30 bg-rose-500/10 text-rose-400'
+        }`}>
           {message}
         </div>
       )}
