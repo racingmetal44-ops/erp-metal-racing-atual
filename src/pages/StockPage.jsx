@@ -12,7 +12,6 @@ const emptyForm = {
   category: '',
   unit: '',
   ncm: '',
-  cest: '',
   cfop: '',
   origem: '',
   cst_csosn: '',
@@ -150,7 +149,6 @@ export default function StockPage() {
       current_stock: Number(form.current_stock),
       min_stock: Number(form.min_stock),
       ncm: form.ncm || '',
-      cest: form.cest || '',
       cfop: form.cfop || '',
       origem: form.origem || '',
       cst_csosn: form.cst_csosn || '',
@@ -259,7 +257,7 @@ export default function StockPage() {
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="SKU" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Código de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="NCM" value={form.ncm} onChange={(e) => setForm({ ...form, ncm: e.target.value })} />
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CEST" value={form.cest} onChange={(e) => setForm({ ...form, cest: e.target.value })} />
+
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CFOP" value={form.cfop} onChange={(e) => setForm({ ...form, cfop: e.target.value })} />
           <input type="number" className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Estoque atual" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: e.target.value })} />
           <input type="number" className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Estoque mínimo" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: e.target.value })} />
