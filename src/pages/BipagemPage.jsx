@@ -1,487 +1,582 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
+import {
+  QrCode,
+  Plus,
+  Minus,
+  AlertTriangle,
+  CheckCircle,
+  Package,
+  Search,
+  X,
+  History,
+  TrendingUp,
+  TrendingDown
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
+
+interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  barcode: string;
+  estoque_atual: number;
+  estoque_minimo: number;
+  estoque_maximo: number;
+  status: string;
+  category: string;
+  unit: string;
+  images: any[];
+}
+
+interface BipagemHistory {
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_sku: string;
+  tipo: 'entrada' | 'saida' | 'nao_encontrado';
+  quantidade: number;
+  quantidade_anterior: number;
+  quantidade_nova: number;
+  created_at: string;
+  usuario: string;
+}
 
 export default function BipagemPage() {
   const [codigo, setCodigo] = useState('');
-  const [quantidade, setQuantidade] = useState(1);
-  const [tipo, setTipo] = useState('entrada');
-  const [destino, setDestino] = useState('');
-  const [operador, setOperador] = useState('');
-  const [operadores, setOperadores] = useState([]);
+  const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingUsuarios, setLoadingUsuarios] = useState(true);
-  const [mensagem, setMensagem] = useState('');
-  const [ultimasBipagens, setUltimasBipagens] = useState([]);
-  const [stats, setStats] = useState({
-    total: 0,
-    entradas: 0,
-    saidas: 0,
-    operadores: 0
-  });
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error' | 'info' | null>(null);
+  const [history, setHistory] = useState<BipagemHistory[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [stats, setStats] = useState({ entradas: 0, saidas: 0, nao_encontrados: 0, total: 0 });
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [ultimaBipagem, setUltimaBipagem] = useState<BipagemHistory | null>(null);
+  const [bipeStatus, setBipeStatus] = useState<'entrada' | 'saida' | 'nao_encontrado' | null>(null);
+  const [bipeTimeout, setBipeTimeout] = useState<NodeJS.Timeout | null>(null);
 
+  // Carregar histórico ao iniciar
   useEffect(() => {
-    carregarUsuarios();
-    carregarUltimasBipagens();
+    loadHistory();
   }, []);
 
-  const carregarUsuarios = async () => {
-    setLoadingUsuarios(true);
-    try {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .order('full_name', { ascending: true });
-
-      if (profilesError) throw profilesError;
-
-      let listaOperadores = [];
-
-      if (profiles && profiles.length > 0) {
-        profiles.forEach(profile => {
-          const nome = profile.full_name || profile.email || 'Usuário';
-          listaOperadores.push({
-            id: profile.user_id || profile.id,
-            nome: nome,
-            email: profile.email || '',
-            role: profile.role_profile || 'user',
-            funcao: profile.role_profile || 'Operador'
-          });
-        });
-      }
-
-      if (listaOperadores.length === 0) {
-        const { data: users, error: usersError } = await supabase
-          .from('auth.users')
-          .select('id, email, raw_user_meta_data');
-
-        if (usersError) throw usersError;
-
-        if (users && users.length > 0) {
-          users.forEach(user => {
-            const nome = user.raw_user_meta_data?.full_name || user.email || 'Usuário';
-            listaOperadores.push({
-              id: user.id,
-              nome: nome,
-              email: user.email,
-              role: 'user',
-              funcao: 'Usuário'
-            });
-          });
-        }
-      }
-
-      setOperadores(listaOperadores);
-
-      if (listaOperadores.length > 0) {
-        setOperador(listaOperadores[0].id);
-      } else {
-        setOperadores([
-          { id: 'lucas', nome: 'Lucas - Auxiliar de Produção', funcao: 'expedicao' },
-          { id: 'piscia', nome: 'Piscia - Operadora Montagem', funcao: 'operadora' },
-          { id: 'renan', nome: 'Renan - Supervisor Expedição', funcao: 'supervisor' },
-          { id: 'giovana', nome: 'Giovana - Qualidade Acabamento', funcao: 'qualidade' }
-        ]);
-        setOperador('lucas');
-      }
-
-    } catch (error) {
-      console.error('❌ Erro ao carregar usuários:', error);
-    } finally {
-      setLoadingUsuarios(false);
+  // Foco automático no input
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
-  };
+  }, []);
 
-  const carregarUltimasBipagens = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('bipagens')
-        .select('*')
-        .order('data_hora', { ascending: false })
-        .limit(10);
+  async function loadHistory() {
+    const { data } = await supabase
+      .from('bipagem_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
 
-      if (error) throw error;
-      setUltimasBipagens(data || []);
-
-      const total = data?.length || 0;
-      const entradas = data?.filter(b => b.tipo === 'entrada').length || 0;
-      const saidas = data?.filter(b => b.tipo === 'saida').length || 0;
-      const operadoresUnicos = new Set(data?.map(b => b.operador).filter(Boolean)).size || 0;
-
-      setStats({ total, entradas, saidas, operadores: operadoresUnicos });
-
-    } catch (error) {
-      console.error('❌ Erro ao carregar bipagens:', error);
+    if (data) {
+      setHistory(data);
+      calcularStats(data);
     }
-  };
+  }
 
-  // ==========================================
-  // BUSCAR PRODUTO PELO CÓDIGO
-  // ==========================================
-  const buscarProduto = async (codigoBuscado) => {
-    try {
-      console.log('🔍 Buscando produto:', codigoBuscado);
-      
-      // Buscar por SKU
-      let { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('sku', codigoBuscado)
-        .maybeSingle();
+  function calcularStats(historico: BipagemHistory[]) {
+    const entradas = historico.filter(h => h.tipo === 'entrada').length;
+    const saidas = historico.filter(h => h.tipo === 'saida').length;
+    const nao_encontrados = historico.filter(h => h.tipo === 'nao_encontrado').length;
+    setStats({ entradas, saidas, nao_encontrados, total: historico.length });
+  }
 
-      if (data) {
-        console.log('✅ Produto encontrado por SKU:', data);
-        return data;
-      }
-
-      // Buscar por código de barras
-      const { data: barcodeData, error: barcodeError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('barcode', codigoBuscado)
-        .maybeSingle();
-
-      if (barcodeData) {
-        console.log('✅ Produto encontrado por código de barras:', barcodeData);
-        return barcodeData;
-      }
-
-      // Buscar por nome (parcial)
-      const { data: nameData, error: nameError } = await supabase
-        .from('products')
-        .select('*')
-        .ilike('name', `%${codigoBuscado}%`)
-        .limit(1)
-        .maybeSingle();
-
-      if (nameData) {
-        console.log('✅ Produto encontrado por nome:', nameData);
-        return nameData;
-      }
-
-      console.log('❌ Produto não encontrado:', codigoBuscado);
-      return null;
-
-    } catch (error) {
-      console.error('❌ Erro ao buscar produto:', error);
-      return null;
-    }
-  };
-
-  // ==========================================
-  // ATUALIZAR ESTOQUE DO PRODUTO
-  // ==========================================
-  const atualizarEstoque = async (produtoId, novaQuantidade) => {
-    try {
-      console.log('📦 Atualizando estoque:', { produtoId, novaQuantidade });
-      
-      const { data, error } = await supabase
-        .from('products')
-        .update({ current_stock: novaQuantidade })
-        .eq('id', produtoId)
-        .select();
-
-      if (error) {
-        console.error('❌ Erro ao atualizar estoque:', error);
-        throw error;
-      }
-
-      console.log('✅ Estoque atualizado:', data);
-      return data;
-
-    } catch (error) {
-      console.error('❌ Erro ao atualizar estoque:', error);
-      throw error;
-    }
-  };
-
-  // ==========================================
-  // REGISTRAR BIPAGEM (VERSÃO SIMPLIFICADA)
-  // ==========================================
-  const handleBipar = async () => {
-    console.log('🚀 INICIANDO BIPAGEM...');
+  // =============================================
+  // LEITURA AUTOMÁTICA - SEM PRECISAR DE ENTER
+  // =============================================
+  function handleCodigoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setCodigo(value);
     
-    if (!codigo.trim()) {
-      setMensagem('❌ Digite ou escaneie o código!');
-      return;
+    // Limpar timeout anterior
+    if (bipeTimeout) {
+      clearTimeout(bipeTimeout);
+      setBipeTimeout(null);
     }
+    
+    // Se tiver pelo menos 2 caracteres, fazer busca automática após 300ms
+    if (value.length >= 2) {
+      const timeout = setTimeout(() => {
+        buscarProduto(value);
+      }, 300);
+      setBipeTimeout(timeout);
+    }
+  }
 
-    if (!operador) {
-      setMensagem('❌ Selecione um operador!');
+  async function buscarProduto(codigo: string) {
+    if (!codigo || codigo.trim() === '') {
+      setMessage('📷 Digite ou leia um código de barras');
+      setMessageType('info');
       return;
     }
 
     setLoading(true);
-    setMensagem('⏳ Buscando produto...');
+    setProduct(null);
+    setMessage('');
+    setBipeStatus(null);
 
     try {
-      // 1. BUSCAR O PRODUTO
-      const produto = await buscarProduto(codigo.trim());
-      
-      if (!produto) {
-        setMensagem(`❌ Produto não encontrado: "${codigo.trim()}"`);
-        setLoading(false);
+      // Buscar produto por código de barras ou SKU
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .or(`barcode.eq.${codigo},sku.eq.${codigo}`)
+        .single();
+
+      setLoading(false);
+
+      if (error || !data) {
+        // 🔵 PRODUTO NÃO ENCONTRADO - COR AZUL
+        setBipeStatus('nao_encontrado');
+        setProduct(null);
+        setMessage(`🔵 Produto "${codigo}" não encontrado!`);
+        setMessageType('info');
+        
+        // Registrar tentativa de busca
+        await registrarBipagemNaoEncontrada(codigo);
+        
+        // Limpar após 3 segundos
+        setTimeout(() => {
+          setBipeStatus(null);
+          setMessage('');
+          setCodigo('');
+          if (inputRef.current) {
+            inputRef.current.focus();
+          }
+        }, 2500);
+        
         return;
       }
 
-      const operadorSelecionado = operadores.find(op => op.id === operador);
-      const nomeOperador = operadorSelecionado?.nome || operador;
+      // Buscar imagens do produto
+      const { data: files } = await supabase
+        .from('product_files')
+        .select('*')
+        .eq('product_id', data.id)
+        .order('is_primary', { ascending: false });
 
-      // 2. CALCULAR NOVA QUANTIDADE
-      const estoqueAtual = produto.current_stock || 0;
-      let novaQuantidade = estoqueAtual;
-
-      if (tipo === 'entrada') {
-        novaQuantidade = estoqueAtual + quantidade;
-      } else if (tipo === 'saida') {
-        if (estoqueAtual < quantidade) {
-          setMensagem(`❌ Estoque insuficiente! Disponível: ${estoqueAtual}, Solicitado: ${quantidade}`);
-          setLoading(false);
-          return;
-        }
-        novaQuantidade = estoqueAtual - quantidade;
-      }
-
-      console.log(`📊 Estoque: ${estoqueAtual} → ${novaQuantidade}`);
-
-      // 3. ATUALIZAR ESTOQUE
-      await atualizarEstoque(produto.id, novaQuantidade);
-
-      // 4. REGISTRAR A BIPAGEM (SEM COLUNAS EXTRAS)
-      const dados = {
-        codigo: codigo.trim(),
-        quantidade: quantidade,
-        tipo: tipo,
-        destino: destino || 'Estoque Geral',
-        operador: nomeOperador,
-        usuario_id: operador,
-        data_hora: new Date().toISOString()
+      const produtoCompleto = {
+        ...data,
+        images: files || []
       };
 
-      console.log('📦 Registrando bipagem:', dados);
+      setProduct(produtoCompleto);
+      setMessage(`✅ Produto encontrado: ${data.name}`);
+      setMessageType('success');
+      
+      // Limpar input
+      setCodigo('');
 
-      const { data, error } = await supabase
-        .from('bipagens')
-        .insert([dados])
-        .select();
+    } catch (error: any) {
+      setLoading(false);
+      setBipeStatus('nao_encontrado');
+      setMessage(`❌ Erro: ${error.message}`);
+      setMessageType('error');
+    }
+  }
 
-      if (error) {
-        console.error('❌ Erro ao registrar bipagem:', error);
-        setMensagem(`❌ Erro ao registrar: ${error.message}`);
+  async function registrarBipagemNaoEncontrada(codigo: string) {
+    try {
+      await supabase
+        .from('bipagem_history')
+        .insert({
+          product_id: null,
+          product_name: 'Produto não encontrado',
+          product_sku: codigo,
+          tipo: 'nao_encontrado',
+          quantidade: 0,
+          quantidade_anterior: 0,
+          quantidade_nova: 0,
+          usuario: 'sistema',
+          created_at: new Date().toISOString()
+        });
+      
+      // Recarregar histórico
+      await loadHistory();
+    } catch (error) {
+      console.error('Erro ao registrar:', error);
+    }
+  }
+
+  async function confirmarBipe(tipo: 'entrada' | 'saida') {
+    if (!product) {
+      setMessage('🔵 Nenhum produto bipado!');
+      setMessageType('info');
+      return;
+    }
+
+    const quantidadeAtual = product.estoque_atual || 0;
+    let novaQuantidade = quantidadeAtual;
+
+    if (tipo === 'entrada') {
+      novaQuantidade = quantidadeAtual + 1;
+    } else {
+      if (quantidadeAtual <= 0) {
+        setMessage('❌ Produto com quantidade zero! Não pode remover.');
+        setMessageType('error');
         return;
       }
+      novaQuantidade = quantidadeAtual - 1;
+    }
 
-      console.log('✅ Bipagem registrada:', data);
+    try {
+      // Atualizar produto no Supabase
+      const { error } = await supabase
+        .from('products')
+        .update({ estoque_atual: novaQuantidade })
+        .eq('id', product.id);
 
-      setMensagem(`✅ ${tipo === 'entrada' ? 'Entrada' : 'Saída'} registrada! ${produto.name} (${quantidade}x) → Estoque: ${novaQuantidade}`);
-      setCodigo('');
-      setQuantidade(1);
-      setDestino('');
+      if (error) throw error;
+
+      // Registrar no histórico
+      const registro = {
+        product_id: product.id,
+        product_name: product.name,
+        product_sku: product.sku,
+        tipo: tipo,
+        quantidade: 1,
+        quantidade_anterior: quantidadeAtual,
+        quantidade_nova: novaQuantidade,
+        usuario: 'sistema',
+        created_at: new Date().toISOString()
+      };
+
+      await supabase
+        .from('bipagem_history')
+        .insert(registro);
+
+      // 🟢🟢 ENTRADA = VERDE 🟢🟢
+      if (tipo === 'entrada') {
+        setBipeStatus('entrada');
+        setMessage(`🟢 ENTRADA: ${product.name} +1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessageType('success');
+      } 
+      // 🔴🔴 SAÍDA = VERMELHO 🔴🔴
+      else {
+        setBipeStatus('saida');
+        setMessage(`🔴 SAÍDA: ${product.name} -1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessageType('error');
+      }
+
+      setUltimaBipagem(registro as BipagemHistory);
       
-      await carregarUltimasBipagens();
-      document.getElementById('codigoInput')?.focus();
+      // Atualizar produto com nova quantidade
+      setProduct({
+        ...product,
+        estoque_atual: novaQuantidade
+      });
 
-    } catch (error) {
-      console.error('❌ Erro geral:', error);
-      setMensagem(`❌ Erro: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+      // Recarregar histórico
+      await loadHistory();
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleBipar();
+      // Limpar após 3 segundos
+      setTimeout(() => {
+        setProduct(null);
+        setMessage('');
+        setMessageType(null);
+        setBipeStatus(null);
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 2500);
+
+    } catch (error: any) {
+      setMessage(`❌ Erro ao atualizar: ${error.message}`);
+      setMessageType('error');
     }
-  };
+  }
+
+  function limparBusca() {
+    setProduct(null);
+    setMessage('');
+    setMessageType(null);
+    setBipeStatus(null);
+    setCodigo('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }
+
+  // Formatar data
+  function formatarData(data: string) {
+    const d = new Date(data);
+    return d.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Definir cor do fundo do modal
+  function getBipeBgColor() {
+    switch (bipeStatus) {
+      case 'entrada':
+        return 'border-emerald-500/50 bg-emerald-500/10'; // VERDE
+      case 'saida':
+        return 'border-rose-500/50 bg-rose-500/10'; // VERMELHO
+      case 'nao_encontrado':
+        return 'border-blue-500/50 bg-blue-500/10'; // AZUL
+      default:
+        return 'border-slate-800 bg-slate-900'; // PADRÃO
+    }
+  }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f0f2f5' }}>
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">📡 Bipagem</h2>
-              
-              <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {operadores.find(op => op.id === operador)?.nome?.charAt(0) || '?'}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-500">Operador atual</p>
-                    <select
-                      value={operador}
-                      onChange={(e) => setOperador(e.target.value)}
-                      className="w-full font-bold text-lg text-gray-800 bg-transparent border-2 border-blue-200 rounded-lg px-3 py-1 focus:border-blue-500 focus:outline-none"
-                      disabled={loadingUsuarios}
-                    >
-                      {loadingUsuarios ? (
-                        <option value="">Carregando usuários...</option>
-                      ) : operadores.length === 0 ? (
-                        <option value="">Nenhum usuário encontrado</option>
-                      ) : (
-                        operadores.map(op => (
-                          <option key={op.id} value={op.id}>
-                            {op.nome} {op.funcao ? `(${op.funcao})` : ''}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs text-gray-400">
-                      {operadores.length} usuários
-                    </span>
-                  </div>
-                </div>
-              </div>
+    <div className="space-y-6">
+      {/* HEADER */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <p className="text-sm text-orange-400">Módulo</p>
+        <h1 className="mt-2 text-3xl font-semibold">📡 Bipagem</h1>
+        <p className="mt-2 text-sm text-slate-400">
+          Leitura de código de barras para entrada e saída de produtos.
+        </p>
+      </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tipo de bipagem
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setTipo('entrada')}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                        tipo === 'entrada'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                      }`}
-                    >
-                      📥 Entrada (+ estoque)
-                    </button>
-                    <button
-                      onClick={() => setTipo('saida')}
-                      className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
-                        tipo === 'saida'
-                          ? 'bg-red-600 text-white'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                      }`}
-                    >
-                      📤 Saída (- estoque)
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Código (SKU / Código de barras / Nome)
-                  </label>
-                  <input
-                    id="codigoInput"
-                    type="text"
-                    value={codigo}
-                    onChange={(e) => setCodigo(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Digite SKU, código de barras ou nome do produto"
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Quantidade
-                    </label>
-                    <input
-                      type="number"
-                      value={quantidade}
-                      onChange={(e) => setQuantidade(Number(e.target.value))}
-                      min="1"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Destino/Origem
-                    </label>
-                    <input
-                      type="text"
-                      value={destino}
-                      onChange={(e) => setDestino(e.target.value)}
-                      placeholder="Ex: Estoque A1"
-                      className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleBipar}
-                  disabled={loading || loadingUsuarios}
-                  className="w-full py-4 bg-blue-600 text-white font-bold text-lg rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {loading ? '⏳ Processando...' : '✅ Registrar bipagem agora'}
-                </button>
-
-                {mensagem && (
-                  <div className={`p-4 rounded-lg ${
-                    mensagem.includes('✅') ? 'bg-green-100 text-green-700' : 
-                    mensagem.includes('⚠️') ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
-                    {mensagem}
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* ESTATÍSTICAS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+          <div className="flex items-center gap-2 text-emerald-400">
+            <TrendingUp size={18} />
+            <span className="text-sm">Entradas</span>
           </div>
-
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-gray-700 mb-4">📊 Resumo da sessão</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Bipagens</span>
-                  <span className="font-bold text-2xl text-blue-600">{stats.total}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Entradas</span>
-                  <span className="font-bold text-green-600">{stats.entradas}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Saídas</span>
-                  <span className="font-bold text-red-600">{stats.saidas}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Operadores</span>
-                  <span className="font-bold text-purple-600">{stats.operadores}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="font-semibold text-gray-700 mb-4">🔄 Atividade recente</h3>
-              {ultimasBipagens.length === 0 ? (
-                <p className="text-gray-400 text-center py-4">Nenhuma bipagem registrada</p>
-              ) : (
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {ultimasBipagens.map((bip, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold px-2 py-1 rounded ${
-                          bip.tipo === 'entrada' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {bip.tipo === 'entrada' ? '📥' : '📤'}
-                        </span>
-                        <span className="font-mono text-sm">{bip.codigo}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-gray-600">{bip.operador || 'Sem operador'}</span>
-                        <span className="text-gray-400">×{bip.quantidade}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.entradas}</p>
+        </div>
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
+          <div className="flex items-center gap-2 text-rose-400">
+            <TrendingDown size={18} />
+            <span className="text-sm">Saídas</span>
           </div>
+          <p className="mt-1 text-2xl font-bold text-rose-400">{stats.saidas}</p>
+        </div>
+        <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+          <div className="flex items-center gap-2 text-blue-400">
+            <AlertTriangle size={18} />
+            <span className="text-sm">Não Encontrados</span>
+          </div>
+          <p className="mt-1 text-2xl font-bold text-blue-400">{stats.nao_encontrados}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Package size={18} />
+            <span className="text-sm">Total de Bipagens</span>
+          </div>
+          <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
       </div>
+
+      {/* LEITOR DE BIPAGEM */}
+      <div className={`rounded-2xl border-2 p-6 transition-all duration-300 ${getBipeBgColor()}`}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">
+            {bipeStatus === 'entrada' ? '🟢 ENTRADA' :
+             bipeStatus === 'saida' ? '🔴 SAÍDA' :
+             bipeStatus === 'nao_encontrado' ? '🔵 NÃO ENCONTRADO' :
+             '📡 Leitor de Código'}
+          </h2>
+          <button
+            onClick={limparBusca}
+            className="text-slate-400 hover:text-white transition"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex gap-3">
+          <div className="flex-1 relative">
+            <QrCode className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input
+              ref={inputRef}
+              type="text"
+              className={`w-full rounded-xl border-2 bg-slate-950 px-12 py-4 text-lg font-mono text-white placeholder:text-slate-500 focus:outline-none transition-all duration-300 ${
+                bipeStatus === 'entrada' ? 'border-emerald-500 focus:border-emerald-400' :
+                bipeStatus === 'saida' ? 'border-rose-500 focus:border-rose-400' :
+                bipeStatus === 'nao_encontrado' ? 'border-blue-500 focus:border-blue-400' :
+                'border-slate-700 focus:border-orange-500'
+              }`}
+              placeholder="Digite ou leia o código de barras..."
+              value={codigo}
+              onChange={handleCodigoChange}
+              autoFocus
+            />
+          </div>
+          <button
+            onClick={() => buscarProduto(codigo)}
+            className="px-6 py-4 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition flex items-center gap-2"
+          >
+            <Search size={18} />
+            Buscar
+          </button>
+        </div>
+
+        <p className="mt-2 text-xs text-slate-500">
+          🔄 A busca é feita automaticamente após digitar o código
+        </p>
+
+        {/* PRODUTO ENCONTRADO */}
+        {product && (
+          <div className={`mt-4 rounded-xl border p-4 transition-all duration-300 ${
+            bipeStatus === 'entrada' ? 'border-emerald-500/50 bg-emerald-500/10' :
+            bipeStatus === 'saida' ? 'border-rose-500/50 bg-rose-500/10' :
+            'border-slate-700 bg-slate-950/70'
+          }`}>
+            <div className="flex items-center gap-4">
+              {product.images && product.images.length > 0 ? (
+                <img
+                  src={product.images[0].file_url}
+                  alt={product.name}
+                  className="w-20 h-20 rounded-xl object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center">
+                  <Package size={32} className="text-slate-500" />
+                </div>
+              )}
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                <p className="text-sm text-slate-400">SKU: {product.sku}</p>
+                <div className="mt-1 flex items-center gap-4">
+                  <span className="text-sm text-slate-400">Quantidade atual:</span>
+                  <span className={`text-xl font-bold ${
+                    (product.estoque_atual ?? 0) < (product.estoque_minimo ?? 0)
+                      ? 'text-rose-400'
+                      : (product.estoque_atual ?? 0) > (product.estoque_maximo ?? 99999)
+                      ? 'text-amber-400'
+                      : 'text-emerald-400'
+                  }`}>
+                    {product.estoque_atual ?? 0}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    (Mín: {product.estoque_minimo ?? 0} | Máx: {product.estoque_maximo ?? 0})
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* BOTÕES DE AÇÃO COM CORES */}
+            <div className="mt-4 flex gap-3">
+              <button
+                onClick={() => confirmarBipe('entrada')}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
+                  bipeStatus === 'entrada'
+                    ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30'
+                    : 'bg-emerald-500/70 hover:bg-emerald-600 shadow-emerald-500/20'
+                }`}
+              >
+                <Plus size={18} />
+                🟢 Adicionar (+1)
+              </button>
+              <button
+                onClick={() => confirmarBipe('saida')}
+                disabled={(product.estoque_atual ?? 0) <= 0}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
+                  bipeStatus === 'saida'
+                    ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30'
+                    : 'bg-rose-500/70 hover:bg-rose-600 shadow-rose-500/20'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                <Minus size={18} />
+                🔴 Remover (-1)
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MENSAGEM DE PRODUTO NÃO ENCONTRADO - AZUL */}
+        {bipeStatus === 'nao_encontrado' && !product && (
+          <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
+            <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
+            <span className="text-blue-400 font-bold">🔵 Produto não encontrado!</span>
+            <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
+          </div>
+        )}
+      </div>
+
+      {/* HISTÓRICO */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <History size={20} />
+            Histórico de Bipagens
+          </h2>
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className="text-sm text-slate-400 hover:text-white transition"
+          >
+            {showHistory ? 'Ocultar' : 'Ver histórico'}
+          </button>
+        </div>
+
+        {showHistory && (
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {history.length === 0 ? (
+              <p className="text-sm text-slate-500">Nenhuma bipagem registrada.</p>
+            ) : (
+              history.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center justify-between p-3 rounded-xl border ${
+                    item.tipo === 'entrada'
+                      ? 'border-emerald-500/30 bg-emerald-500/5'
+                      : item.tipo === 'saida'
+                      ? 'border-rose-500/30 bg-rose-500/5'
+                      : 'border-blue-500/30 bg-blue-500/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.tipo === 'entrada' ? 'bg-emerald-400' :
+                      item.tipo === 'saida' ? 'bg-rose-400' :
+                      'bg-blue-400'
+                    }`} />
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {item.product_name || 'Produto não encontrado'}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {item.tipo === 'entrada' ? '🟢 Entrada' :
+                         item.tipo === 'saida' ? '🔴 Saída' :
+                         '🔵 Não encontrado'}
+                        {item.quantidade_anterior !== undefined && (
+                          ` | ${item.quantidade_anterior} → ${item.quantidade_nova}`
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">
+                      {formatarData(item.created_at)}
+                    </p>
+                    {item.product_sku && (
+                      <p className="text-xs text-slate-500">SKU: {item.product_sku}</p>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* TOAST DE MENSAGEM */}
+      {message && (
+        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${
+          message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' :
+          message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
+          message.includes('✅') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          'border-rose-500/30 bg-rose-500/10 text-rose-400'
+        }`}>
+          {message}
+        </div>
+      )}
     </div>
   );
 }
