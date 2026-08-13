@@ -14,53 +14,23 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  barcode: string;
-  estoque_atual: number;
-  estoque_minimo: number;
-  estoque_maximo: number;
-  status: string;
-  category: string;
-  unit: string;
-  images: any[];
-}
-
-interface BipagemHistory {
-  id: string;
-  product_id: string;
-  product_name: string;
-  product_sku: string;
-  tipo: 'entrada' | 'saida' | 'nao_encontrado';
-  quantidade: number;
-  quantidade_anterior: number;
-  quantidade_nova: number;
-  created_at: string;
-  usuario: string;
-}
-
 export default function BipagemPage() {
   const [codigo, setCodigo] = useState('');
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState<'success' | 'error' | 'info' | null>(null);
-  const [history, setHistory] = useState<BipagemHistory[]>([]);
+  const [messageType, setMessageType] = useState(null);
+  const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [stats, setStats] = useState({ entradas: 0, saidas: 0, nao_encontrados: 0, total: 0 });
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [ultimaBipagem, setUltimaBipagem] = useState<BipagemHistory | null>(null);
-  const [bipeStatus, setBipeStatus] = useState<'entrada' | 'saida' | 'nao_encontrado' | null>(null);
-  const [bipeTimeout, setBipeTimeout] = useState<NodeJS.Timeout | null>(null);
+  const inputRef = useRef(null);
+  const [bipeStatus, setBipeStatus] = useState(null);
+  const [bipeTimeout, setBipeTimeout] = useState(null);
 
-  // Carregar histórico ao iniciar
   useEffect(() => {
     loadHistory();
   }, []);
 
-  // Foco automático no input
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
@@ -80,27 +50,23 @@ export default function BipagemPage() {
     }
   }
 
-  function calcularStats(historico: BipagemHistory[]) {
+  function calcularStats(historico) {
     const entradas = historico.filter(h => h.tipo === 'entrada').length;
     const saidas = historico.filter(h => h.tipo === 'saida').length;
     const nao_encontrados = historico.filter(h => h.tipo === 'nao_encontrado').length;
     setStats({ entradas, saidas, nao_encontrados, total: historico.length });
   }
 
-  // =============================================
-  // LEITURA AUTOMÁTICA - SEM PRECISAR DE ENTER
-  // =============================================
-  function handleCodigoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // LEITURA AUTOMÁTICA
+  function handleCodigoChange(e) {
     const value = e.target.value;
     setCodigo(value);
     
-    // Limpar timeout anterior
     if (bipeTimeout) {
       clearTimeout(bipeTimeout);
       setBipeTimeout(null);
     }
     
-    // Se tiver pelo menos 2 caracteres, fazer busca automática após 300ms
     if (value.length >= 2) {
       const timeout = setTimeout(() => {
         buscarProduto(value);
@@ -109,7 +75,7 @@ export default function BipagemPage() {
     }
   }
 
-  async function buscarProduto(codigo: string) {
+  async function buscarProduto(codigo) {
     if (!codigo || codigo.trim() === '') {
       setMessage('📷 Digite ou leia um código de barras');
       setMessageType('info');
@@ -122,7 +88,6 @@ export default function BipagemPage() {
     setBipeStatus(null);
 
     try {
-      // Buscar produto por código de barras ou SKU
       const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -132,48 +97,36 @@ export default function BipagemPage() {
       setLoading(false);
 
       if (error || !data) {
-        // 🔵 PRODUTO NÃO ENCONTRADO - COR AZUL
+        // 🔵 NÃO ENCONTRADO - AZUL
         setBipeStatus('nao_encontrado');
         setProduct(null);
         setMessage(`🔵 Produto "${codigo}" não encontrado!`);
         setMessageType('info');
         
-        // Registrar tentativa de busca
         await registrarBipagemNaoEncontrada(codigo);
         
-        // Limpar após 3 segundos
         setTimeout(() => {
           setBipeStatus(null);
           setMessage('');
           setCodigo('');
-          if (inputRef.current) {
-            inputRef.current.focus();
-          }
+          if (inputRef.current) inputRef.current.focus();
         }, 2500);
-        
         return;
       }
 
-      // Buscar imagens do produto
       const { data: files } = await supabase
         .from('product_files')
         .select('*')
         .eq('product_id', data.id)
         .order('is_primary', { ascending: false });
 
-      const produtoCompleto = {
-        ...data,
-        images: files || []
-      };
-
+      const produtoCompleto = { ...data, images: files || [] };
       setProduct(produtoCompleto);
       setMessage(`✅ Produto encontrado: ${data.name}`);
       setMessageType('success');
-      
-      // Limpar input
       setCodigo('');
 
-    } catch (error: any) {
+    } catch (error) {
       setLoading(false);
       setBipeStatus('nao_encontrado');
       setMessage(`❌ Erro: ${error.message}`);
@@ -181,7 +134,7 @@ export default function BipagemPage() {
     }
   }
 
-  async function registrarBipagemNaoEncontrada(codigo: string) {
+  async function registrarBipagemNaoEncontrada(codigo) {
     try {
       await supabase
         .from('bipagem_history')
@@ -196,15 +149,13 @@ export default function BipagemPage() {
           usuario: 'sistema',
           created_at: new Date().toISOString()
         });
-      
-      // Recarregar histórico
       await loadHistory();
     } catch (error) {
       console.error('Erro ao registrar:', error);
     }
   }
 
-  async function confirmarBipe(tipo: 'entrada' | 'saida') {
+  async function confirmarBipe(tipo) {
     if (!product) {
       setMessage('🔵 Nenhum produto bipado!');
       setMessageType('info');
@@ -226,7 +177,6 @@ export default function BipagemPage() {
     }
 
     try {
-      // Atualizar produto no Supabase
       const { error } = await supabase
         .from('products')
         .update({ estoque_atual: novaQuantidade })
@@ -234,59 +184,42 @@ export default function BipagemPage() {
 
       if (error) throw error;
 
-      // Registrar no histórico
-      const registro = {
-        product_id: product.id,
-        product_name: product.name,
-        product_sku: product.sku,
-        tipo: tipo,
-        quantidade: 1,
-        quantidade_anterior: quantidadeAtual,
-        quantidade_nova: novaQuantidade,
-        usuario: 'sistema',
-        created_at: new Date().toISOString()
-      };
-
       await supabase
         .from('bipagem_history')
-        .insert(registro);
+        .insert({
+          product_id: product.id,
+          product_name: product.name,
+          product_sku: product.sku,
+          tipo: tipo,
+          quantidade: 1,
+          quantidade_anterior: quantidadeAtual,
+          quantidade_nova: novaQuantidade,
+          usuario: 'sistema',
+          created_at: new Date().toISOString()
+        });
 
-      // 🟢🟢 ENTRADA = VERDE 🟢🟢
       if (tipo === 'entrada') {
         setBipeStatus('entrada');
         setMessage(`🟢 ENTRADA: ${product.name} +1 (${quantidadeAtual} → ${novaQuantidade})`);
         setMessageType('success');
-      } 
-      // 🔴🔴 SAÍDA = VERMELHO 🔴🔴
-      else {
+      } else {
         setBipeStatus('saida');
         setMessage(`🔴 SAÍDA: ${product.name} -1 (${quantidadeAtual} → ${novaQuantidade})`);
         setMessageType('error');
       }
 
-      setUltimaBipagem(registro as BipagemHistory);
-      
-      // Atualizar produto com nova quantidade
-      setProduct({
-        ...product,
-        estoque_atual: novaQuantidade
-      });
-
-      // Recarregar histórico
+      setProduct({ ...product, estoque_atual: novaQuantidade });
       await loadHistory();
 
-      // Limpar após 3 segundos
       setTimeout(() => {
         setProduct(null);
         setMessage('');
         setMessageType(null);
         setBipeStatus(null);
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
+        if (inputRef.current) inputRef.current.focus();
       }, 2500);
 
-    } catch (error: any) {
+    } catch (error) {
       setMessage(`❌ Erro ao atualizar: ${error.message}`);
       setMessageType('error');
     }
@@ -298,13 +231,10 @@ export default function BipagemPage() {
     setMessageType(null);
     setBipeStatus(null);
     setCodigo('');
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
+    if (inputRef.current) inputRef.current.focus();
   }
 
-  // Formatar data
-  function formatarData(data: string) {
+  function formatarData(data) {
     const d = new Date(data);
     return d.toLocaleString('pt-BR', {
       day: '2-digit',
@@ -315,17 +245,12 @@ export default function BipagemPage() {
     });
   }
 
-  // Definir cor do fundo do modal
   function getBipeBgColor() {
     switch (bipeStatus) {
-      case 'entrada':
-        return 'border-emerald-500/50 bg-emerald-500/10'; // VERDE
-      case 'saida':
-        return 'border-rose-500/50 bg-rose-500/10'; // VERMELHO
-      case 'nao_encontrado':
-        return 'border-blue-500/50 bg-blue-500/10'; // AZUL
-      default:
-        return 'border-slate-800 bg-slate-900'; // PADRÃO
+      case 'entrada': return 'border-emerald-500/50 bg-emerald-500/10';
+      case 'saida': return 'border-rose-500/50 bg-rose-500/10';
+      case 'nao_encontrado': return 'border-blue-500/50 bg-blue-500/10';
+      default: return 'border-slate-800 bg-slate-900';
     }
   }
 
@@ -335,44 +260,30 @@ export default function BipagemPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
         <h1 className="mt-2 text-3xl font-semibold">📡 Bipagem</h1>
-        <p className="mt-2 text-sm text-slate-400">
-          Leitura de código de barras para entrada e saída de produtos.
-        </p>
+        <p className="mt-2 text-sm text-slate-400">Leitura de código de barras para entrada e saída de produtos.</p>
       </div>
 
       {/* ESTATÍSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
-          <div className="flex items-center gap-2 text-emerald-400">
-            <TrendingUp size={18} />
-            <span className="text-sm">Entradas</span>
-          </div>
+          <div className="flex items-center gap-2 text-emerald-400"><TrendingUp size={18} /><span className="text-sm">Entradas</span></div>
           <p className="mt-1 text-2xl font-bold text-emerald-400">{stats.entradas}</p>
         </div>
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-2 text-rose-400">
-            <TrendingDown size={18} />
-            <span className="text-sm">Saídas</span>
-          </div>
+          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Saídas</span></div>
           <p className="mt-1 text-2xl font-bold text-rose-400">{stats.saidas}</p>
         </div>
         <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
-          <div className="flex items-center gap-2 text-blue-400">
-            <AlertTriangle size={18} />
-            <span className="text-sm">Não Encontrados</span>
-          </div>
+          <div className="flex items-center gap-2 text-blue-400"><AlertTriangle size={18} /><span className="text-sm">Não Encontrados</span></div>
           <p className="mt-1 text-2xl font-bold text-blue-400">{stats.nao_encontrados}</p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-          <div className="flex items-center gap-2 text-slate-400">
-            <Package size={18} />
-            <span className="text-sm">Total de Bipagens</span>
-          </div>
+          <div className="flex items-center gap-2 text-slate-400"><Package size={18} /><span className="text-sm">Total de Bipagens</span></div>
           <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
       </div>
 
-      {/* LEITOR DE BIPAGEM */}
+      {/* LEITOR */}
       <div className={`rounded-2xl border-2 p-6 transition-all duration-300 ${getBipeBgColor()}`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">
@@ -381,12 +292,7 @@ export default function BipagemPage() {
              bipeStatus === 'nao_encontrado' ? '🔵 NÃO ENCONTRADO' :
              '📡 Leitor de Código'}
           </h2>
-          <button
-            onClick={limparBusca}
-            className="text-slate-400 hover:text-white transition"
-          >
-            <X size={20} />
-          </button>
+          <button onClick={limparBusca} className="text-slate-400 hover:text-white transition"><X size={20} /></button>
         </div>
 
         <div className="flex gap-3">
@@ -407,18 +313,12 @@ export default function BipagemPage() {
               autoFocus
             />
           </div>
-          <button
-            onClick={() => buscarProduto(codigo)}
-            className="px-6 py-4 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition flex items-center gap-2"
-          >
-            <Search size={18} />
-            Buscar
+          <button onClick={() => buscarProduto(codigo)} className="px-6 py-4 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition flex items-center gap-2">
+            <Search size={18} /> Buscar
           </button>
         </div>
 
-        <p className="mt-2 text-xs text-slate-500">
-          🔄 A busca é feita automaticamente após digitar o código
-        </p>
+        <p className="mt-2 text-xs text-slate-500">🔄 A busca é feita automaticamente após digitar o código</p>
 
         {/* PRODUTO ENCONTRADO */}
         {product && (
@@ -429,15 +329,9 @@ export default function BipagemPage() {
           }`}>
             <div className="flex items-center gap-4">
               {product.images && product.images.length > 0 ? (
-                <img
-                  src={product.images[0].file_url}
-                  alt={product.name}
-                  className="w-20 h-20 rounded-xl object-cover"
-                />
+                <img src={product.images[0].file_url} alt={product.name} className="w-20 h-20 rounded-xl object-cover" />
               ) : (
-                <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center">
-                  <Package size={32} className="text-slate-500" />
-                </div>
+                <div className="w-20 h-20 rounded-xl bg-slate-800 flex items-center justify-center"><Package size={32} className="text-slate-500" /></div>
               )}
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-white">{product.name}</h3>
@@ -445,51 +339,32 @@ export default function BipagemPage() {
                 <div className="mt-1 flex items-center gap-4">
                   <span className="text-sm text-slate-400">Quantidade atual:</span>
                   <span className={`text-xl font-bold ${
-                    (product.estoque_atual ?? 0) < (product.estoque_minimo ?? 0)
-                      ? 'text-rose-400'
-                      : (product.estoque_atual ?? 0) > (product.estoque_maximo ?? 99999)
-                      ? 'text-amber-400'
-                      : 'text-emerald-400'
+                    (product.estoque_atual ?? 0) < (product.estoque_minimo ?? 0) ? 'text-rose-400' :
+                    (product.estoque_atual ?? 0) > (product.estoque_maximo ?? 99999) ? 'text-amber-400' :
+                    'text-emerald-400'
                   }`}>
                     {product.estoque_atual ?? 0}
                   </span>
-                  <span className="text-xs text-slate-500">
-                    (Mín: {product.estoque_minimo ?? 0} | Máx: {product.estoque_maximo ?? 0})
-                  </span>
+                  <span className="text-xs text-slate-500">(Mín: {product.estoque_minimo ?? 0} | Máx: {product.estoque_maximo ?? 0})</span>
                 </div>
               </div>
             </div>
 
-            {/* BOTÕES DE AÇÃO COM CORES */}
             <div className="mt-4 flex gap-3">
-              <button
-                onClick={() => confirmarBipe('entrada')}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
-                  bipeStatus === 'entrada'
-                    ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30'
-                    : 'bg-emerald-500/70 hover:bg-emerald-600 shadow-emerald-500/20'
-                }`}
-              >
-                <Plus size={18} />
-                🟢 Adicionar (+1)
+              <button onClick={() => confirmarBipe('entrada')} className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
+                bipeStatus === 'entrada' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' : 'bg-emerald-500/70 hover:bg-emerald-600 shadow-emerald-500/20'
+              }`}>
+                <Plus size={18} /> 🟢 Adicionar (+1)
               </button>
-              <button
-                onClick={() => confirmarBipe('saida')}
-                disabled={(product.estoque_atual ?? 0) <= 0}
-                className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
-                  bipeStatus === 'saida'
-                    ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30'
-                    : 'bg-rose-500/70 hover:bg-rose-600 shadow-rose-500/20'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <Minus size={18} />
-                🔴 Remover (-1)
+              <button onClick={() => confirmarBipe('saida')} disabled={(product.estoque_atual ?? 0) <= 0} className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
+                bipeStatus === 'saida' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30' : 'bg-rose-500/70 hover:bg-rose-600 shadow-rose-500/20'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}>
+                <Minus size={18} /> 🔴 Remover (-1)
               </button>
             </div>
           </div>
         )}
 
-        {/* MENSAGEM DE PRODUTO NÃO ENCONTRADO - AZUL */}
         {bipeStatus === 'nao_encontrado' && !product && (
           <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
             <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
@@ -502,14 +377,8 @@ export default function BipagemPage() {
       {/* HISTÓRICO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <History size={20} />
-            Histórico de Bipagens
-          </h2>
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="text-sm text-slate-400 hover:text-white transition"
-          >
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2"><History size={20} /> Histórico de Bipagens</h2>
+          <button onClick={() => setShowHistory(!showHistory)} className="text-sm text-slate-400 hover:text-white transition">
             {showHistory ? 'Ocultar' : 'Ver histórico'}
           </button>
         </div>
@@ -520,43 +389,24 @@ export default function BipagemPage() {
               <p className="text-sm text-slate-500">Nenhuma bipagem registrada.</p>
             ) : (
               history.map((item) => (
-                <div
-                  key={item.id}
-                  className={`flex items-center justify-between p-3 rounded-xl border ${
-                    item.tipo === 'entrada'
-                      ? 'border-emerald-500/30 bg-emerald-500/5'
-                      : item.tipo === 'saida'
-                      ? 'border-rose-500/30 bg-rose-500/5'
-                      : 'border-blue-500/30 bg-blue-500/5'
-                  }`}
-                >
+                <div key={item.id} className={`flex items-center justify-between p-3 rounded-xl border ${
+                  item.tipo === 'entrada' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                  item.tipo === 'saida' ? 'border-rose-500/30 bg-rose-500/5' :
+                  'border-blue-500/30 bg-blue-500/5'
+                }`}>
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      item.tipo === 'entrada' ? 'bg-emerald-400' :
-                      item.tipo === 'saida' ? 'bg-rose-400' :
-                      'bg-blue-400'
-                    }`} />
+                    <div className={`w-2 h-2 rounded-full ${item.tipo === 'entrada' ? 'bg-emerald-400' : item.tipo === 'saida' ? 'bg-rose-400' : 'bg-blue-400'}`} />
                     <div>
-                      <p className="text-sm font-medium text-white">
-                        {item.product_name || 'Produto não encontrado'}
-                      </p>
+                      <p className="text-sm font-medium text-white">{item.product_name || 'Produto não encontrado'}</p>
                       <p className="text-xs text-slate-400">
-                        {item.tipo === 'entrada' ? '🟢 Entrada' :
-                         item.tipo === 'saida' ? '🔴 Saída' :
-                         '🔵 Não encontrado'}
-                        {item.quantidade_anterior !== undefined && (
-                          ` | ${item.quantidade_anterior} → ${item.quantidade_nova}`
-                        )}
+                        {item.tipo === 'entrada' ? '🟢 Entrada' : item.tipo === 'saida' ? '🔴 Saída' : '🔵 Não encontrado'}
+                        {item.quantidade_anterior !== undefined && ` | ${item.quantidade_anterior} → ${item.quantidade_nova}`}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-500">
-                      {formatarData(item.created_at)}
-                    </p>
-                    {item.product_sku && (
-                      <p className="text-xs text-slate-500">SKU: {item.product_sku}</p>
-                    )}
+                    <p className="text-xs text-slate-500">{formatarData(item.created_at)}</p>
+                    {item.product_sku && <p className="text-xs text-slate-500">SKU: {item.product_sku}</p>}
                   </div>
                 </div>
               ))
@@ -565,7 +415,7 @@ export default function BipagemPage() {
         )}
       </div>
 
-      {/* TOAST DE MENSAGEM */}
+      {/* TOAST */}
       {message && (
         <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${
           message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
