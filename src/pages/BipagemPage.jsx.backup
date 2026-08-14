@@ -4,16 +4,13 @@ import {
   Plus,
   Minus,
   AlertTriangle,
+  CheckCircle,
   Package,
   Search,
   X,
   History,
   TrendingUp,
-  TrendingDown,
-  User,
-  Users,
-  CheckCircle,
-  LogIn
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -26,16 +23,11 @@ export default function BipagemPage() {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [stats, setStats] = useState({ entradas: 0, saidas: 0, nao_encontrados: 0, total: 0 });
-  const [usuarios, setUsuarios] = useState([]);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [showUsuarios, setShowUsuarios] = useState(false);
   const inputRef = useRef(null);
   const [bipeStatus, setBipeStatus] = useState(null);
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
-  // Carregar usuários e histórico
   useEffect(() => {
-    loadUsuarios();
     loadHistory();
   }, []);
 
@@ -44,21 +36,6 @@ export default function BipagemPage() {
       inputRef.current.focus();
     }
   }, []);
-
-  async function loadUsuarios() {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('nome_completo', { ascending: true });
-
-    if (data) {
-      setUsuarios(data);
-      // Selecionar o primeiro usuário automaticamente
-      if (data.length > 0 && !usuarioSelecionado) {
-        setUsuarioSelecionado(data[0]);
-      }
-    }
-  }
 
   async function loadHistory() {
     const { data } = await supabase
@@ -80,6 +57,7 @@ export default function BipagemPage() {
     setStats({ entradas, saidas, nao_encontrados, total: historico.length });
   }
 
+  // LEITURA AUTOMÁTICA
   function handleCodigoChange(e) {
     const value = e.target.value;
     setCodigo(value);
@@ -119,6 +97,7 @@ export default function BipagemPage() {
       setLoading(false);
 
       if (error || !data) {
+        // 🔵 NÃO ENCONTRADO - AZUL
         setBipeStatus('nao_encontrado');
         setProduct(null);
         setMessage(`🔵 Produto "${codigo}" não encontrado!`);
@@ -139,7 +118,7 @@ export default function BipagemPage() {
         .from('product_files')
         .select('*')
         .eq('product_id', data.id)
-        .order('sort_order', { ascending: true });
+        .order('is_primary', { ascending: false });
 
       const produtoCompleto = { ...data, images: files || [] };
       setProduct(produtoCompleto);
@@ -167,8 +146,7 @@ export default function BipagemPage() {
           quantidade: 0,
           quantidade_anterior: 0,
           quantidade_nova: 0,
-          usuario_id: usuarioSelecionado?.id || null,
-          usuario_nome: usuarioSelecionado?.nome_completo || 'Sistema',
+          usuario: 'sistema',
           created_at: new Date().toISOString()
         });
       await loadHistory();
@@ -181,12 +159,6 @@ export default function BipagemPage() {
     if (!product) {
       setMessage('🔵 Nenhum produto bipado!');
       setMessageType('info');
-      return;
-    }
-
-    if (!usuarioSelecionado) {
-      setMessage('⚠️ Selecione um usuário antes de bipar!');
-      setMessageType('error');
       return;
     }
 
@@ -222,18 +194,17 @@ export default function BipagemPage() {
           quantidade: 1,
           quantidade_anterior: quantidadeAtual,
           quantidade_nova: novaQuantidade,
-          usuario_id: usuarioSelecionado.id,
-          usuario_nome: usuarioSelecionado.nome_completo,
+          usuario: 'sistema',
           created_at: new Date().toISOString()
         });
 
       if (tipo === 'entrada') {
         setBipeStatus('entrada');
-        setMessage(`🟢 ${usuarioSelecionado.nome_completo} - ENTRADA: ${product.name} +1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessage(`🟢 ENTRADA: ${product.name} +1 (${quantidadeAtual} → ${novaQuantidade})`);
         setMessageType('success');
       } else {
         setBipeStatus('saida');
-        setMessage(`🔴 ${usuarioSelecionado.nome_completo} - SAÍDA: ${product.name} -1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessage(`🔴 SAÍDA: ${product.name} -1 (${quantidadeAtual} → ${novaQuantidade})`);
         setMessageType('error');
       }
 
@@ -290,56 +261,6 @@ export default function BipagemPage() {
         <p className="text-sm text-orange-400">Módulo</p>
         <h1 className="mt-2 text-3xl font-semibold">📡 Bipagem</h1>
         <p className="mt-2 text-sm text-slate-400">Leitura de código de barras para entrada e saída de produtos.</p>
-      </div>
-
-      {/* USUÁRIO ATIVO */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-orange-500/20 text-orange-400">
-              <User size={20} />
-            </div>
-            <div>
-              <p className="text-xs text-slate-400">Operador atual</p>
-              <p className="text-lg font-semibold text-white">
-                {usuarioSelecionado?.nome_completo || 'Nenhum usuário selecionado'}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowUsuarios(!showUsuarios)}
-            className="flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800 transition"
-          >
-            <Users size={16} />
-            {showUsuarios ? 'Ocultar' : 'Trocar usuário'}
-          </button>
-        </div>
-
-        {/* LISTA DE USUÁRIOS */}
-        {showUsuarios && (
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
-            {usuarios.map((usuario) => (
-              <button
-                key={usuario.id}
-                onClick={() => {
-                  setUsuarioSelecionado(usuario);
-                  setShowUsuarios(false);
-                }}
-                className={`flex items-center gap-2 p-3 rounded-xl border transition ${
-                  usuarioSelecionado?.id === usuario.id
-                    ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                    : 'border-slate-700 hover:border-slate-500 text-slate-300 hover:bg-slate-800/50'
-                }`}
-              >
-                {usuarioSelecionado?.id === usuario.id && (
-                  <CheckCircle size={16} className="text-orange-400" />
-                )}
-                <span className="text-sm">{usuario.nome_completo}</span>
-                <span className="text-xs text-slate-500">{usuario.cargo}</span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* ESTATÍSTICAS */}
@@ -481,9 +402,6 @@ export default function BipagemPage() {
                         {item.tipo === 'entrada' ? '🟢 Entrada' : item.tipo === 'saida' ? '🔴 Saída' : '🔵 Não encontrado'}
                         {item.quantidade_anterior !== undefined && ` | ${item.quantidade_anterior} → ${item.quantidade_nova}`}
                       </p>
-                      {item.usuario_nome && (
-                        <p className="text-xs text-orange-400">👤 {item.usuario_nome}</p>
-                      )}
                     </div>
                   </div>
                   <div className="text-right">
