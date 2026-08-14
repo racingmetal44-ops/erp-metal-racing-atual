@@ -90,7 +90,7 @@ export default function StockPage() {
       const mappedProducts = (productsData || []).map((product) => ({
         ...product,
         images: (filesByProduct[product.id] || []).sort((a, b) =>
-          Number(b.is_primary) - Number(a.is_primary)
+          (b.sort_order || 0) - (a.sort_order || 0)
         ),
       }));
 
@@ -200,7 +200,7 @@ export default function StockPage() {
         file_category: 'foto',
         photo_angle: 'front',
         sort_order: index + 1,
-        is_primary: index === 0,
+        
         is_ai_training: false,
         added_by_name: 'sistema',
         created_date: new Date().toISOString(),
@@ -804,3 +804,4 @@ export default function StockPage() {
     </div>
   );
 }
+
