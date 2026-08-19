@@ -295,7 +295,7 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
     console.log('========================================');
     console.log('✅ Servidor ERP Metal Racing rodando!');
@@ -316,3 +316,4 @@ server.listen(PORT, '0.0.0.0', () => {
 server.on('error', (err) => {
     console.error('❌ Erro no servidor:', err.message);
 });
+
