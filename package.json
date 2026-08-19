@@ -16,6 +16,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "fast-xml-parser": "^5.11.0",
     "fs-extra": "^11.4.0",
     "html2pdf.js": "^0.14.0",
     "jsbarcode": "^3.11.6",
@@ -28,7 +29,8 @@
     "soap": "^1.10.0",
     "uuid": "^14.0.2",
     "xml-crypto": "^6.1.2",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "xmlbuilder2": "^4.0.3"
   },
   "devDependencies": {
     "@tray-tecnologia/tray-api-plugin": "github:tray-tecnologia/tray-api-claude-plugin",
