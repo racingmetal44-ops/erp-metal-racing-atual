@@ -1,0 +1,82 @@
+﻿console.log('🚀 Iniciando servidor...');
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+    console.log('📥 ' + req.method + ' ' + req.url);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+        try {
+            const url = req.url;
+
+            // ROTA RAIZ
+            if (url === '/') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    message: 'ERP Metal Racing API',
+                    version: '1.0.0',
+                    status: 'online',
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
+
+            // HEALTH
+            if (url === '/api/health') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    service: 'ERP Metal Racing API',
+                    status: 'online',
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
+
+            // STATUS
+            if (url === '/api/status') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'online',
+                    ambiente: 'homologacao',
+                    uf: 'SC',
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
+
+            // 404
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Rota nao encontrada', url: req.url }));
+
+        } catch (error) {
+            console.error('❌ Erro:', error.message);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    });
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log('========================================');
+    console.log('✅ Servidor ERP Metal Racing rodando!');
+    console.log('📍 Porta: ' + PORT);
+    console.log('========================================');
+});
+
+server.on('error', (err) => {
+    console.error('❌ Erro no servidor:', err.message);
+});
+

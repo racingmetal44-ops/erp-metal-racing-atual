@@ -48,7 +48,7 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
             <h3 className="text-lg font-semibold text-white">Emissão NF-e</h3>
 
             {erro && (
@@ -110,5 +110,3 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
         </div>
     );
 }
-
-export default NFEmitir;

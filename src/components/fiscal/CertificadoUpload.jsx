@@ -96,7 +96,7 @@ export function CertificadoUpload({ empresaId, onUploadSuccess }) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
             <h3 className="text-lg font-semibold text-white">Certificado Digital</h3>
             
             <div>
@@ -169,5 +169,3 @@ export function CertificadoUpload({ empresaId, onUploadSuccess }) {
         </div>
     );
 }
-
-export default CertificadoUpload;
