@@ -1,6 +1,6 @@
 ﻿// src/backend/services/nfe/NfeXmlService.js
 export class NfeXmlService {
-    gerarChaveAcesso(empresa, numero, serie) {
+    gerarChaveAcesso(empresa, numero, serie, cNF) {
         const now = new Date();
         const ano = now.getFullYear().toString().slice(2);
         const mes = String(now.getMonth() + 1).padStart(2, '0');
@@ -9,7 +9,7 @@ export class NfeXmlService {
         const chaveBase = '42' + ano + mes + cnpj + '55' +
             String(serie || '1').padStart(3, '0') +
             String(numero).padStart(9, '0') + '1' +
-            String(Math.floor(Math.random() * 99999999 + 1)).padStart(8, '0');
+            String(cNF).padStart(8, '0');
 
         // Cálculo do DV
         let soma = 0;
@@ -24,7 +24,8 @@ export class NfeXmlService {
     }
 
     gerarXml(empresa, cliente, produtos, ambiente, serie, numero) {
-        const chave = this.gerarChaveAcesso(empresa, numero, serie);
+        const cNF = Math.floor(Math.random() * 99999999 + 1).toString().padStart(8, '0');
+        const chave = this.gerarChaveAcesso(empresa, numero, serie, cNF);
         const dataEmissao = new Date().toISOString();
         const total = produtos.reduce((s, p) => s + (p.quantidade * p.valorUnitario), 0);
         const icmsTotal = produtos.reduce((s, p) => s + (p.quantidade * p.valorUnitario * 0.17), 0);
@@ -48,12 +49,12 @@ export class NfeXmlService {
         <CFOP>${cfop}</CFOP>
         <uCom>${p.unidade || 'UN'}</uCom>
         <qCom>${p.quantidade}</qCom>
-        <vUnCom>${(p.valorUnitario * 100).toFixed(2)}</vUnCom>
+        <vUnCom>${Number(p.valorUnitario).toFixed(2)}</vUnCom>
         <vProd>${vProd}</vProd>
         <cEANTrib>SEM GTIN</cEANTrib>
         <uTrib>${p.unidade || 'UN'}</uTrib>
         <qTrib>${p.quantidade}</qTrib>
-        <vUnTrib>${(p.valorUnitario * 100).toFixed(2)}</vUnTrib>
+        <vUnTrib>${Number(p.valorUnitario).toFixed(2)}</vUnTrib>
         <indTot>1</indTot>
       </prod>
       <imposto>
@@ -75,7 +76,7 @@ export class NfeXmlService {
   <infNFe versao="4.00" Id="NFe${chave}">
     <ide>
       <cUF>42</cUF>
-      <cNF>${String(Math.floor(Math.random() * 99999999 + 1)).padStart(8, '0')}</cNF>
+      <cNF>${cNF}</cNF>
       <natOp>VENDA</natOp>
       <mod>55</mod>
       <serie>${String(serie || '1').padStart(3, '0')}</serie>
@@ -164,3 +165,6 @@ export class NfeXmlService {
 </NFe>`;
     }
 }
+
+
+
