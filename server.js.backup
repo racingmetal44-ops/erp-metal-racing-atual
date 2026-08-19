@@ -1,0 +1,35 @@
+﻿import express from 'express';
+import cors from 'cors';
+import certificateRoutes from './src/backend/routes/certificateRoutes.js';
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.json({ message: 'ERP Metal Racing', status: 'online' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ success: true, service: 'ERP Metal Racing API', status: 'online' });
+});
+
+app.get('/api/status', (req, res) => {
+  res.json({ status: 'online', timestamp: new Date().toISOString() });
+});
+
+app.use('/api/empresas', certificateRoutes);
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Rota nao encontrada' });
+});
+
+const PORT = 3001;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log('========================================');
+  console.log('✅ Servidor ERP Metal Racing rodando!');
+  console.log('📍 http://localhost:' + PORT);
+  console.log('📍 http://192.168.0.181:' + PORT);
+  console.log('========================================');
+});

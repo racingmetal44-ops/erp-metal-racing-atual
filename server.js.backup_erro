@@ -1,0 +1,177 @@
+﻿import http from 'http';
+import { NfeXmlService } from './src/backend/services/nfe/NfeXmlService.js';
+import { NfeSignatureService } from './src/backend/services/nfe/NfeSignatureService.js';
+import { NfeSoapService } from './src/backend/services/nfe/NfeSoapService.js';
+
+const server = http.createServer((req, res) => {
+    console.log('📥 ' + req.method + ' ' + req.url);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(200);
+        res.end();
+        return;
+    }
+
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+        try {
+            const url = req.url;
+
+            // HEALTH
+            if (url === '/api/health') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    service: 'ERP Metal Racing API',
+                    status: 'online',
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
+
+            // STATUS
+            if (url === '/api/status') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    status: 'online',
+                    ambiente: 'homologacao',
+                    uf: 'SC',
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
+
+            // EMITIR NF-e
+            if (url === '/api/nfe/emitir' && req.method === 'POST') {
+                try {
+                    const data = JSON.parse(body);
+                    console.log('📄 Emitindo NF-e para:', data.empresa?.razaoSocial);
+
+                    const xmlService = new NfeXmlService();
+                    const empresa = data.empresa;
+                    const cliente = data.cliente;
+                    const produtos = data.produtos || [];
+                    const ambiente = data.ambiente || 'homologacao';
+                    const serie = data.serie || '1';
+                    const numero = Math.floor(Math.random() * 999999) + 1;
+
+                    // 1. Gerar XML
+                    const xml = xmlService.gerarXml(empresa, cliente, produtos, ambiente, serie, numero);
+                    const chave = xmlService.gerarChaveAcesso(empresa, numero, serie);
+
+                    // 2. Assinar XML (simulado)
+                    const signatureService = new NfeSignatureService();
+                    const xmlAssinado = await signatureService.assinarXml(xml, '1');
+
+                    // 3. Enviar para SEFAZ (simulado)
+                    const soapService = new NfeSoapService();
+                    const resultado = await soapService.enviar(xmlAssinado, '1', ambiente);
+
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: true,
+                        message: 'NF-e emitida com sucesso',
+                        nfe: {
+                            numero: String(numero).padStart(9, '0'),
+                            serie: String(serie).padStart(3, '0'),
+                            modelo: '55',
+                            chave: chave,
+                            status: resultado.success ? 'AUTORIZADA' : 'REJEITADA',
+                            protocolo: resultado.nProt || '',
+                            data: new Date().toISOString(),
+                            xml: xml,
+                            retorno: resultado
+                        }
+                    }));
+                } catch (error) {
+                    console.error('❌ Erro na emissão:', error);
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: error.message
+                    }));
+                }
+                return;
+            }
+
+            // CONSULTAR
+            if (url.startsWith('/api/nfe/consultar/') && req.method === 'GET') {
+                const chave = url.replace('/api/nfe/consultar/', '');
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    chave: chave,
+                    status: 'AUTORIZADA'
+                }));
+                return;
+            }
+
+            // CANCELAR
+            if (url === '/api/nfe/cancelar' && req.method === 'POST') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'NF-e cancelada com sucesso'
+                }));
+                return;
+            }
+
+            // INUTILIZAR
+            if (url === '/api/nfe/inutilizar' && req.method === 'POST') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'Numeração inutilizada com sucesso'
+                }));
+                return;
+            }
+
+            // DANFE
+            if (url === '/api/nfe/danfe' && req.method === 'POST') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    success: true,
+                    message: 'DANFE gerado com sucesso',
+                    pdf: 'base64_do_pdf'
+                }));
+                return;
+            }
+
+            // 404
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Rota não encontrada', url: req.url }));
+
+        } catch (error) {
+            console.error('❌ Erro:', error.message);
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: error.message }));
+        }
+    });
+});
+
+const PORT = 3001;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log('========================================');
+    console.log('✅ Servidor ERP Metal Racing rodando!');
+    console.log('📍 http://localhost:' + PORT);
+    console.log('📍 http://192.168.0.181:' + PORT);
+    console.log('========================================');
+    console.log('Endpoints disponíveis:');
+    console.log('  GET  /api/health');
+    console.log('  GET  /api/status');
+    console.log('  POST /api/nfe/emitir (COM ASSINATURA E SOAP)');
+    console.log('  GET  /api/nfe/consultar/:chave');
+    console.log('  POST /api/nfe/cancelar');
+    console.log('  POST /api/nfe/inutilizar');
+    console.log('  POST /api/nfe/danfe');
+    console.log('========================================');
+});
+
+server.on('error', (err) => {
+    console.error('❌ Erro no servidor:', err.message);
+});

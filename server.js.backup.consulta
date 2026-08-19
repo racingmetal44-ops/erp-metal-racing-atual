@@ -1,0 +1,198 @@
+﻿import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors({ origin: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ============================================
+// ROTAS - API NF-e
+// ============================================
+
+// Rota raiz
+app.get('/', (req, res) => {
+    res.json({
+        message: 'Servidor ERP Metal Racing',
+        version: '1.0.0',
+        status: 'online',
+        endpoints: {
+            status: '/api/status',
+            certificado: '/api/empresas/:id/certificado',
+            sefaz: '/api/sefaz/testar',
+            emitir: '/api/nfe/emitir'
+        }
+    });
+});
+
+// Status do servidor
+app.get('/api/status', (req, res) => {
+    res.json({
+        status: 'online',
+        ambiente: process.env.AMBIENTE || 'homologacao',
+        uf: process.env.UF || 'SC',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Upload de certificado
+app.post('/api/empresas/:id/certificado', (req, res) => {
+    console.log('Upload certificado:', req.params.id);
+    console.log('Body:', req.body);
+    
+    res.json({
+        success: true,
+        message: 'Certificado recebido com sucesso',
+        data: {
+            id: req.params.id,
+            nome: 'certificado.pfx',
+            status: 'VALIDO',
+            validade: '01/01/2027'
+        }
+    });
+});
+
+// Testar certificado
+app.post('/api/empresas/:id/certificado/testar', (req, res) => {
+    console.log('Testando certificado:', req.params.id);
+    
+    res.json({
+        valid: true,
+        message: 'Certificado valido'
+    });
+});
+
+// Consultar certificado
+app.get('/api/empresas/:id/certificado', (req, res) => {
+    console.log('Consultando certificado:', req.params.id);
+    
+    res.json({
+        carregado: true,
+        id: req.params.id,
+        status: 'VALIDO',
+        cnpj: '12.345.678/0001-99',
+        validade: '01/01/2027'
+    });
+});
+
+// Testar SEFAZ
+app.get('/api/sefaz/testar', (req, res) => {
+    const uf = req.query.uf || 'SC';
+    const ambiente = req.query.ambiente || 'homologacao';
+    
+    console.log('Testando SEFAZ:', uf, ambiente);
+    
+    res.json({
+        status: 'online',
+        uf: uf,
+        ambiente: ambiente,
+        conectado: true,
+        mensagem: 'SEFAZ disponivel para conexao'
+    });
+});
+
+// Emitir NF-e
+app.post('/api/nfe/emitir', async (req, res) => {
+    console.log('Emitindo NF-e:', req.body);
+    
+    try {
+        // Aqui virá a lógica completa de emissão
+        res.json({
+            success: true,
+            message: 'NF-e emitida com sucesso',
+            nfe: {
+                numero: '000001',
+                serie: '1',
+                modelo: '55',
+                chave: '35240812345678000115550010000000011000000011',
+                status: 'AUTORIZADA',
+                protocolo: '123456789012345',
+                data: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Cancelar NF-e
+app.post('/api/nfe/cancelar', (req, res) => {
+    console.log('Cancelando NF-e:', req.body);
+    
+    res.json({
+        success: true,
+        message: 'NF-e cancelada com sucesso',
+        evento: {
+            tipo: 'CANCELAMENTO',
+            protocolo: '987654321098765',
+            data: new Date().toISOString()
+        }
+    });
+});
+
+// Inutilizar numeracao
+app.post('/api/nfe/inutilizar', (req, res) => {
+    console.log('Inutilizando numeracao:', req.body);
+    
+    res.json({
+        success: true,
+        message: 'Numeracao inutilizada com sucesso',
+        inutilizacao: {
+            serie: req.body.serie || '1',
+            numeroInicial: req.body.numeroInicial || 1,
+            numeroFinal: req.body.numeroFinal || 10,
+            protocolo: '123456789012345',
+            data: new Date().toISOString()
+        }
+    });
+});
+
+// Gerar DANFE
+app.post('/api/nfe/danfe', (req, res) => {
+    console.log('Gerando DANFE:', req.body);
+    
+    res.json({
+        success: true,
+        message: 'DANFE gerado com sucesso',
+        pdf: 'base64_do_pdf_gerado_aqui'
+    });
+});
+
+// ============================================
+// INICIAR SERVIDOR
+// ============================================
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('========================================');
+    console.log('Servidor ERP Metal Racing rodando!');
+    console.log('Porta: ' + PORT);
+    console.log('URL: http://localhost:' + PORT);
+    console.log('========================================');
+    console.log('Endpoints disponiveis:');
+    console.log('  GET  /');
+    console.log('  GET  /api/status');
+    console.log('  POST /api/empresas/:id/certificado');
+    console.log('  GET  /api/empresas/:id/certificado');
+    console.log('  GET  /api/sefaz/testar');
+    console.log('  POST /api/nfe/emitir');
+    console.log('  POST /api/nfe/cancelar');
+    console.log('  POST /api/nfe/inutilizar');
+    console.log('  POST /api/nfe/danfe');
+    console.log('========================================');
+});
+
+// Tratamento de erros
+process.on('uncaughtException', (err) => {
+    console.error('Erro nao tratado:', err.message);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('Promise rejeitada:', err);
+});

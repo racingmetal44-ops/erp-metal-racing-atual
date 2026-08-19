@@ -1,0 +1,19 @@
+[33m665b407[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m feat: Criada aba de Avisos com notificações em tempo real (sininho/sirene)
+[33m1b7d286[m feat: Melhorado design da aba Ranking com cores do ERP e integração com bipagens
+[33m53a4aae[m feat: Adicionada lista de usuários na bipagem - cada operação registra quem fez
+[33mba9926c[m chore: Forçar deploy da aba de Usuários
+[33mb06c776[m feat: Nova aba de Usuários com design atualizado
+[33m440b9b8[m fix: Removida dependência da coluna is_primary no upload de imagens
+[33mf54314a[m fix: Forçando rebuild do BipagemPage
+[33me589bc3[m feat: Criada aba de Bipagem com cores (Verde/Entrada, Vermelho/Saída, Azul/Não encontrado) e leitura automática
+[33m27a4eaa[m feat: Adicionado leitura automática na bipagem e cores (Verde/Entrada, Vermelho/Saída, Azul/Não encontrado)
+[33m477d4bb[m feat: Adicionado cores na bipagem - Verde para entrada, Vermelho para saída, Azul para não encontrado
+[33m13a99c0[m feat: Adicionado controle de estoque com quantidade, mínimo, máximo e bipe
+[33m084d0f1[m Remove CEST column from StockPage - already removed from schema
+[33mf11902a[m Remove CEST column from companies form - fiscal attribute belongs to products
+[33m708d012[m Corrige botão de cadastro de empresas - validação e mensagens melhoradas
+[33me4f1991[m Atualiza aba Empresas com validações e organização
+[33m67c300b[m deploy: add vercel.json for SPA rewrite; fix certificate upload routes & dev proxy
+[33m0ce9970[m remove arquivos de backup e script auxiliar
+[33mfbd3356[m adiciona quadro de producao
+[33m9f17380[m versao atual do ERP

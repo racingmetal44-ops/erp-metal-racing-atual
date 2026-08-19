@@ -1,0 +1,89 @@
+﻿import express from 'express';
+const app = express();
+const PORT = 3000;
+
+app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.json({ message: 'Servidor rodando!', status: 'online' });
+});
+
+app.get('/api/status', (req, res) => {
+    res.json({ status: 'online', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/nfe/consultar/:chave', (req, res) => {
+    console.log('📋 Consultando NF-e:', req.params.chave);
+    res.json({
+        success: true,
+        chave: req.params.chave,
+        status: 'AUTORIZADA',
+        protocolo: '123456789012345',
+        data: new Date().toISOString()
+    });
+});
+
+app.post('/api/nfe/emitir', (req, res) => {
+    console.log('📄 Emitindo NF-e:', req.body);
+    res.json({
+        success: true,
+        message: 'NF-e emitida com sucesso',
+        nfe: {
+            numero: '000001',
+            serie: '1',
+            status: 'AUTORIZADA',
+            protocolo: '123456789012345',
+            data: new Date().toISOString()
+        }
+    });
+});
+
+app.post('/api/nfe/cancelar', (req, res) => {
+    console.log('❌ Cancelando NF-e:', req.body);
+    res.json({
+        success: true,
+        message: 'NF-e cancelada com sucesso'
+    });
+});
+
+app.post('/api/nfe/inutilizar', (req, res) => {
+    console.log('🚫 Inutilizando:', req.body);
+    res.json({
+        success: true,
+        message: 'Numeração inutilizada com sucesso'
+    });
+});
+
+app.post('/api/nfe/danfe', (req, res) => {
+    console.log('📄 Gerando DANFE:', req.body);
+    res.json({
+        success: true,
+        message: 'DANFE gerado com sucesso',
+        pdf: 'base64_do_pdf'
+    });
+});
+
+// Iniciar servidor
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('========================================');
+    console.log('✅ Servidor rodando em http://localhost:' + PORT);
+    console.log('========================================');
+    console.log('Endpoints disponíveis:');
+    console.log('  GET  /');
+    console.log('  GET  /api/status');
+    console.log('  GET  /api/nfe/consultar/:chave');
+    console.log('  POST /api/nfe/emitir');
+    console.log('  POST /api/nfe/cancelar');
+    console.log('  POST /api/nfe/inutilizar');
+    console.log('  POST /api/nfe/danfe');
+    console.log('========================================');
+});
+
+// Tratamento de erros
+process.on('uncaughtException', (err) => {
+    console.error('❌ Erro:', err.message);
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('❌ Promise rejeitada:', err);
+});

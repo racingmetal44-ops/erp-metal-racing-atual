@@ -1,6 +1,35 @@
-﻿node_modules
-dist
+﻿# Dependências
+node_modules/
+
+# Builds
+dist/
+build/
+.vercel/
+
+# Certificados (NUNCA COMMITAR!)
+certificados/
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+
+# Arquivos de ambiente
 .env
 .env.local
+.env.production
+.env.development
+
+# Logs
 *.log
-.vercel
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PM2
+.pm2/
+
+# Arquivos temporários
+temp/
+tmp/
+*.tmp
