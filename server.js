@@ -1,6 +1,6 @@
-# Certifique-se de que o server.js tem as rotas completas
-$serverCorreto = @'
-import http from 'http';
+﻿import http from 'http';
+import { NfeXmlService } from './src/backend/services/nfe/NfeXmlService.js';
+import { NfeSignatureService } from './src/backend/services/nfe/NfeSignatureService.js';
 
 const server = http.createServer((req, res) => {
     console.log('📥 ' + req.method + ' ' + req.url);
@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
 
     let body = '';
     req.on('data', chunk => { body += chunk; });
-    req.on('end', () => {
+    req.on('end', async () => {
         try {
             const url = req.url;
 
@@ -63,78 +63,64 @@ const server = http.createServer((req, res) => {
                 return;
             }
 
-            // EMITIR NF-e
+            // ==============================================
+            // EMITIR NF-e COM ASSINATURA DIGITAL
+            // ==============================================
             if (url === '/api/nfe/emitir' && req.method === 'POST') {
-                const data = JSON.parse(body);
-                console.log('📄 Emitindo NF-e para:', data.empresa?.razaoSocial);
+                try {
+                    const data = JSON.parse(body);
+                    console.log('📄 Emitindo NF-e para:', data.empresa?.razaoSocial || 'Empresa');
 
-                const numero = String(Math.floor(Math.random() * 999999) + 1).padStart(9, '0');
-                const chave = '422608' + 
-                              new Date().getFullYear().toString().slice(2) +
-                              String(new Date().getMonth() + 1).padStart(2, '0') +
-                              '13862162000180' +
-                              '55' +
-                              '001' +
-                              numero +
-                              '1' +
-                              '0000000001' +
-                              '1';
+                    const xmlService = new NfeXmlService();
+                    const empresa = data.empresa;
+                    const cliente = data.cliente;
+                    const produtos = data.produtos || [];
+                    const ambiente = data.ambiente || 'homologacao';
+                    const serie = data.serie || '1';
+                    const numero = Math.floor(Math.random() * 999999) + 1;
 
-                const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
-  <infNFe versao="4.00" Id="NFe${chave}">
-    <ide>
-      <cUF>42</cUF>
-      <cNF>12345678</cNF>
-      <natOp>VENDA</natOp>
-      <mod>55</mod>
-      <serie>001</serie>
-      <nNF>${numero}</nNF>
-      <dhEmi>${new Date().toISOString()}</dhEmi>
-      <tpNF>1</tpNF>
-      <idDest>1</idDest>
-      <cMunFG>4209102</cMunFG>
-      <tpImp>1</tpImp>
-      <tpEmis>1</tpEmis>
-      <cDV>${chave.slice(-1)}</cDV>
-      <tpAmb>2</tpAmb>
-      <finNFe>1</finNFe>
-      <indFinal>0</indFinal>
-      <indPres>0</indPres>
-      <procEmi>0</procEmi>
-      <verProc>ERP Metal Racing 1.0</verProc>
-    </ide>
-    <emit>
-      <CNPJ>13862162000180</CNPJ>
-      <xNome>${data.empresa?.razaoSocial || 'ART GRAV COMUNICACAO INDUSTRIAL LTDA'}</xNome>
-    </emit>
-    <dest>
-      <CNPJ>${data.cliente?.cnpj?.replace(/[^\d]/g, '') || '12345678000199'}</CNPJ>
-      <xNome>${data.cliente?.nome || 'Cliente Teste'}</xNome>
-    </dest>
-    <total>
-      <ICMSTot>
-        <vNF>259.00</vNF>
-      </ICMSTot>
-    </total>
-  </infNFe>
-</NFe>`;
+                    // 1. GERAR XML
+                    const xml = xmlService.gerarXml(empresa, cliente, produtos, ambiente, serie, numero);
+                    const chave = xmlService.gerarChaveAcesso(empresa, numero, serie);
 
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({
-                    success: true,
-                    message: 'NF-e emitida com sucesso',
-                    nfe: {
-                        numero: numero,
-                        serie: '001',
-                        modelo: '55',
-                        chave: chave,
-                        status: 'AUTORIZADA',
-                        protocolo: Date.now().toString().padStart(15, '0'),
-                        data: new Date().toISOString(),
-                        xml: xml
+                    // 2. ASSINAR XML
+                    const empresaId = data.empresaId || '1';
+                    console.log('🔐 Assinando XML...');
+                    const xmlAssinado = await NfeSignatureService.assinarXml(xml, empresaId);
+
+                    // 3. VALIDAR ASSINATURA
+                    const validacao = await NfeSignatureService.validarAssinatura(xmlAssinado);
+                    if (!validacao.valido) {
+                        throw new Error('Assinatura invalida: ' + validacao.mensagem);
                     }
-                }));
+
+                    console.log('✅ XML assinado com sucesso!');
+
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: true,
+                        message: 'NF-e emitida com sucesso',
+                        nfe: {
+                            numero: String(numero).padStart(9, '0'),
+                            serie: String(serie).padStart(3, '0'),
+                            modelo: '55',
+                            chave: chave,
+                            status: 'AUTORIZADA',
+                            protocolo: Date.now().toString().padStart(15, '0'),
+                            data: new Date().toISOString(),
+                            xml: xmlAssinado,
+                            assinado: true,
+                            validacao: validacao
+                        }
+                    }));
+                } catch (error) {
+                    console.error('❌ Erro na emissão:', error.message);
+                    res.writeHead(500, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        success: false,
+                        error: error.message
+                    }));
+                }
                 return;
             }
 
@@ -182,6 +168,7 @@ const server = http.createServer((req, res) => {
             }
 
             // 404
+            console.log('❌ Rota nao encontrada:', url);
             res.writeHead(404, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Rota nao encontrada', url: req.url }));
 
@@ -199,17 +186,19 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log('✅ Servidor ERP Metal Racing rodando!');
     console.log('📍 Porta: ' + PORT);
     console.log('========================================');
+    console.log('Rotas disponiveis:');
+    console.log('  GET  /');
+    console.log('  GET  /api/health');
+    console.log('  GET  /api/status');
+    console.log('  POST /api/nfe/emitir (COM ASSINATURA DIGITAL)');
+    console.log('  GET  /api/nfe/consultar/:chave');
+    console.log('  POST /api/nfe/cancelar');
+    console.log('  POST /api/nfe/inutilizar');
+    console.log('  POST /api/nfe/danfe');
+    console.log('========================================');
 });
 
 server.on('error', (err) => {
     console.error('❌ Erro no servidor:', err.message);
 });
-'@
 
-$serverCorreto | Out-File -FilePath "server.js" -Encoding UTF8
-Write-Host "✅ server.js atualizado com todas as rotas!" -ForegroundColor Green
-
-# Enviar para o GitHub
-git add server.js -f
-git commit -m "fix: Adiciona server.js com todas as rotas (/, /api/health, /api/status, /api/nfe/emitir)"
-git push origin main
