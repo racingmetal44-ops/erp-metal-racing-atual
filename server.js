@@ -1,4 +1,6 @@
-﻿import http from 'http';
+# Certifique-se de que o server.js tem as rotas completas
+$serverCorreto = @'
+import http from 'http';
 
 const server = http.createServer((req, res) => {
     console.log('📥 ' + req.method + ' ' + req.url);
@@ -18,6 +20,24 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
         try {
             const url = req.url;
+
+            // ROTA RAIZ
+            if (url === '/') {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({
+                    message: 'ERP Metal Racing API',
+                    version: '1.0.0',
+                    status: 'online',
+                    endpoints: {
+                        health: '/api/health',
+                        status: '/api/status',
+                        emitir: '/api/nfe/emitir',
+                        consultar: '/api/nfe/consultar/:chave'
+                    },
+                    timestamp: new Date().toISOString()
+                }));
+                return;
+            }
 
             // HEALTH
             if (url === '/api/health') {
@@ -184,3 +204,12 @@ server.listen(PORT, '0.0.0.0', () => {
 server.on('error', (err) => {
     console.error('❌ Erro no servidor:', err.message);
 });
+'@
+
+$serverCorreto | Out-File -FilePath "server.js" -Encoding UTF8
+Write-Host "✅ server.js atualizado com todas as rotas!" -ForegroundColor Green
+
+# Enviar para o GitHub
+git add server.js -f
+git commit -m "fix: Adiciona server.js com todas as rotas (/, /api/health, /api/status, /api/nfe/emitir)"
+git push origin main
