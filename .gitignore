@@ -33,3 +33,14 @@ yarn-error.log*
 temp/
 tmp/
 *.tmp
+.env.backup
+.env.backup.*
+*.backup
+*.backup-*
+backup-nfe-*
+server-runtime.log
+server-runtime-error.log
+teste-geracao-nfe.mjs
+teste-*.mjs
+teste-*.cjs
+teste-*.xml
