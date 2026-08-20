@@ -4,7 +4,7 @@ export class NfeXmlService {
         const now = new Date();
         const ano = now.getFullYear().toString().slice(2);
         const mes = String(now.getMonth() + 1).padStart(2, '0');
-        const cnpj = empresa.cnpj.replace(/[^\d]/g, '');
+        const cnpj = (empresa?.cnpj || "").replace(/[^\d]/g, '');
 
         const chaveBase = '42' + ano + mes + cnpj + '55' +
             String(serie || '1').padStart(3, '0') +
@@ -66,10 +66,10 @@ export class NfeXmlService {
             nItem++;
         }
 
-        const cnpjEmit = empresa.cnpj.replace(/[^\d]/g, '');
-        const cnpjDest = cliente.cnpj ? cliente.cnpj.replace(/[^\d]/g, '') : '';
-        const cepEmit = empresa.cep.replace(/[^\d]/g, '');
-        const cepDest = cliente.cep ? cliente.cep.replace(/[^\d]/g, '') : '';
+        const cnpjEmit = (empresa?.cnpj || "").replace(/[^\d]/g, '');
+        const cnpjDest = cliente.cnpj ? (cliente?.cnpj || "").replace(/[^\d]/g, '') : '';
+        const cepEmit = (empresa?.cep || "").replace(/[^\d]/g, '');
+        const cepDest = cliente.cep ? (cliente?.cep || "").replace(/[^\d]/g, '') : '';
 
         return `<?xml version="1.0" encoding="UTF-8"?>
 <NFe xmlns="http://www.portalfiscal.inf.br/nfe">
@@ -116,7 +116,7 @@ export class NfeXmlService {
     </emit>
     <dest>
       ${cliente.cnpj ? `<CNPJ>${cnpjDest}</CNPJ>` : ''}
-      ${cliente.cpf ? `<CPF>${cliente.cpf.replace(/[^\d]/g, '')}</CPF>` : ''}
+      ${cliente.cpf ? `<CPF>${(cliente?.cpf || "").replace(/[^\d]/g, '')}</CPF>` : ''}
       <xNome>${cliente.nome}</xNome>
       <enderDest>
         <xLgr>${cliente.endereco}</xLgr>
@@ -165,6 +165,7 @@ export class NfeXmlService {
 </NFe>`;
     }
 }
+
 
 
 

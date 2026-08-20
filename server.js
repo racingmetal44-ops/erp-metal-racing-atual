@@ -1,5 +1,7 @@
 ﻿import 'dotenv/config';
 import http from 'http';
+import { NfeXmlService } from './src/backend/services/nfe/NfeXmlService.js';
+import NfeSignatureService from './src/backend/services/nfe/NfeSignatureService.js';
 
 const PORT = Number(process.env.PORT || 3001);
 const HOST = '0.0.0.0';
@@ -109,34 +111,120 @@ const server = http.createServer((req, res) => {
             // ==========================================
 
             if (req.method === 'POST' && pathname === '/api/nfe/emitir') {
-                let data = {};
 
-                try {
-                    data = body ? JSON.parse(body) : {};
-                } catch {
-                    sendJson(res, 400, {
-                        success: false,
-                        error: 'JSON inválido'
-                    });
-                    return;
-                }
+    let data = {};
 
-                console.log('[NFE] Solicitação recebida');
-                console.log('[NFE] Empresa ID:', data.empresaId);
+    try {
+        data = body ? JSON.parse(body) : {};
+    } catch (error) {
+        sendJson(res, 400, {
+            success: false,
+            error: 'JSON inválido',
+            detalhe: error.message
+        });
+        return;
+    }
 
-                sendJson(res, 501, {
-                    success: false,
-                    status: 'NAO_AUTORIZADA',
-                    message: 'Rota NF-e conectada, mas transmissão SEFAZ ainda não executada.',
-                    etapa: 'ROTA_OK',
-                    empresaId: data.empresaId || null,
-                    observacao: 'Não marcar como AUTORIZADA sem retorno oficial da SEFAZ.'
-                });
+    console.log('[NFE] Solicitação recebida');
+    console.log('[NFE] Empresa ID:', data.empresaId);
 
-                return;
+    try {
+
+        const empresaId = data.empresaId || '1';
+        const ambiente = data.ambiente || 'homologacao';
+        const empresa = data.empresa || {};
+        const cliente = data.cliente || {};
+        const produtos = data.produtos || [];
+        const serie = data.serie || '1';
+
+        console.log('[NFE] Gerando XML...');
+        
+        const xmlService = new NfeXmlService();
+
+        const numero = Math.floor(Math.random() * 999999) + 1;
+
+        const xml = xmlService.gerarXml(
+            empresa,
+            cliente,
+            produtos,
+            ambiente,
+            serie,
+            numero
+        );
+
+        console.log('[NFE] XML gerado.');
+
+        console.log('[NFE] Assinando XML com certificado A1...');
+
+        const xmlAssinado = await NfeSignatureService.assinarXml(
+            xml,
+            empresaId
+        );
+
+        console.log('[NFE] XML assinado.');
+
+        const validacao = await NfeSignatureService.validarAssinatura(
+            xmlAssinado
+        );
+
+        if (!validacao.valido) {
+            throw new Error(
+                'Assinatura XML inválida: ' + validacao.mensagem
+            );
+        }
+
+        console.log('[NFE] Assinatura validada.');
+
+        let chave = null;
+
+        try {
+            chave = xmlService.gerarChaveAcesso(
+                empresa,
+                numero,
+                serie
+            );
+        } catch (erroChave) {
+            console.log(
+                '[NFE] Não foi possível gerar chave:',
+                erroChave.message
+            );
+        }
+
+        sendJson(res, 200, {
+            success: true,
+            etapa: 'XML_ASSINADO',
+            status: 'XML_ASSINADO',
+            mensagem: 'NF-e gerada e assinada digitalmente com certificado A1.',
+            empresaId,
+            ambiente,
+            nfe: {
+                numero: String(numero).padStart(9, '0'),
+                serie: String(serie).padStart(3, '0'),
+                modelo: '55',
+                chave,
+                xml: xmlAssinado,
+                assinado: true,
+                validacao
             }
+        });
 
-            // ==========================================
+    } catch (error) {
+
+        console.error('[NFE] ERRO:', error);
+
+        sendJson(res, 500, {
+            success: false,
+            etapa: 'ERRO_ASSINATURA',
+            status: 'ERRO',
+            mensagem: error.message,
+            detalhe: error.stack
+        });
+
+    }
+
+    return;
+}
+// ==========================================
             // CONSULTAR NF-e
             // ==========================================
 
@@ -245,3 +333,4 @@ server.listen(PORT, HOST, () => {
     console.log('========================================');
     console.log('');
 });
+
