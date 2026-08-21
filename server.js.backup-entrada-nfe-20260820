@@ -1,6 +1,4 @@
-﻿import nfeEntradaRoutes from './src/backend/routes/nfeEntradaRoutes.js';
-import certificateRoutes from './src/backend/routes/certificateRoutes.js';
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -261,14 +259,6 @@ app.delete('/api/nfe/:id', (req, res) => {
 // INICIAR SERVIDOR
 // ============================================
 
-
-
-// ============================================
-// NF-e - ENTRADAS DE MERCADORIAS
-// ============================================
-app.use('/api/nfe-entradas', nfeEntradaRoutes);
-app.use('/api/empresas', certificateRoutes);
-
 app.listen(PORT, '0.0.0.0', () => {
     console.log('');
     console.log('============================================');
@@ -281,6 +271,3 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('============================================');
     console.log('');
 });
-
-
-
