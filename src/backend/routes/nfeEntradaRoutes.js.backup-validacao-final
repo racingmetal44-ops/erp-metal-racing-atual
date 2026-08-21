@@ -1,0 +1,665 @@
+﻿import express from 'express';
+import fs from 'fs-extra';
+import path from 'path';
+import multer from 'multer';
+import { XMLParser } from 'fast-xml-parser';
+
+const router = express.Router();
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const ENTRADAS_FILE = path.join(DATA_DIR, 'nfe-entradas.json');
+const UPLOAD_DIR = path.join(DATA_DIR, 'xml-nfe-entrada');
+
+fs.ensureDirSync(DATA_DIR);
+fs.ensureDirSync(UPLOAD_DIR);
+
+if (!fs.existsSync(ENTRADAS_FILE)) {
+    fs.writeJsonSync(ENTRADAS_FILE, []);
+}
+
+function getEntradas() {
+    try {
+        const dados = fs.readJsonSync(ENTRADAS_FILE);
+
+        if (Array.isArray(dados)) {
+            return dados;
+        }
+
+        if (dados && typeof dados === 'object') {
+            return [dados];
+        }
+
+        return [];
+    } catch {
+        return [];
+    }
+}
+function saveEntradas(lista) {
+    fs.writeJsonSync(ENTRADAS_FILE, lista, { spaces: 2 });
+}
+
+const upload = multer({
+    dest: UPLOAD_DIR,
+    limits: {
+        fileSize: 10 * 1024 * 1024
+    },
+    fileFilter: (req, file, cb) => {
+        const nome = file.originalname.toLowerCase();
+
+        if (nome.endsWith('.xml') || file.mimetype.includes('xml')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Somente arquivos XML de NF-e são permitidos.'));
+        }
+    }
+});
+
+function texto(valor) {
+    if (valor === undefined || valor === null) return '';
+    return String(valor);
+}
+
+function numeroSeguro(valor) {
+    const n = Number(valor);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function localizarNFe(parsed) {
+    return (
+        parsed?.nfeProc?.NFe ||
+        parsed?.NFe ||
+        parsed?.['nfeProc']?.['NFe'] ||
+        null
+    );
+}
+
+function arredondar2(valor) {
+    return Math.round((Number(valor) + Number.EPSILON) * 100) / 100;
+}
+
+function validarChaveNFe(chave) {
+
+    if (!/^\d{44}$/.test(chave)) {
+        throw new Error(
+            `Chave de acesso inválida. A NF-e deve possuir 44 dígitos. Chave recebida: ${chave}`
+        );
+    }
+
+    const base = chave.substring(0, 43);
+    const informado = Number(chave.substring(43));
+
+    let soma = 0;
+    let peso = 2;
+
+    for (let i = base.length - 1; i >= 0; i--) {
+        soma += Number(base[i]) * peso;
+        peso = peso === 9 ? 2 : peso + 1;
+    }
+
+    const resto = soma % 11;
+    const calculado = resto < 2 ? 0 : 11 - resto;
+
+    if (calculado !== informado) {
+        throw new Error(
+            `Dígito verificador da chave inválido. Informado: ${informado}; calculado: ${calculado}.`
+        );
+    }
+
+    return true;
+}
+
+function validarTextoXml(valor, campo) {
+
+    const textoValor = texto(valor);
+
+    if (
+        textoValor.includes('�') ||
+        textoValor.includes('ï¿½')
+    ) {
+        throw new Error(
+            `Texto corrompido no XML no campo ${campo}: "${textoValor}"`
+        );
+    }
+
+    return textoValor;
+}
+
+function validarProdutoXml(produto) {
+
+    const quantidade = arredondar2(produto.quantidade);
+    const unitario = arredondar2(produto.valorUnitario);
+    const totalInformado = arredondar2(produto.valorTotal);
+
+    const totalCalculado =
+        arredondar2(quantidade * unitario);
+
+    if (
+        Math.abs(totalCalculado - totalInformado) > 0.02
+    ) {
+        throw new Error(
+            `Produto "${produto.descricao}" inconsistente: ` +
+            `${quantidade} x R$ ${unitario.toFixed(2)} = ` +
+            `R$ ${totalCalculado.toFixed(2)}, ` +
+            `mas o XML informa R$ ${totalInformado.toFixed(2)}.`
+        );
+    }
+
+    return true;
+}
+
+function extrairXmlNfe(xml) {
+
+    const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: '@_',
+        removeNSPrefix: true,
+        parseTagValue: true,
+        trimValues: true
+    });
+
+    const parsed = parser.parse(xml);
+
+    const nfe = localizarNFe(parsed);
+
+    if (!nfe) {
+        throw new Error('XML não contém uma NF-e válida.');
+    }
+
+    const infNFe = nfe.infNFe;
+
+    if (!infNFe) {
+        throw new Error('Elemento infNFe não encontrado no XML.');
+    }
+
+    const ide = infNFe.ide || {};
+    const emit = infNFe.emit || {};
+    const dest = infNFe.dest || {};
+
+    let chave = texto(infNFe['@_Id']);
+
+    if (chave.startsWith('NFe')) {
+        chave = chave.substring(3);
+    }
+
+    const produtosRaw = infNFe.det || [];
+
+    const detalhes = Array.isArray(produtosRaw)
+        ? produtosRaw
+        : [produtosRaw];
+
+    const produtos = detalhes.map((det, index) => {
+
+        const prod = det.prod || {};
+        const imposto = det.imposto || {};
+
+        return {
+            item: numeroSeguro(det['@_nItem']) || index + 1,
+
+            codigo: texto(prod.cProd),
+            descricao: texto(prod.xProd),
+            ncm: texto(prod.NCM),
+            cfop: texto(prod.CFOP),
+            unidade: texto(prod.uCom),
+
+            quantidade: numeroSeguro(prod.qCom),
+            valorUnitario: numeroSeguro(prod.vUnCom),
+            valorTotal: numeroSeguro(prod.vProd),
+
+            ean: texto(prod.cEAN),
+
+            imposto: {
+                icms: imposto.ICMS || null,
+                ipi: imposto.IPI || null,
+                pis: imposto.PIS || null,
+                cofins: imposto.COFINS || null
+            }
+        };
+    });
+
+    const total = infNFe.total?.ICMSTot || {};
+
+    return {
+
+        chave,
+
+        numero: texto(ide.nNF),
+        serie: texto(ide.serie),
+
+        naturezaOperacao: texto(ide.natOp),
+
+        dataEmissao: texto(ide.dhEmi || ide.dEmi),
+
+        fornecedor: {
+            cnpj: texto(emit.CNPJ),
+            cpf: texto(emit.CPF),
+            razaoSocial: texto(emit.xNome),
+            nomeFantasia: texto(emit.xFant),
+            ie: texto(emit.IE),
+
+            endereco: {
+                logradouro: texto(emit.enderEmit?.xLgr),
+                numero: texto(emit.enderEmit?.nro),
+                bairro: texto(emit.enderEmit?.xBairro),
+                cidade: texto(emit.enderEmit?.xMun),
+                uf: texto(emit.enderEmit?.UF),
+                cep: texto(emit.enderEmit?.CEP)
+            }
+        },
+
+        destinatario: {
+            cnpj: texto(dest.CNPJ),
+            razaoSocial: texto(dest.xNome)
+        },
+
+        produtos,
+
+        totais: {
+            produtos: numeroSeguro(total.vProd),
+            frete: numeroSeguro(total.vFrete),
+            seguro: numeroSeguro(total.vSeg),
+            desconto: numeroSeguro(total.vDesc),
+            icms: numeroSeguro(total.vICMS),
+            ipi: numeroSeguro(total.vIPI),
+            pis: numeroSeguro(total.vPIS),
+            cofins: numeroSeguro(total.vCOFINS),
+            nota: numeroSeguro(total.vNF)
+        }
+    };
+}
+
+
+// =====================================================
+// LISTAR ENTRADAS
+// =====================================================
+
+router.get('/', (req, res) => {
+
+    try {
+
+        const entradas = getEntradas();
+
+        res.json({
+            success: true,
+            entradas,
+            count: entradas.length
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+// =====================================================
+// IMPORTAR XML
+// =====================================================
+
+router.post('/importar-xml', upload.single('xml'), async (req, res) => {
+
+    let arquivo = null;
+
+    try {
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'Arquivo XML não enviado.'
+            });
+        }
+
+        arquivo = req.file.path;
+
+        const xml = fs.readFileSync(arquivo, 'utf8');
+
+        const nfe = extrairXmlNfe(xml);
+
+        if (!nfe.chave) {
+            throw new Error('Não foi possível identificar a chave de acesso da NF-e.');
+        }
+
+        const entradas = getEntradas();
+
+        const duplicada = entradas.find(
+            item => item.chave === nfe.chave
+        );
+
+        if (duplicada) {
+
+            return res.status(409).json({
+                success: false,
+                error: 'Esta NF-e já foi importada.',
+                entrada: duplicada
+            });
+        }
+
+        const entrada = {
+
+            id: Date.now(),
+
+            tipo: 'XML',
+
+            status: 'CONFERENCIA',
+
+            empresaId: req.body.empresaId || null,
+
+            chave: nfe.chave,
+
+            numero: nfe.numero,
+
+            serie: nfe.serie,
+
+            naturezaOperacao: nfe.naturezaOperacao,
+
+            dataEmissao: nfe.dataEmissao,
+
+            fornecedor: nfe.fornecedor,
+
+            destinatario: nfe.destinatario,
+
+            produtos: nfe.produtos,
+
+            totais: nfe.totais,
+
+            xmlOriginal: xml,
+
+            arquivoOriginal: req.file.originalname,
+
+            createdAt: new Date().toISOString(),
+
+            updatedAt: new Date().toISOString()
+        };
+
+        entradas.push(entrada);
+
+        saveEntradas(entradas);
+
+        res.status(201).json({
+            success: true,
+            message: 'XML importado com sucesso. Confira os produtos antes de dar entrada.',
+            entrada
+        });
+
+    } catch (error) {
+
+        console.error('Erro ao importar XML:', error);
+
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
+
+    } finally {
+
+        if (arquivo) {
+            try {
+                fs.removeSync(arquivo);
+            } catch {}
+        }
+    }
+});
+
+
+// =====================================================
+// ENTRADA MANUAL
+// =====================================================
+
+router.post('/manual', (req, res) => {
+
+    try {
+
+        const {
+            empresaId,
+            fornecedor,
+            numero: numeroNfe,
+            serie,
+            chave,
+            dataEmissao,
+            naturezaOperacao,
+            produtos,
+            observacao
+        } = req.body;
+
+        if (!empresaId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Empresa não informada.'
+            });
+        }
+
+        if (!fornecedor) {
+            return res.status(400).json({
+                success: false,
+                error: 'Fornecedor não informado.'
+            });
+        }
+
+        if (!numeroNfe) {
+            return res.status(400).json({
+                success: false,
+                error: 'Número da NF-e não informado.'
+            });
+        }
+
+        if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Informe pelo menos um produto.'
+            });
+        }
+
+        const entradas = getEntradas();
+
+        if (chave) {
+
+            const duplicada = entradas.find(
+                item => item.chave === chave
+            );
+
+            if (duplicada) {
+                return res.status(409).json({
+                    success: false,
+                    error: 'Esta chave de NF-e já está cadastrada.',
+                    entrada: duplicada
+                });
+            }
+        }
+
+        const produtosNormalizados = produtos.map((produto, index) => ({
+
+            item: index + 1,
+
+            codigo: texto(produto.codigo),
+
+            descricao: texto(produto.descricao),
+
+            ncm: texto(produto.ncm),
+
+            cfop: texto(produto.cfop),
+
+            unidade: texto(produto.unidade || 'UN'),
+
+            quantidade: numeroSeguro(produto.quantidade),
+
+            valorUnitario: numeroSeguro(produto.valorUnitario),
+
+            valorTotal:
+                numeroSeguro(produto.valorTotal) ||
+                numeroSeguro(produto.quantidade) * numeroSeguro(produto.valorUnitario)
+        }));
+
+        const total = produtosNormalizados.reduce(
+            (soma, produto) => soma + produto.valorTotal,
+            0
+        );
+
+        const entrada = {
+
+            id: Date.now(),
+
+            tipo: 'MANUAL',
+
+            status: 'CONFERENCIA',
+
+            empresaId,
+
+            chave: chave || '',
+
+            numero: texto(numeroNfe),
+
+            serie: texto(serie || '1'),
+
+            naturezaOperacao: texto(
+                naturezaOperacao || 'COMPRA'
+            ),
+
+            dataEmissao:
+                dataEmissao || new Date().toISOString(),
+
+            fornecedor,
+
+            produtos: produtosNormalizados,
+
+            totais: {
+                produtos: total,
+                nota: total
+            },
+
+            observacao: texto(observacao),
+
+            createdAt: new Date().toISOString(),
+
+            updatedAt: new Date().toISOString()
+        };
+
+        entradas.push(entrada);
+
+        saveEntradas(entradas);
+
+        res.status(201).json({
+            success: true,
+            message: 'Entrada manual cadastrada para conferência.',
+            entrada
+        });
+
+    } catch (error) {
+
+        console.error('Erro na entrada manual:', error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+// =====================================================
+// CONFIRMAR ENTRADA
+// =====================================================
+
+router.post('/:id/confirmar', (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+
+        const entradas = getEntradas();
+
+        const index = entradas.findIndex(
+            item => item.id === id
+        );
+
+        if (index === -1) {
+
+            return res.status(404).json({
+                success: false,
+                error: 'Entrada não encontrada.'
+            });
+        }
+
+        const entrada = entradas[index];
+
+        if (entrada.status === 'CONFIRMADA') {
+
+            return res.status(400).json({
+                success: false,
+                error: 'Esta entrada já foi confirmada.'
+            });
+        }
+
+        entrada.status = 'CONFIRMADA';
+
+        entrada.confirmadaEm = new Date().toISOString();
+
+        entrada.updatedAt = new Date().toISOString();
+
+        saveEntradas(entradas);
+
+        res.json({
+            success: true,
+            message: 'Entrada confirmada com sucesso.',
+            entrada
+        });
+
+    } catch (error) {
+
+        console.error('Erro ao confirmar entrada:', error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+// =====================================================
+// CONSULTAR UMA ENTRADA
+// =====================================================
+
+router.get('/:id', (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+
+        const entrada = getEntradas().find(
+            item => item.id === id
+        );
+
+        if (!entrada) {
+
+            return res.status(404).json({
+                success: false,
+                error: 'Entrada não encontrada.'
+            });
+        }
+
+        res.json({
+            success: true,
+            entrada
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+
+export default router;
+
+
+
+
+
+

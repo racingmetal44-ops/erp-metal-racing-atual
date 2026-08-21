@@ -1,0 +1,22 @@
+
+========================================
+ ERP METAL RACING API
+========================================
+ Status: ONLINE
+ Host: 0.0.0.0
+ Porta: 3001
+ Local: http://127.0.0.1:3001
+ Health: http://127.0.0.1:3001/api/health
+ Status: http://127.0.0.1:3001/api/status
+========================================
+
+[API] GET /api/health
+[API] POST /api/nfe/emitir
+[NFE] Solicitação recebida
+[NFE] Empresa ID: 1
+[NFE] Gerando XML...
+[NFE] XML gerado.
+[NFE] Assinando XML com certificado A1...
+[API] GET /api/nfe/consultar/lista
+[API] GET /api/nfe/consultar/lista
+[API] GET /nfe

@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { CertificadoUpload } from '../components/fiscal/CertificadoUpload';
 import { NFEmitir } from '../components/fiscal/NFEmitir';
-import { NfeEntradaPanel } from '../components/fiscal/NfeEntradaPanel';
 
 const NfePage = () => {
     const [empresaId, setEmpresaId] = useState('1');
@@ -75,10 +74,6 @@ const NfePage = () => {
         <div className="p-6 space-y-6">
             <h1 className="text-3xl font-bold text-white">NF-e - Nota Fiscal Eletrônica</h1>
             
-            {/* ENTRADA DE NF-e */}
-            <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <NfeEntradaPanel empresaId={empresaId} />
-            </div>
             {/* Certificado Digital */}
             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
                 <CertificadoUpload 
@@ -190,4 +185,3 @@ const NfePage = () => {
 };
 
 export default NfePage;
-

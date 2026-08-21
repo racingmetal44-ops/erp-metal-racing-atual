@@ -1,0 +1,4 @@
+❌ Erro na assinatura: Missing canonicalizationAlgorithm when trying to create signed info for XML
+[NFE] ERRO: Error: Falha ao assinar XML: Missing canonicalizationAlgorithm when trying to create signed info for XML
+    at NfeSignatureService.assinarXml (file:///C:/Users/User/Downloads/erp%20metal%20racing%204.0/src/backend/services/nfe/NfeSignatureService.js:38:19)
+    at async IncomingMessage.<anonymous> (file:///C:/Users/User/Downloads/erp%20metal%20racing%204.0/server.js:159:29)
