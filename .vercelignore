@@ -17,9 +17,7 @@ verificar-*.mjs
 diagnostico-*.mjs
 
 *.log
-*.html
 *.cookies
-*.txt
 *.xml
 
 Qoder CN/
