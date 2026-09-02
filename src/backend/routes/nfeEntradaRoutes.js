@@ -1,8 +1,21 @@
-﻿import express from 'express';
+import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
 import { XMLParser } from 'fast-xml-parser';
+
+// Serviços da integração SEFAZ / entrada
+import NfeDistribuicaoService, { lerNsu } from '../services/nfe/NfeDistribuicaoService.js';
+import NfeManifestacaoService, { DESCRICOES_EVENTO } from '../services/nfe/NfeManifestacaoService.js';
+import {
+    vincularFornecedor,
+    verificarDuplicidade,
+    identificarProduto,
+    confirmarEntrada as confirmarEntradaTransacional,
+    getEntradas as getEntradasService,
+    saveEntradas as saveEntradasService
+} from '../services/nfe/NfeEntradaService.js';
+import { normalizarAmbiente } from '../config/sefaz.js';
 
 const router = express.Router();
 
@@ -161,7 +174,11 @@ function obterEmpresa(empresaId) {
         throw new Error('Arquivo de empresas não encontrado.');
     }
 
-    const empresas = fs.readJsonSync(arquivoEmpresas);
+    const empresasRaw = fs.readJsonSync(arquivoEmpresas);
+
+    const empresas = Array.isArray(empresasRaw)
+        ? empresasRaw
+        : (empresasRaw && typeof empresasRaw === 'object' ? [empresasRaw] : []);
 
     const empresa = empresas.find(
         item => String(item.id) === String(empresaId)
@@ -174,6 +191,37 @@ function obterEmpresa(empresaId) {
     }
 
     return empresa;
+}
+
+/**
+ * Configuração fiscal da empresa para a integração SEFAZ.
+ * UF, CNPJ e ambiente vêm SEMPRE da empresa (nunca hardcoded).
+ */
+function obterConfigEmpresa(empresaId) {
+    const empresa = obterEmpresa(empresaId);
+
+    return {
+        empresa,
+
+        cnpj:
+            String(empresa.cnpj || '')
+                .replace(/\D/g, ''),
+
+        uf:
+            String(
+                empresa.uf ||
+                process.env.NFE_UF ||
+                'SC'
+            ).toUpperCase(),
+
+        ambiente:
+            normalizarAmbiente(
+                empresa.ambiente ??
+                empresa.nfe?.ambiente ??
+                process.env.NFE_AMBIENTE ??
+                'homologacao'
+            )
+    };
 }
 
 function validarEntradaNFe(nfe, empresaId) {
@@ -241,96 +289,1254 @@ function extrairXmlNfe(xml) {
     const ide = infNFe.ide || {};
     const emit = infNFe.emit || {};
     const dest = infNFe.dest || {};
+    const transp = infNFe.transp || {};
+    const pag = infNFe.pag || {};
+    const cobr = infNFe.cobr || {};
+    const infAdic = infNFe.infAdic || {};
+    const infIntermed = infNFe.infIntermed || {};
 
-    let chave = texto(infNFe['@_Id']);
+    const textoSeguro = valor => {
+        if (valor === undefined || valor === null) {
+            return '';
+        }
 
-    if (chave.startsWith('NFe')) {
-        chave = chave.substring(3);
-    }
+        return String(valor);
+    };
 
-    const produtosRaw = infNFe.det || [];
+    const numeroSeguroLocal = valor => {
+        const n = Number(valor);
 
-    const detalhes = Array.isArray(produtosRaw)
-        ? produtosRaw
-        : [produtosRaw];
+        return Number.isFinite(n)
+            ? n
+            : 0;
+    };
 
-    const produtos = detalhes.map((det, index) => {
+    const somenteNumeros = valor =>
+        textoSeguro(valor).replace(/\D/g, '');
 
-        const prod = det.prod || {};
-        const imposto = det.imposto || {};
+    const arraySeguro = valor => {
+
+        if (valor === undefined || valor === null) {
+            return [];
+        }
+
+        return Array.isArray(valor)
+            ? valor
+            : [valor];
+    };
+
+    const primeiroObjeto = valor => {
+
+        if (
+            valor &&
+            typeof valor === 'object' &&
+            !Array.isArray(valor)
+        ) {
+            return valor;
+        }
+
+        if (Array.isArray(valor)) {
+            return valor[0] || {};
+        }
+
+        return {};
+    };
+
+    const localizarSubgrupo = (objeto, nomes = []) => {
+
+        for (const nome of nomes) {
+
+            if (
+                objeto &&
+                objeto[nome] &&
+                typeof objeto[nome] === 'object'
+            ) {
+                return objeto[nome];
+            }
+        }
+
+        return {};
+    };
+
+    const extrairTributo = (imposto, grupo) => {
+
+        const bloco = imposto?.[grupo];
+
+        if (!bloco) {
+            return {
+                grupo: null,
+                dados: {}
+            };
+        }
+
+        const chaves =
+            Object.keys(bloco || {});
+
+        for (const chaveGrupo of chaves) {
+
+            if (
+                bloco[chaveGrupo] &&
+                typeof bloco[chaveGrupo] === 'object'
+            ) {
+                return {
+                    grupo: chaveGrupo,
+                    dados: bloco[chaveGrupo]
+                };
+            }
+        }
 
         return {
-            item: numeroSeguro(det['@_nItem']) || index + 1,
+            grupo: grupo,
+            dados: primeiroObjeto(bloco)
+        };
+    };
 
-            codigo: texto(prod.cProd),
-            descricao: texto(prod.xProd),
-            ncm: texto(prod.NCM),
-            cfop: texto(prod.CFOP),
-            unidade: texto(prod.uCom),
+    const extrairImpostos = imposto => {
 
-            quantidade: numeroSeguro(prod.qCom),
-            valorUnitario: numeroSeguro(prod.vUnCom),
-            valorTotal: numeroSeguro(prod.vProd),
+        const icms = extrairTributo(
+            imposto,
+            'ICMS'
+        );
 
-            ean: texto(prod.cEAN),
+        const ipi = extrairTributo(
+            imposto,
+            'IPI'
+        );
 
-            imposto: {
-                icms: imposto.ICMS || null,
-                ipi: imposto.IPI || null,
-                pis: imposto.PIS || null,
-                cofins: imposto.COFINS || null
+        const pis = extrairTributo(
+            imposto,
+            'PIS'
+        );
+
+        const cofins = extrairTributo(
+            imposto,
+            'COFINS'
+        );
+
+        const ii = extrairTributo(
+            imposto,
+            'II'
+        );
+
+        const issqn = extrairTributo(
+            imposto,
+            'ISSQN'
+        );
+
+        return {
+
+            icms,
+            ipi,
+            pis,
+            cofins,
+            ii,
+            issqn,
+
+            resumo: {
+
+                icmsCst:
+                    textoSeguro(
+                        icms.dados.CST ||
+                        icms.dados.CSOSN
+                    ),
+
+                icmsBase:
+                    numeroSeguroLocal(
+                        icms.dados.vBC
+                    ),
+
+                icmsAliquota:
+                    numeroSeguroLocal(
+                        icms.dados.pICMS
+                    ),
+
+                icmsValor:
+                    numeroSeguroLocal(
+                        icms.dados.vICMS
+                    ),
+
+                ipiCst:
+                    textoSeguro(
+                        ipi.dados.CST
+                    ),
+
+                ipiValor:
+                    numeroSeguroLocal(
+                        ipi.dados.vIPI
+                    ),
+
+                pisCst:
+                    textoSeguro(
+                        pis.dados.CST
+                    ),
+
+                pisValor:
+                    numeroSeguroLocal(
+                        pis.dados.vPIS
+                    ),
+
+                cofinsCst:
+                    textoSeguro(
+                        cofins.dados.CST
+                    ),
+
+                cofinsValor:
+                    numeroSeguroLocal(
+                        cofins.dados.vCOFINS
+                    )
             }
         };
-    });
+    };
 
-    const total = infNFe.total?.ICMSTot || {};
+    let chave =
+        textoSeguro(infNFe['@_Id']);
+
+    if (chave.startsWith('NFe')) {
+        chave =
+            chave.substring(3);
+    }
+
+    if (!chave) {
+
+        const prot =
+            primeiroObjeto(
+                nfe.protNFe?.infProt
+            );
+
+        chave =
+            textoSeguro(prot.chNFe);
+    }
+
+    const produtosRaw =
+        infNFe.det || [];
+
+    const detalhes =
+        arraySeguro(produtosRaw);
+
+    const produtos =
+        detalhes.map((det, index) => {
+
+            const prod =
+                det?.prod || {};
+
+            const imposto =
+                det?.imposto || {};
+
+            const tributos =
+                extrairImpostos(imposto);
+
+            const impostoDevol =
+                det?.impostoDevol ||
+                null;
+
+            const rastro =
+                arraySeguro(
+                    prod?.rastro
+                );
+
+            return {
+
+                item:
+                    numeroSeguro(
+                        det?.['@_nItem']
+                    ) || index + 1,
+
+                codigo:
+                    textoSeguro(
+                        prod.cProd
+                    ),
+
+                descricao:
+                    textoSeguro(
+                        prod.xProd
+                    ),
+
+                ean:
+                    textoSeguro(
+                        prod.cEAN
+                    ),
+
+                eanTrib:
+                    textoSeguro(
+                        prod.cEANTrib
+                    ),
+
+                ncm:
+                    textoSeguro(
+                        prod.NCM
+                    ),
+
+                cest:
+                    textoSeguro(
+                        prod.CEST
+                    ),
+
+                cfop:
+                    textoSeguro(
+                        prod.CFOP
+                    ),
+
+                unidade:
+                    textoSeguro(
+                        prod.uCom
+                    ),
+
+                unidadeTributada:
+                    textoSeguro(
+                        prod.uTrib
+                    ),
+
+                quantidade:
+                    numeroSeguro(
+                        prod.qCom
+                    ),
+
+                quantidadeTributada:
+                    numeroSeguro(
+                        prod.qTrib
+                    ),
+
+                valorUnitario:
+                    numeroSeguro(
+                        prod.vUnCom
+                    ),
+
+                valorUnitarioTributado:
+                    numeroSeguro(
+                        prod.vUnTrib
+                    ),
+
+                valorTotal:
+                    numeroSeguro(
+                        prod.vProd
+                    ),
+
+                frete:
+                    numeroSeguro(
+                        prod.vFrete
+                    ),
+
+                seguro:
+                    numeroSeguro(
+                        prod.vSeg
+                    ),
+
+                desconto:
+                    numeroSeguro(
+                        prod.vDesc
+                    ),
+
+                outrasDespesas:
+                    numeroSeguro(
+                        prod.vOutro
+                    ),
+
+                pedidoCompra:
+                    textoSeguro(
+                        prod.xPed
+                    ),
+
+                itemPedidoCompra:
+                    textoSeguro(
+                        prod.nItemPed
+                    ),
+
+                impostos:
+                    tributos,
+
+                impostoDevolucao:
+                    impostoDevol,
+
+                rastreabilidade:
+                    rastro
+            };
+        });
+
+    const total =
+        infNFe.total?.ICMSTot || {};
+
+    const totalISS =
+        infNFe.total?.ISSQNtot || {};
+
+    const totalRet =
+        infNFe.total?.retTrib || {};
+
+    const documentoReferenciado =
+        arraySeguro(
+            ide.NFref
+        ).map(ref => ({
+
+            chave:
+                textoSeguro(
+                    ref?.refNFe
+                ),
+
+            nECF:
+                textoSeguro(
+                    ref?.refECF
+                ),
+
+            modelo:
+                textoSeguro(
+                    ref?.refNF?.mod
+                ),
+
+            numero:
+                textoSeguro(
+                    ref?.refNF?.nNF
+                ),
+
+            serie:
+                textoSeguro(
+                    ref?.refNF?.serie
+                ),
+
+            aAMM:
+                textoSeguro(
+                    ref?.refNF?.AAMM
+                ),
+
+            cUF:
+                textoSeguro(
+                    ref?.refNF?.cUF
+                )
+        }));
+
+    const pagamentos =
+        arraySeguro(
+            pag.detPag
+        ).map(item => ({
+
+            indicadorPagamento:
+                textoSeguro(
+                    item?.indPag
+                ),
+
+            forma:
+                textoSeguro(
+                    item?.tPag
+                ),
+
+            descricaoForma:
+                textoSeguro(
+                    item?.xPag
+                ),
+
+            valor:
+                numeroSeguro(
+                    item?.vPag
+                ),
+
+            troco:
+                numeroSeguro(
+                    pag.vTroco
+                ),
+
+            bandeira:
+                textoSeguro(
+                    item?.card?.tBand
+                ),
+
+            cnpjCredenciadora:
+                textoSeguro(
+                    item?.card?.CNPJ
+                ),
+
+            autorizacao:
+                textoSeguro(
+                    item?.card?.cAut
+                )
+        }));
+
+    const duplicatas =
+        arraySeguro(
+            cobr.dup
+        ).map(item => ({
+
+            numero:
+                textoSeguro(
+                    item?.nDup
+                ),
+
+            vencimento:
+                textoSeguro(
+                    item?.dVenc
+                ),
+
+            valor:
+                numeroSeguro(
+                    item?.vDup
+                )
+        }));
+
+    const transportadora =
+        transp.transporta || {};
+
+    const volumes =
+        arraySeguro(
+            transp.vol
+        ).map(vol => ({
+
+            quantidade:
+                numeroSeguro(
+                    vol?.qVol
+                ),
+
+            especie:
+                textoSeguro(
+                    vol?.esp
+                ),
+
+            marca:
+                textoSeguro(
+                    vol?.marca
+                ),
+
+            numeracao:
+                textoSeguro(
+                    vol?.nVol
+                ),
+
+            pesoLiquido:
+                numeroSeguro(
+                    vol?.pesoL
+                ),
+
+            pesoBruto:
+                numeroSeguro(
+                    vol?.pesoB
+                ),
+
+            lacres:
+                arraySeguro(
+                    vol?.lacres
+                )
+        }));
+
+    const protNFe =
+        primeiroObjeto(
+            nfe.protNFe?.infProt
+        );
 
     return {
 
         chave,
 
-        numero: texto(ide.nNF),
-        serie: texto(ide.serie),
+        numero:
+            textoSeguro(
+                ide.nNF
+            ),
 
-        naturezaOperacao: texto(ide.natOp),
+        serie:
+            textoSeguro(
+                ide.serie
+            ),
 
-        dataEmissao: texto(ide.dhEmi || ide.dEmi),
+        modelo:
+            textoSeguro(
+                ide.mod
+            ),
+
+        naturezaOperacao:
+            textoSeguro(
+                ide.natOp
+            ),
+
+        tipoOperacao:
+            textoSeguro(
+                ide.tpNF
+            ),
+
+        finalidade:
+            textoSeguro(
+                ide.finNFe
+            ),
+
+        indicadorPresenca:
+            textoSeguro(
+                ide.indPres
+            ),
+
+        indicadorIntermediador:
+            textoSeguro(
+                ide.indIntermed
+            ),
+
+        indicadorConsumidorFinal:
+            textoSeguro(
+                ide.indFinal
+            ),
+
+        tipoEmissao:
+            textoSeguro(
+                ide.tpEmis
+            ),
+
+        codigoMunicipio:
+            textoSeguro(
+                ide.cMunFG
+            ),
+
+        ambiente:
+            textoSeguro(
+                protNFe.tpAmb ||
+                ide.tpAmb
+            ),
+
+        statusSefaz:
+            textoSeguro(
+                protNFe.cStat
+            ),
+
+        motivoSefaz:
+            textoSeguro(
+                protNFe.xMotivo
+            ),
+
+        protocoloSefaz:
+            textoSeguro(
+                protNFe.nProt
+            ),
+
+        dataEmissao:
+            textoSeguro(
+                ide.dhEmi ||
+                ide.dEmi
+            ),
+
+        dataEntrada:
+            textoSeguro(
+                ide.dhSaiEnt ||
+                ''
+            ),
 
         fornecedor: {
-            cnpj: texto(emit.CNPJ),
-            cpf: texto(emit.CPF),
-            razaoSocial: texto(emit.xNome),
-            nomeFantasia: texto(emit.xFant),
-            ie: texto(emit.IE),
+
+            cnpj:
+                textoSeguro(
+                    emit.CNPJ
+                ),
+
+            cpf:
+                textoSeguro(
+                    emit.CPF
+                ),
+
+            razaoSocial:
+                textoSeguro(
+                    emit.xNome
+                ),
+
+            nomeFantasia:
+                textoSeguro(
+                    emit.xFant
+                ),
+
+            ie:
+                textoSeguro(
+                    emit.IE
+                ),
+
+            ieST:
+                textoSeguro(
+                    emit.IEST
+                ),
+
+            im:
+                textoSeguro(
+                    emit.IM
+                ),
+
+            suframa:
+                textoSeguro(
+                    emit.ISUF
+                ),
+
+            regimeTributario:
+                textoSeguro(
+                    emit.CRT
+                ),
+
+            email:
+                textoSeguro(
+                    emit.email
+                ),
+
+            telefone:
+                textoSeguro(
+                    emit.enderEmit?.fone
+                ),
 
             endereco: {
-                logradouro: texto(emit.enderEmit?.xLgr),
-                numero: texto(emit.enderEmit?.nro),
-                bairro: texto(emit.enderEmit?.xBairro),
-                cidade: texto(emit.enderEmit?.xMun),
-                uf: texto(emit.enderEmit?.UF),
-                cep: texto(emit.enderEmit?.CEP)
+
+                logradouro:
+                    textoSeguro(
+                        emit.enderEmit?.xLgr
+                    ),
+
+                numero:
+                    textoSeguro(
+                        emit.enderEmit?.nro
+                    ),
+
+                complemento:
+                    textoSeguro(
+                        emit.enderEmit?.xCpl
+                    ),
+
+                bairro:
+                    textoSeguro(
+                        emit.enderEmit?.xBairro
+                    ),
+
+                cidade:
+                    textoSeguro(
+                        emit.enderEmit?.xMun
+                    ),
+
+                codigoMunicipio:
+                    textoSeguro(
+                        emit.enderEmit?.cMun
+                    ),
+
+                uf:
+                    textoSeguro(
+                        emit.enderEmit?.UF
+                    ),
+
+                cep:
+                    textoSeguro(
+                        emit.enderEmit?.CEP
+                    ),
+
+                pais:
+                    textoSeguro(
+                        emit.enderEmit?.xPais
+                    ),
+
+                codigoPais:
+                    textoSeguro(
+                        emit.enderEmit?.cPais
+                    )
             }
         },
 
         destinatario: {
-            cnpj: texto(dest.CNPJ),
-            razaoSocial: texto(dest.xNome)
+
+            cnpj:
+                textoSeguro(
+                    dest.CNPJ
+                ),
+
+            cpf:
+                textoSeguro(
+                    dest.CPF
+                ),
+
+            razaoSocial:
+                textoSeguro(
+                    dest.xNome
+                ),
+
+            ie:
+                textoSeguro(
+                    dest.IE
+                ),
+
+            email:
+                textoSeguro(
+                    dest.email
+                ),
+
+            telefone:
+                textoSeguro(
+                    dest.enderDest?.fone
+                ),
+
+            tipoPessoa:
+                dest.CNPJ
+                    ? 'JURIDICA'
+                    : dest.CPF
+                        ? 'FISICA'
+                        : '',
+
+            indicadorIE:
+                textoSeguro(
+                    dest.indIEDest
+                ),
+
+            endereco: {
+
+                logradouro:
+                    textoSeguro(
+                        dest.enderDest?.xLgr
+                    ),
+
+                numero:
+                    textoSeguro(
+                        dest.enderDest?.nro
+                    ),
+
+                complemento:
+                    textoSeguro(
+                        dest.enderDest?.xCpl
+                    ),
+
+                bairro:
+                    textoSeguro(
+                        dest.enderDest?.xBairro
+                    ),
+
+                cidade:
+                    textoSeguro(
+                        dest.enderDest?.xMun
+                    ),
+
+                codigoMunicipio:
+                    textoSeguro(
+                        dest.enderDest?.cMun
+                    ),
+
+                uf:
+                    textoSeguro(
+                        dest.enderDest?.UF
+                    ),
+
+                cep:
+                    textoSeguro(
+                        dest.enderDest?.CEP
+                    ),
+
+                pais:
+                    textoSeguro(
+                        dest.enderDest?.xPais
+                    ),
+
+                codigoPais:
+                    textoSeguro(
+                        dest.enderDest?.cPais
+                    )
+            }
         },
+
+        documentoReferenciado,
 
         produtos,
 
         totais: {
-            produtos: numeroSeguro(total.vProd),
-            frete: numeroSeguro(total.vFrete),
-            seguro: numeroSeguro(total.vSeg),
-            desconto: numeroSeguro(total.vDesc),
-            icms: numeroSeguro(total.vICMS),
-            ipi: numeroSeguro(total.vIPI),
-            pis: numeroSeguro(total.vPIS),
-            cofins: numeroSeguro(total.vCOFINS),
-            nota: numeroSeguro(total.vNF)
-        }
+
+            produtos:
+                numeroSeguro(
+                    total.vProd
+                ),
+
+            frete:
+                numeroSeguro(
+                    total.vFrete
+                ),
+
+            seguro:
+                numeroSeguro(
+                    total.vSeg
+                ),
+
+            desconto:
+                numeroSeguro(
+                    total.vDesc
+                ),
+
+            outrasDespesas:
+                numeroSeguro(
+                    total.vOutro
+                ),
+
+            icmsBase:
+                numeroSeguro(
+                    total.vBC
+                ),
+
+            icms:
+                numeroSeguro(
+                    total.vICMS
+                ),
+
+            icmsDesonerado:
+                numeroSeguro(
+                    total.vICMSDeson
+                ),
+
+            icmsSTBase:
+                numeroSeguro(
+                    total.vBCST
+                ),
+
+            icmsST:
+                numeroSeguro(
+                    total.vST
+                ),
+
+            fcp:
+                numeroSeguro(
+                    total.vFCP
+                ),
+
+            fcpST:
+                numeroSeguro(
+                    total.vFCPST
+                ),
+
+            fcpSTRet:
+                numeroSeguro(
+                    total.vFCPSTRet
+                ),
+
+            ipi:
+                numeroSeguro(
+                    total.vIPI
+                ),
+
+            ipiDevolvido:
+                numeroSeguro(
+                    total.vIPIDevol
+                ),
+
+            pis:
+                numeroSeguro(
+                    total.vPIS
+                ),
+
+            cofins:
+                numeroSeguro(
+                    total.vCOFINS
+                ),
+
+            ii:
+                numeroSeguro(
+                    total.vII
+                ),
+
+            iss:
+                numeroSeguro(
+                    totalISS.vNF
+                ),
+
+            retPIS:
+                numeroSeguro(
+                    totalRet.vRetPIS
+                ),
+
+            retCOFINS:
+                numeroSeguro(
+                    totalRet.vRetCOFINS
+                ),
+
+            retCSLL:
+                numeroSeguro(
+                    totalRet.vRetCSLL
+                ),
+
+            retIRRF:
+                numeroSeguro(
+                    totalRet.vIRRF
+                ),
+
+            nota:
+                numeroSeguro(
+                    total.vNF
+                )
+        },
+
+        transporte: {
+
+            modalidadeFrete:
+                textoSeguro(
+                    transp.modFrete
+                ),
+
+            transportador: {
+
+                cnpj:
+                    textoSeguro(
+                        transportadora.CNPJ
+                    ),
+
+                cpf:
+                    textoSeguro(
+                        transportadora.CPF
+                    ),
+
+                nome:
+                    textoSeguro(
+                        transportadora.xNome
+                    ),
+
+                ie:
+                    textoSeguro(
+                        transportadora.IE
+                    ),
+
+                uf:
+                    textoSeguro(
+                        transportadora.UF
+                    ),
+
+                municipio:
+                    textoSeguro(
+                        transportadora.xMun
+                    ),
+
+                endereco:
+                    textoSeguro(
+                        transportadora.xEnder
+                    )
+            },
+
+            veiculo: {
+
+                placa:
+                    textoSeguro(
+                        transp.veicTransp?.placa
+                    ),
+
+                uf:
+                    textoSeguro(
+                        transp.veicTransp?.UF
+                    ),
+
+                rntc:
+                    textoSeguro(
+                        transp.veicTransp?.RNTC
+                    )
+            },
+
+            volumes
+        },
+
+        entrega: {
+
+            logradouro:
+                textoSeguro(
+                    infNFe.entrega?.xLgr
+                ),
+
+            numero:
+                textoSeguro(
+                    infNFe.entrega?.nro
+                ),
+
+            complemento:
+                textoSeguro(
+                    infNFe.entrega?.xCpl
+                ),
+
+            bairro:
+                textoSeguro(
+                    infNFe.entrega?.xBairro
+                ),
+
+            codigoMunicipio:
+                textoSeguro(
+                    infNFe.entrega?.cMun
+                ),
+
+            cidade:
+                textoSeguro(
+                    infNFe.entrega?.xMun
+                ),
+
+            uf:
+                textoSeguro(
+                    infNFe.entrega?.UF
+                ),
+
+            cep:
+                textoSeguro(
+                    infNFe.entrega?.CEP
+                ),
+
+            cnpj:
+                textoSeguro(
+                    infNFe.entrega?.CNPJ
+                ),
+
+            cpf:
+                textoSeguro(
+                    infNFe.entrega?.CPF
+                )
+        },
+
+        retirada: {
+
+            logradouro:
+                textoSeguro(
+                    infNFe.retirada?.xLgr
+                ),
+
+            numero:
+                textoSeguro(
+                    infNFe.retirada?.nro
+                ),
+
+            bairro:
+                textoSeguro(
+                    infNFe.retirada?.xBairro
+                ),
+
+            cidade:
+                textoSeguro(
+                    infNFe.retirada?.xMun
+                ),
+
+            uf:
+                textoSeguro(
+                    infNFe.retirada?.UF
+                ),
+
+            cep:
+                textoSeguro(
+                    infNFe.retirada?.CEP
+                )
+        },
+
+        pagamento: {
+
+            indicador:
+                textoSeguro(
+                    pag.indPag
+                ),
+
+            pagamentos,
+
+            duplicatas,
+
+            valorTroco:
+                numeroSeguro(
+                    pag.vTroco
+                )
+        },
+
+        intermediador: {
+
+            cnpj:
+                textoSeguro(
+                    infIntermed.CNPJ
+                ),
+
+            id:
+                textoSeguro(
+                    infIntermed.idCadIntTran
+                ),
+
+            presente:
+                Boolean(
+                    infIntermed.CNPJ ||
+                    infIntermed.idCadIntTran
+                )
+        },
+
+        informacoesAdicionais: {
+
+            complementares:
+                textoSeguro(
+                    infAdic.infCpl
+                ),
+
+            fisco:
+                textoSeguro(
+                    infAdic.infAdFisco
+                ),
+
+            observacoes:
+
+                arraySeguro(
+                    infAdic.obsCont
+                ).map(item => ({
+
+                    campo:
+                        textoSeguro(
+                            item?.xCampo
+                        ),
+
+                    texto:
+                        textoSeguro(
+                            item?.xTexto
+                        )
+                })),
+
+            observacoesFisco:
+
+                arraySeguro(
+                    infAdic.obsFisco
+                ).map(item => ({
+
+                    campo:
+                        textoSeguro(
+                            item?.xCampo
+                        ),
+
+                    texto:
+                        textoSeguro(
+                            item?.xTexto
+                        )
+                })),
+
+            processosReferenciados:
+
+                arraySeguro(
+                    infAdic.procRef
+                ).map(item => ({
+
+                    processo:
+                        textoSeguro(
+                            item?.nProc
+                        ),
+
+                    origem:
+                        textoSeguro(
+                            item?.indProc
+                        )
+                }))
+        },
+
+        compra: {
+
+            notaEmpenho:
+                textoSeguro(
+                    infNFe.compra?.xNEmp
+                ),
+
+            pedido:
+                textoSeguro(
+                    infNFe.compra?.xPed
+                ),
+
+            contrato:
+                textoSeguro(
+                    infNFe.compra?.xCont
+                )
+        },
+
+        exportacao: {
+
+            registro:
+                arraySeguro(
+                    infNFe.exporta
+                ).map(item => ({
+
+                    drawback:
+                        textoSeguro(
+                            item?.nDraw
+                        ),
+
+                    exportacao:
+                        textoSeguro(
+                            item?.exportInd?.nRE
+                        )
+                }))
+        },
+
+        xmlOriginal:
+            xml
     };
 }
 
@@ -418,33 +1624,181 @@ router.post('/importar-xml', upload.single('xml'), async (req, res) => {
 
             status: 'CONFERENCIA',
 
-            empresaId: req.body.empresaId || null,
+            empresaId:
+                req.body.empresaId || null,
 
-            chave: nfe.chave,
+            // =========================================
+            // IDENTIFICAÇÃO DA NF-e
+            // =========================================
 
-            numero: nfe.numero,
+            chave:
+                nfe.chave,
 
-            serie: nfe.serie,
+            numero:
+                nfe.numero,
 
-            naturezaOperacao: nfe.naturezaOperacao,
+            serie:
+                nfe.serie,
 
-            dataEmissao: nfe.dataEmissao,
+            modelo:
+                nfe.modelo,
 
-            fornecedor: nfe.fornecedor,
+            naturezaOperacao:
+                nfe.naturezaOperacao,
 
-            destinatario: nfe.destinatario,
+            tipoOperacao:
+                nfe.tipoOperacao,
 
-            produtos: nfe.produtos,
+            finalidade:
+                nfe.finalidade,
 
-            totais: nfe.totais,
+            indicadorPresenca:
+                nfe.indicadorPresenca,
 
-            xmlOriginal: xml,
+            indicadorIntermediador:
+                nfe.indicadorIntermediador,
 
-            arquivoOriginal: req.file.originalname,
+            indicadorConsumidorFinal:
+                nfe.indicadorConsumidorFinal,
 
-            createdAt: new Date().toISOString(),
+            tipoEmissao:
+                nfe.tipoEmissao,
 
-            updatedAt: new Date().toISOString()
+            codigoMunicipio:
+                nfe.codigoMunicipio,
+
+            // =========================================
+            // DATAS
+            // =========================================
+
+            dataEmissao:
+                nfe.dataEmissao,
+
+            dataEntrada:
+                nfe.dataEntrada,
+
+            // =========================================
+            // STATUS SEFAZ
+            // =========================================
+
+            ambiente:
+                nfe.ambiente,
+
+            statusSefaz:
+                nfe.statusSefaz,
+
+            motivoSefaz:
+                nfe.motivoSefaz,
+
+            protocoloSefaz:
+                nfe.protocoloSefaz,
+
+            // =========================================
+            // FORNECEDOR
+            // =========================================
+
+            fornecedor:
+                nfe.fornecedor,
+
+            // =========================================
+            // DESTINATÁRIO
+            // =========================================
+
+            destinatario:
+                nfe.destinatario,
+
+            // =========================================
+            // DOCUMENTOS REFERENCIADOS
+            // =========================================
+
+            documentoReferenciado:
+                nfe.documentoReferenciado,
+
+            // =========================================
+            // ITENS
+            // =========================================
+
+            produtos:
+                nfe.produtos,
+
+            // =========================================
+            // TOTAIS E IMPOSTOS
+            // =========================================
+
+            totais:
+                nfe.totais,
+
+            // =========================================
+            // TRANSPORTE / VOLUMES
+            // =========================================
+
+            transporte:
+                nfe.transporte,
+
+            // =========================================
+            // ENDEREÇO DE ENTREGA
+            // =========================================
+
+            entrega:
+                nfe.entrega,
+
+            // =========================================
+            // RETIRADA
+            // =========================================
+
+            retirada:
+                nfe.retirada,
+
+            // =========================================
+            // PAGAMENTO
+            // =========================================
+
+            pagamento:
+                nfe.pagamento,
+
+            // =========================================
+            // INTERMEDIADOR
+            // =========================================
+
+            intermediador:
+                nfe.intermediador,
+
+            // =========================================
+            // INFORMAÇÕES ADICIONAIS
+            // =========================================
+
+            informacoesAdicionais:
+                nfe.informacoesAdicionais,
+
+            // =========================================
+            // COMPRA
+            // =========================================
+
+            compra:
+                nfe.compra,
+
+            // =========================================
+            // EXPORTAÇÃO
+            // =========================================
+
+            exportacao:
+                nfe.exportacao,
+
+            // =========================================
+            // XML ORIGINAL
+            // =========================================
+
+            xmlOriginal:
+                xml,
+
+            arquivoOriginal:
+                req.file.originalname,
+
+            createdAt:
+                new Date().toISOString(),
+
+            updatedAt:
+                new Date().toISOString()
         };
 
         entradas.push(entrada);
@@ -493,6 +1847,10 @@ router.post('/manual', (req, res) => {
             chave,
             dataEmissao,
             naturezaOperacao,
+            cfop,
+            frete,
+            desconto,
+            valorTotal,
             produtos,
             observacao
         } = req.body;
@@ -562,13 +1920,36 @@ router.post('/manual', (req, res) => {
 
             valorTotal:
                 numeroSeguro(produto.valorTotal) ||
-                numeroSeguro(produto.quantidade) * numeroSeguro(produto.valorUnitario)
+                numeroSeguro(produto.quantidade) * numeroSeguro(produto.valorUnitario),
+
+            cstCsosn: texto(produto.cstCsosn),
+
+            ipi: numeroSeguro(produto.ipi),
+
+            pis: numeroSeguro(produto.pis),
+
+            cofins: numeroSeguro(produto.cofins)
         }));
 
-        const total = produtosNormalizados.reduce(
+        const totalProdutos = produtosNormalizados.reduce(
             (soma, produto) => soma + produto.valorTotal,
             0
         );
+
+        const valorFrete = Math.max(0, numeroSeguro(frete));
+
+        const valorDesconto = Math.max(0, numeroSeguro(desconto));
+
+        const totalCalculado = Math.max(
+            0,
+            totalProdutos + valorFrete - valorDesconto
+        );
+
+        const totalInformado = numeroSeguro(valorTotal);
+
+        const totalNota = totalInformado > 0
+            ? totalInformado
+            : totalCalculado;
 
         const entrada = {
 
@@ -590,6 +1971,8 @@ router.post('/manual', (req, res) => {
                 naturezaOperacao || 'COMPRA'
             ),
 
+            cfop: texto(cfop),
+
             dataEmissao:
                 dataEmissao || new Date().toISOString(),
 
@@ -598,9 +1981,13 @@ router.post('/manual', (req, res) => {
             produtos: produtosNormalizados,
 
             totais: {
-                produtos: total,
-                nota: total
+                produtos: totalProdutos,
+                frete: valorFrete,
+                desconto: valorDesconto,
+                nota: totalNota
             },
+
+            valorTotalInformado: totalInformado || null,
 
             observacao: texto(observacao),
 
@@ -632,138 +2019,243 @@ router.post('/manual', (req, res) => {
 
 
 // =====================================================
-// CONFIRMAR ENTRADA
+// CONSULTAR UMA ENTRADA
 // =====================================================
 
-router.post('/:id/confirmar', (req, res) => {
+router.post('/sincronizar-sefaz', async (req, res) => {
 
     try {
 
-        const id = Number(req.params.id);
+        const { empresaId, nsuEspecifico, chNFe } = req.body || {};
 
-        const entradas = getEntradas();
-
-        const index = entradas.findIndex(
-            item => Number(item.id) === id
-        );
-
-        if (index === -1) {
-
-            return res.status(404).json({
-                success: false,
-                error: 'Entrada não encontrada.'
-            });
-
-        }
-
-        const entrada = entradas[index];
-
-        if (entrada.status === 'CONFIRMADA') {
-
+        if (!empresaId) {
             return res.status(400).json({
                 success: false,
-                error: 'Esta entrada já foi confirmada.'
+                error: 'Empresa não informada.'
             });
-
         }
 
-        const itens = Array.isArray(req.body?.itens)
-            ? req.body.itens
-            : [];
+        const config = obterConfigEmpresa(empresaId);
 
-        if (entrada.produtos?.length && itens.length !== entrada.produtos.length) {
-
+        if (!config.cnpj || config.cnpj.length !== 14) {
             return res.status(400).json({
                 success: false,
-                error:
-                    'É necessário vincular todos os produtos da NF-e ao estoque antes de confirmar.'
+                error: `Empresa sem CNPJ válido configurado (${config.cnpj || 'vazio'}).`
             });
-
         }
 
-        entrada.itensVinculados = itens.map((item, index) => ({
+        const resultado = await NfeDistribuicaoService.consultar({
+            empresaId,
+            cnpj: config.cnpj,
+            uf: config.uf,
+            ambiente: config.ambiente,
+            nsuEspecifico: nsuEspecifico || null,
+            chNFe: chNFe || null
+        });
 
-            itemNfe:
-                Number(item.itemNfe || index + 1),
+        // =============================================
+        // TRATAMENTO ESPECÍFICO DA SEFAZ
+        // 656 = CONSUMO INDEVIDO
+        // Não avançar o NSU e não tratar como "nenhum documento".
+        // =============================================
 
-            produtoId:
-                item.produtoId || null,
+        if (String(resultado.cStat) === '656') {
 
-            sku:
-                String(item.sku || ''),
-
-            codigoNfe:
-                String(
-                    entrada.produtos?.[index]?.codigo || ''
-                ),
-
-            descricaoNfe:
-                String(
-                    entrada.produtos?.[index]?.descricao || ''
-                ),
-
-            quantidade:
-                Number(item.quantidade || entrada.produtos?.[index]?.quantidade || 0),
-
-            valorUnitario:
-                Number(
-                    item.valorUnitario ||
-                    entrada.produtos?.[index]?.valorUnitario ||
-                    0
-                )
-        }));
-
-        const faltando = entrada.itensVinculados.some(
-            item =>
-                !item.produtoId ||
-                !Number.isFinite(item.quantidade) ||
-                item.quantidade <= 0
-        );
-
-        if (faltando) {
-
-            return res.status(400).json({
+            return res.status(429).json({
                 success: false,
-                error:
-                    'Todos os itens precisam possuir produto do ERP e quantidade válida.'
+                comunicacao: true,
+                cStat: resultado.cStat,
+                xMotivo: resultado.xMotivo,
+                ultNSU: resultado.ultNSU || lerNsu(empresaId).ultimoNsu,
+                maxNSU: resultado.maxNSU || '000000000000000',
+                quantidadeDocumentos: 0,
+                novasEntradas: 0,
+                bloqueado: true,
+                aguardarMinutos: 60,
+                message:
+                    'A SEFAZ bloqueou temporariamente a consulta por consumo indevido. Aguarde 1 hora antes de consultar novamente.'
             });
 
         }
 
-        entrada.status = 'CONFIRMADA';
+        // ---------------------------------------------
+        // REGISTRAR DOCUMENTOS NF-e ENCONTRADOS COMO ENTRADAS
+        // (apenas procNFe / NFe completas; resNFe vira pendência)
+        // ---------------------------------------------
+        let novasEntradas = 0;
 
-        entrada.confirmadaEm =
-            new Date().toISOString();
+        if (resultado.success && resultado.documentos?.length) {
 
-        entrada.updatedAt =
-            new Date().toISOString();
+            const entradas = getEntradas();
 
-        saveEntradas(entradas);
+            for (const doc of resultado.documentos) {
+
+                // Apenas documentos que contenham a NF-e completa
+                if (doc.tipo !== 'PROC_NFE' && doc.tipo !== 'NFE') {
+                    continue;
+                }
+
+                try {
+                    const nfe = extrairXmlNfe(doc.xml);
+
+                    if (!nfe.chave) continue;
+
+                    // Duplicidade por empresa + chave
+                    const jaExiste = entradas.find(
+                        e =>
+                            String(e.empresaId) === String(empresaId) &&
+                            e.chave === nfe.chave
+                    );
+
+                    if (jaExiste) continue;
+
+                    // Valida destinatário = empresa
+                    try {
+                        validarEntradaNFe(nfe, empresaId);
+                    } catch (erroValidacao) {
+                        console.warn(
+                            `[SINCRONIZAR] NF-e ${nfe.chave} ignorada: ${erroValidacao.message}`
+                        );
+                        continue;
+                    }
+
+                    entradas.push({
+                        id: Date.now() + novasEntradas,
+                        tipo: 'SEFAZ',
+                        status: 'CONFERENCIA',
+                        empresaId: String(empresaId),
+                        chave: nfe.chave,
+                        numero: nfe.numero,
+                        serie: nfe.serie,
+                        naturezaOperacao: nfe.naturezaOperacao,
+                        dataEmissao: nfe.dataEmissao,
+                        fornecedor: nfe.fornecedor,
+                        destinatario: nfe.destinatario,
+                        produtos: nfe.produtos,
+                        totais: nfe.totais,
+                        nsu: doc.nsu,
+                        xmlPath: doc.xmlPath || null,
+                        xmlOriginal: doc.xml,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    novasEntradas++;
+
+                    // Vincula/cria fornecedor pelo CNPJ do emitente
+                    vincularFornecedor({
+                        ...nfe.fornecedor,
+                        origem: 'NFE_SEFAZ'
+                    });
+
+                } catch (erroDoc) {
+                    console.error('[SINCRONIZAR] Erro ao processar documento:', erroDoc.message);
+                }
+            }
+
+            if (novasEntradas > 0) {
+                saveEntradas(entradas);
+            }
+        }
 
         res.json({
-            success: true,
-            message: 'Entrada confirmada com sucesso.',
-            entrada
+            success: resultado.success,
+            cStat: resultado.cStat,
+            xMotivo: resultado.xMotivo,
+            ultNSU: resultado.ultNSU || lerNsu(empresaId).ultimoNsu,
+            maxNSU: resultado.maxNSU,
+            ultNSUAtualizado: resultado.ultNSUAtualizado || null,
+            quantidadeDocumentos: resultado.documentos?.length || 0,
+            novasEntradas,
+            tipoErro: resultado.tipoErro || null,
+            tempoMs: resultado.tempoMs,
+            httpStatus: resultado.httpStatus,
+            message: resultado.success
+                ? (resultado.temDocumentos
+                    ? `${resultado.documentos.length} documento(s) recebido(s); ${novasEntradas} nova(s) NF-e importada(s).`
+                    : 'Nenhum documento novo destinado à empresa.')
+                : (resultado.xMotivo || 'Consulta ao SEFAZ sem sucesso fiscal.')
         });
 
     } catch (error) {
 
-        console.error(
-            'Erro ao confirmar entrada:',
-            error
-        );
+        console.error('[SINCRONIZAR] Erro:', error);
 
         res.status(500).json({
             success: false,
             error: error.message
         });
-
     }
 });
 
 // =====================================================
-// CONSULTAR UMA ENTRADA
+// NOVO: STATUS DA DISTRIBUIÇÃO (NSU atual da empresa)
+// GET /api/nfe-entradas/distribuicao?empresaId=1
 // =====================================================
+
+router.get('/distribuicao', (req, res) => {
+
+    try {
+
+        const { empresaId } = req.query;
+
+        if (!empresaId) {
+            return res.status(400).json({
+                success: false,
+                error: 'empresaId é obrigatório.'
+            });
+        }
+
+        const config = obterConfigEmpresa(empresaId);
+        const nsu = lerNsu(empresaId);
+
+        res.json({
+            success: true,
+            empresaId: String(empresaId),
+            cnpj: config.cnpj,
+            uf: config.uf,
+            ambiente: config.ambiente,
+            ultimoNsu: nsu.ultimoNsu,
+            atualizadoEm: nsu.atualizadoEm
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// NOVO: NF-e PENDENTES DE CONFERÊNCIA
+// GET /api/nfe-entradas/pendentes?empresaId=1
+// =====================================================
+
+router.get('/pendentes', (req, res) => {
+
+    try {
+
+        const { empresaId } = req.query;
+
+        let entradas = getEntradas();
+
+        if (empresaId) {
+            entradas = entradas.filter(
+                e => String(e.empresaId) === String(empresaId)
+            );
+        }
+
+        const pendentes = entradas.filter(
+            e => e.status === 'CONFERENCIA'
+        );
+
+        res.json({
+            success: true,
+            pendentes,
+            count: pendentes.length
+        });
 
 router.get('/:id', (req, res) => {
 
@@ -797,14 +2289,420 @@ router.get('/:id', (req, res) => {
     }
 });
 
+// =====================================================
+// NOVO: SINCRONIZAR COM SEFAZ (NFeDistribuicaoDFe)
+// POST /api/nfe-entradas/sincronizar-sefaz
+// Body: { empresaId, nsuEspecifico?, chNFe? }
+// =====================================================
+
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// NOVO: MANIFESTAÇÃO DO DESTINATÁRIO
+// POST /api/nfe-entradas/:id/manifestar
+// Body: { tipoEvento, justificativa? }
+// =====================================================
+
+router.post('/:id/manifestar', async (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+        const { tipoEvento, justificativa } = req.body || {};
+
+        const entrada = getEntradas().find(e => Number(e.id) === id);
+
+        if (!entrada) {
+            return res.status(404).json({
+                success: false,
+                error: 'Entrada não encontrada.'
+            });
+        }
+
+        if (!entrada.chave) {
+            return res.status(400).json({
+                success: false,
+                error: 'Esta entrada não possui chave de acesso (entrada manual sem chave).'
+            });
+        }
+
+        if (!DESCRICOES_EVENTO[tipoEvento]) {
+            return res.status(400).json({
+                success: false,
+                error:
+                    `tipoEvento inválido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} ` +
+                    `(210200=Confirmação, 210210=Ciência, 210220=Desconhecimento, 210240=Não Realizada).`
+            });
+        }
+
+        const config = obterConfigEmpresa(entrada.empresaId);
+
+        const resultado = await NfeManifestacaoService.manifestar({
+            empresaId: entrada.empresaId,
+            cnpj: config.cnpj,
+            uf: config.uf,
+
+            // IMPORTANTE:
+            // A manifestação deve usar o mesmo ambiente da NF-e importada.
+            // Não usar o .env como prioridade neste ponto.
+            ambiente: normalizarAmbiente(
+                entrada.ambiente ||
+                config.ambiente
+            ),
+
+            chNFe: entrada.chave,
+            tipoEvento,
+            justificativa
+        });
+
+        // Registra a manifestação na entrada
+        const entradas = getEntradas();
+        const index = entradas.findIndex(e => Number(e.id) === id);
+        if (index >= 0) {
+            entradas[index].manifestacao = {
+                tipoEvento,
+                descricao: DESCRICOES_EVENTO[tipoEvento],
+                cStat: resultado.cStat,
+                xMotivo: resultado.xMotivo,
+                protocolo: resultado.protocolo,
+                success: resultado.success,
+                dataHora: new Date().toISOString()
+            };
+            entradas[index].updatedAt = new Date().toISOString();
+            saveEntradas(entradas);
+        }
+
+        res.status(resultado.success ? 200 : 502).json({
+            success: resultado.success,
+            cStat: resultado.cStat,
+            xMotivo: resultado.xMotivo,
+            protocolo: resultado.protocolo,
+            message: resultado.success
+                ? `Manifestação enviada: ${DESCRICOES_EVENTO[tipoEvento]}.`
+                : (resultado.xMotivo || 'SEFAZ não vinculou o evento.')
+        });
+
+    } catch (error) {
+
+        console.error('[MANIFESTAR] Erro:', error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// NOVO: DOWNLOAD DO XML ARMAZENADO
+// GET /api/nfe-entradas/:id/xml
+// =====================================================
+
+router.get('/:id/xml', (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+
+        const entrada = getEntradas().find(e => Number(e.id) === id);
+
+        if (!entrada) {
+            return res.status(404).json({
+                success: false,
+                error: 'Entrada não encontrada.'
+            });
+        }
+
+        // Preferência: arquivo no storage; fallback: XML embutido
+        if (entrada.xmlPath && fs.existsSync(entrada.xmlPath)) {
+            res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
+            );
+            return res.send(fs.readFileSync(entrada.xmlPath, 'utf8'));
+        }
+
+        if (entrada.xmlOriginal) {
+            res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
+            );
+            return res.send(entrada.xmlOriginal);
+        }
+
+        res.status(404).json({
+            success: false,
+            error: 'XML não disponível para esta entrada.'
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// =====================================================
+// CONFIRMAR ENTRADA (TRANSAÇÃO COM ESTOQUE + ROLLBACK)
+// =====================================================
+
+router.post('/:id/confirmar', async (req, res) => {
+
+    try {
+
+        const id = Number(req.params.id);
+
+        const entradas = getEntradas();
+
+        const index = entradas.findIndex(
+            item => Number(item.id) === id
+        );
+
+        if (index === -1) {
+
+            return res.status(404).json({
+                success: false,
+                error: 'Entrada não encontrada.'
+            });
+
+        }
+
+        const entrada = entradas[index];
+
+        if (entrada.status === 'CONFIRMADA') {
+
+            return res.status(400).json({
+                success: false,
+                error: 'Esta NF-e já possui entrada de estoque.'
+            });
+
+        }
+
+        const itens = Array.isArray(req.body?.itens)
+            ? req.body.itens
+            : [];
+
+        if (entrada.produtos?.length && itens.length !== entrada.produtos.length) {
+
+            return res.status(400).json({
+                success: false,
+                error:
+                    'A quantidade de itens enviados não corresponde à quantidade de itens da NF-e.'
+            });
+
+        }
+
+        // ---------------------------------------------
+        // ENTRADA TRANSACIONAL (estoque + movimentações)
+        // ---------------------------------------------
+        const { entrada: entradaAtualizada, resumo } =
+            await confirmarEntradaTransacional({
+                entradaId: id,
+                itens,
+                usuario: req.body?.usuario || null
+            });
+
+        // ---------------------------------------------
+        // SALVAR ENTRADA NO ERP
+        // ---------------------------------------------
+        entradas[index] = entradaAtualizada;
+        saveEntradas(entradas);
+
+        // ---------------------------------------------
+        // CONFIRMAÇÃO DA OPERAÇÃO NA SEFAZ
+        // 210200 = Confirmação da Operação
+        // ---------------------------------------------
+        let sefaz = {
+            enviada: false,
+            success: false,
+            cStat: null,
+            xMotivo: null,
+            protocolo: null,
+            tipoEvento: null
+        };
+
+        if (entradaAtualizada.chave) {
+
+            sefaz.tipoEvento = '210200';
+
+            try {
+
+                const config =
+                    obterConfigEmpresa(
+                        entradaAtualizada.empresaId
+                    );
+
+                const resultado =
+                    await NfeManifestacaoService.manifestar({
+                        empresaId:
+                            entradaAtualizada.empresaId,
+
+                        cnpj:
+                            config.cnpj,
+
+                        uf:
+                            config.uf,
+
+                        ambiente:
+                            normalizarAmbiente(
+                                entradaAtualizada.ambiente ||
+                                config.ambiente
+                            ),
+
+                        chNFe:
+                            entradaAtualizada.chave,
+
+                        tipoEvento:
+                            '210200'
+                    });
+
+                sefaz = {
+                    enviada: true,
+
+                    success:
+                        Boolean(resultado.success),
+
+                    cStat:
+                        resultado.cStat || null,
+
+                    xMotivo:
+                        resultado.xMotivo || null,
+
+                    protocolo:
+                        resultado.protocolo || null,
+
+                    tipoEvento:
+                        '210200'
+                };
+
+                entradaAtualizada.manifestacao = {
+                    tipoEvento: '210200',
+                    descricao:
+                        'Confirmação da Operação',
+
+                    success:
+                        Boolean(resultado.success),
+
+                    cStat:
+                        resultado.cStat || null,
+
+                    xMotivo:
+                        resultado.xMotivo || null,
+
+                    protocolo:
+                        resultado.protocolo || null,
+
+                    dataHora:
+                        new Date().toISOString()
+                };
+
+                entradas[index] =
+                    entradaAtualizada;
+
+                saveEntradas(entradas);
+
+            } catch (error) {
+
+                console.error(
+                    '[ENTRADA] Erro ao enviar confirmação para SEFAZ:',
+                    error
+                );
+
+                sefaz = {
+                    enviada: true,
+                    success: false,
+                    cStat: null,
+                    xMotivo: error.message,
+                    protocolo: null,
+                    tipoEvento: '210200'
+                };
+
+                entradaAtualizada.manifestacao = {
+                    tipoEvento: '210200',
+                    descricao:
+                        'Confirmação da Operação',
+
+                    success: false,
+
+                    cStat: null,
+
+                    xMotivo:
+                        error.message,
+
+                    protocolo: null,
+
+                    dataHora:
+                        new Date().toISOString()
+                };
+
+                entradas[index] =
+                    entradaAtualizada;
+
+                saveEntradas(entradas);
+            }
+
+        } else {
+
+            sefaz = {
+                enviada: false,
+                success: false,
+                cStat: null,
+                xMotivo:
+                    'Entrada sem chave de acesso. A confirmação não foi enviada à SEFAZ.',
+                protocolo: null,
+                tipoEvento: null
+            };
+
+        }
+
+        const mensagem =
+            sefaz.success
+                ? 'Entrada realizada com sucesso. Estoque atualizado. Confirmação da Operação aceita pela SEFAZ.'
+                : (
+                    sefaz.enviada
+                        ? 'Entrada realizada com sucesso. Estoque atualizado, mas a Confirmação da Operação não foi aceita pela SEFAZ.'
+                        : 'Entrada realizada com sucesso. Estoque atualizado. Não foi enviada manifestação à SEFAZ porque esta entrada não possui chave de acesso.'
+                );
+
+        res.json({
+            success: true,
+            message: mensagem,
+
+            entrada:
+                entradaAtualizada,
+
+            resumo,
+
+            sefaz
+        });
+
+    } catch (error) {
+
+        console.error(
+            'Erro ao confirmar entrada:',
+            error
+        );
+
+        res.status(400).json({
+            success: false,
+            error: error.message
+        });
+
+    }
+});
 
 export default router;
-
-
-
-
-
-
-
-
 

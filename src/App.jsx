@@ -12,7 +12,7 @@ import BipagemPage from './pages/BipagemPage';
 import ProductionPage from './pages/ProductionPage';
 import OrdersPage from './pages/OrdersPage';
 import ProductionBoardPage from './pages/ProductionBoardPage';
-import NfePage from './pages/NfePage';
+import NfePage from './pages/NfeFiscalPage';
 import ContabilidadePage from './pages/ContabilidadePage';
 import FinancePage from './pages/FinancePage';
 import RankingPage from './pages/RankingPage';

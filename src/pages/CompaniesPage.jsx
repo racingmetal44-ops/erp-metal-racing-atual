@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 
 const regimeOptions = [
   { value: '1', label: 'Simples Nacional' },
-  { value: '2', label: 'Simples Nacional — excesso de sublimite' },
+  { value: '2', label: 'Simples Nacional  excesso de sublimite' },
   { value: '3', label: 'Regime Normal' },
 ];
 
@@ -121,19 +121,19 @@ function isValidCNPJ(value = '') {
 }
 
 function getStatusLabel(value) {
-  if (!value) return 'Não informado';
+  if (!value) return 'No informado';
   const labels = {
     '1': 'Simples Nacional',
-    '2': 'Simples Nacional — excesso de sublimite',
+    '2': 'Simples Nacional  excesso de sublimite',
     '3': 'Regime Normal',
-    homologacao: 'Homologação',
-    producao: 'Produção',
+    homologacao: 'Homologao',
+    producao: 'Produo',
     normal: 'Normal',
     complementar: 'Complementar',
     ajuste: 'Ajuste',
-    devolucao: 'Devolução',
+    devolucao: 'Devoluo',
     tipo_emissao_normal: 'Normal',
-    tipo_emissao_contingencia: 'Contingência',
+    tipo_emissao_contingencia: 'Contingncia',
   };
   return labels[value] || value;
 }
@@ -141,19 +141,19 @@ function getStatusLabel(value) {
 function getCompanyChecklist(company) {
   return [
     { label: 'Dados da empresa', ok: Boolean(company.name && company.razao_social) },
-    { label: 'CNPJ válido', ok: !company.cnpj || isValidCNPJ(company.cnpj) },
-    { label: 'Inscrição estadual', ok: Boolean(company.inscricao_estadual) },
-    { label: 'Regime tributário', ok: Boolean(company.regime_tributario) },
-    { label: 'Código IBGE', ok: Boolean(company.codigo_ibge) },
+    { label: 'CNPJ vlido', ok: !company.cnpj || isValidCNPJ(company.cnpj) },
+    { label: 'Inscrio estadual', ok: Boolean(company.inscricao_estadual) },
+    { label: 'Regime tributrio', ok: Boolean(company.regime_tributario) },
+    { label: 'Cdigo IBGE', ok: Boolean(company.codigo_ibge) },
     { label: 'Certificado digital', ok: Boolean(company.certificado_disponivel) },
     { label: 'Certificado dentro da validade', ok: Boolean(company.certificado_valido) },
-    { label: 'Senha válida', ok: Boolean(company.senha_valida) },
+    { label: 'Senha vlida', ok: Boolean(company.senha_valida) },
     { label: 'Ambiente configurado', ok: Boolean(company.ambiente_nf) },
-    { label: 'Série configurada', ok: Boolean(company.serie_nfe) },
-    { label: 'Numeração configurada', ok: Boolean(company.proximo_numero_nf) },
+    { label: 'Srie configurada', ok: Boolean(company.serie_nfe) },
+    { label: 'Numerao configurada', ok: Boolean(company.proximo_numero_nf) },
     { label: 'UF da SEFAZ', ok: Boolean(company.uf_sefaz || company.sefaz_uf) },
-    { label: 'Configuração fiscal', ok: Boolean(company.cfop || company.ncm || company.icms) },
-    { label: 'Comunicação com SEFAZ', ok: Boolean(company.sefaz_configurada) },
+    { label: 'Configurao fiscal', ok: Boolean(company.cfop || company.ncm || company.icms) },
+    { label: 'Comunicao com SEFAZ', ok: Boolean(company.sefaz_configurada) },
   ];
 }
 
@@ -215,13 +215,136 @@ export default function CompaniesPage() {
 
   async function loadCompanies() {
     setLoading(true);
-    const { data, error } = await supabase.from('companies').select('*').order('id', { ascending: false });
-    if (!error) {
-      setCompanies(data ?? []);
-    }
-    setLoading(false);
-  }
 
+    try {
+      // 1. Empresas existentes no Supabase
+      const { data: supabaseCompanies, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao carregar empresas do Supabase:', error);
+      }
+
+      // 2. Empresas cadastradas no backend local
+      let backendCompanies = [];
+
+      try {
+        const response = await fetch('/api/empresas');
+
+        if (response.ok) {
+          const backendData = await response.json();
+
+          backendCompanies = (Array.isArray(backendData)
+            ? backendData
+            : backendData?.data
+              ? [backendData.data]
+              : []
+          ).map((empresa) => ({
+            ...empresa,
+
+            // Compatibilidade com os nomes usados pela tela
+            name:
+              empresa.name ||
+              empresa.nome_fantasia ||
+              empresa.razao_social ||
+              '',
+
+            document:
+              empresa.document ||
+              empresa.cnpj ||
+              '',
+
+            cnpj:
+              empresa.cnpj ||
+              '',
+
+            razao_social:
+              empresa.razao_social ||
+              '',
+
+            nome_fantasia:
+              empresa.nome_fantasia ||
+              '',
+
+            address:
+              empresa.address ||
+              empresa.endereco ||
+              '',
+
+            modelo_nf:
+              empresa.modelo_nf ||
+              empresa.modelo_nfe ||
+              '55',
+
+            ambiente_nf:
+              empresa.ambiente_nf ||
+              empresa.ambiente ||
+              'homologacao',
+
+            uf_sefaz:
+              empresa.uf_sefaz ||
+              empresa.uf ||
+              '',
+
+            cfop:
+              empresa.cfop ||
+              empresa.cfop_dentro_estado ||
+              '',
+
+            ncm:
+              empresa.ncm ||
+              '',
+
+            status:
+              empresa.status ||
+              'ativo',
+          }));
+        }
+      } catch (backendError) {
+        console.warn(
+          'Backend de empresas no disponvel:',
+          backendError
+        );
+      }
+
+      // 3. Junta as duas fontes sem duplicar pelo CNPJ
+      const todas = [
+        ...(backendCompanies || []),
+        ...(supabaseCompanies || []),
+      ];
+
+      const empresasUnicas = [];
+      const documentos = new Set();
+
+      for (const empresa of todas) {
+        const documento = onlyDigits(
+          empresa.cnpj ||
+          empresa.document ||
+          ''
+        );
+
+        if (documento && documentos.has(documento)) {
+          continue;
+        }
+
+        if (documento) {
+          documentos.add(documento);
+        }
+
+        empresasUnicas.push(empresa);
+      }
+
+      setCompanies(empresasUnicas);
+
+    } catch (error) {
+      console.error('Erro ao carregar empresas:', error);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  }
   async function loadCertificateMeta(companyId) {
     if (!companyId) {
       setCertificateMeta(null);
@@ -261,14 +384,14 @@ export default function CompaniesPage() {
     setMessage('');
 
     if (!form.name || !form.name.trim()) {
-      setMessage('⚠️ Preencha o nome da empresa.');
+      setMessage('a Preencha o nome da empresa.');
       return;
     }
 
     const cnpjValue = onlyDigits(form.cnpj || '');
     if (form.cnpj && form.cnpj.trim()) {
       if (!isValidCNPJ(form.cnpj)) {
-        setMessage('⚠️ CNPJ inválido. Verifique o número digitado.');
+        setMessage('a CNPJ invlido. Verifique o nmero digitado.');
         return;
       }
     }
@@ -276,7 +399,7 @@ export default function CompaniesPage() {
     if (form.cep && form.cep.trim()) {
       const cepDigits = onlyDigits(form.cep || '');
       if (cepDigits.length !== 8) {
-        setMessage('⚠️ CEP inválido. Deve conter 8 dígitos.');
+        setMessage('a CEP invlido. Deve conter 8 dgitos.');
         return;
       }
     }
@@ -289,18 +412,18 @@ export default function CompaniesPage() {
         const { error } = await supabase.from('companies').update(payload).eq('id', editingId);
         if (error) {
           console.error('Erro ao atualizar empresa:', error);
-          setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
+          setMessage('No foi possvel salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('✅ Empresa atualizada com sucesso.');
+        setMessage('S& Empresa atualizada com sucesso.');
       } else {
         const { error } = await supabase.from('companies').insert(payload);
         if (error) {
           console.error('Erro ao criar empresa:', error);
-          setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
+          setMessage('No foi possvel salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('✅ Empresa criada com sucesso.');
+        setMessage('S& Empresa criada com sucesso.');
       }
 
       setTimeout(() => {
@@ -313,7 +436,7 @@ export default function CompaniesPage() {
       await loadCompanies();
     } catch (error) {
       console.error('Erro ao salvar empresa:', error);
-      setMessage('❌ Não foi possível salvar a empresa. Tente novamente.');
+      setMessage('R No foi possvel salvar a empresa. Tente novamente.');
     }
   }
 
@@ -375,14 +498,14 @@ export default function CompaniesPage() {
       const { error } = await supabase.from('companies').update({ status: 'inativo' }).eq('id', id);
       if (error) {
         console.error('Erro ao inativar empresa:', error);
-        setMessage('Não foi possível inativar a empresa. Tente novamente.');
+        setMessage('No foi possvel inativar a empresa. Tente novamente.');
         return;
       }
       setMessage('Empresa inativada com sucesso.');
       await loadCompanies();
     } catch (error) {
       console.error('Erro ao inativar empresa:', error);
-      setMessage('Não foi possível inativar a empresa. Tente novamente.');
+      setMessage('No foi possvel inativar a empresa. Tente novamente.');
     }
   }
 
@@ -426,12 +549,12 @@ export default function CompaniesPage() {
 
     const name = (file.name || '').toLowerCase();
     if (!name.endsWith('.pfx') && !name.endsWith('.p12')) {
-      setMessage('Selecione um arquivo .pfx ou .p12 válido.');
+      setMessage('Selecione um arquivo .pfx ou .p12 vlido.');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setMessage('Arquivo do certificado muito grande. Utilize um arquivo de até 5 MB.');
+      setMessage('Arquivo do certificado muito grande. Utilize um arquivo de at 5 MB.');
       return;
     }
 
@@ -447,14 +570,14 @@ export default function CompaniesPage() {
       const json = await response.json().catch(() => null);
       if (!response.ok) {
         console.error('Erro no upload do certificado:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível enviar o certificado digital.');
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel enviar o certificado digital.');
         return;
       }
       setMessage('Certificado digital enviado com sucesso.');
       await loadCertificateMeta(editingId);
     } catch (error) {
       console.error('Erro ao enviar certificado:', error);
-      setMessage('Não foi possível enviar o certificado. Verifique o arquivo e tente novamente.');
+      setMessage('No foi possvel enviar o certificado. Verifique o arquivo e tente novamente.');
     }
   }
 
@@ -473,13 +596,13 @@ export default function CompaniesPage() {
       const json = await response.json().catch(() => null);
       if (!response.ok) {
         console.error('Erro ao testar certificado:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível testar o certificado digital.');
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel testar o certificado digital.');
         return;
       }
-      setMessage(json && json.valido ? '🟢 CERTIFICADO VÁLIDO' : '🔴 CERTIFICADO INVÁLIDO');
+      setMessage(json && json.valido ? 'xx CERTIFICADO VLIDO' : 'x CERTIFICADO INVLIDO');
     } catch (error) {
       console.error('Erro ao testar certificado:', error);
-      setMessage('Não foi possível testar o certificado. Verifique o arquivo e tente novamente.');
+      setMessage('No foi possvel testar o certificado. Verifique o arquivo e tente novamente.');
     }
   }
 
@@ -498,14 +621,14 @@ export default function CompaniesPage() {
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) {
-        console.error('Erro ao testar conexão com a SEFAZ:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível conectar à SEFAZ.');
+        console.error('Erro ao testar conexo com a SEFAZ:', json);
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel conectar  SEFAZ.');
         return;
       }
-      setMessage(json?.mensagem || '🟢 Comunicação com a SEFAZ realizada com sucesso.');
+      setMessage(json?.mensagem || 'xx Comunicao com a SEFAZ realizada com sucesso.');
     } catch (error) {
-      console.error('Erro ao testar conexão com a SEFAZ:', error);
-      setMessage('Não foi possível conectar à SEFAZ. Verifique a configuração e tente novamente.');
+      console.error('Erro ao testar conexo com a SEFAZ:', error);
+      setMessage('No foi possvel conectar  SEFAZ. Verifique a configurao e tente novamente.');
     }
   }
 
@@ -514,32 +637,32 @@ export default function CompaniesPage() {
     return [company.name, company.document, company.razao_social, company.cnpj].join(' ').toLowerCase().includes(term);
   });
 
-  const cnpjState = form.cnpj ? (isValidCNPJ(form.cnpj) ? '✓ CNPJ válido.' : '⚠️ CNPJ inválido.') : '';
-  const cepState = form.cep ? (onlyDigits(form.cep).length === 8 ? '✓ CEP válido.' : '⚠️ CEP inválido.') : '';
+  const cnpjState = form.cnpj ? (isValidCNPJ(form.cnpj) ? 'S CNPJ vlido.' : 'a CNPJ invlido.') : '';
+  const cepState = form.cep ? (onlyDigits(form.cep).length === 8 ? 'S CEP vlido.' : 'a CEP invlido.') : '';
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Empresas</p>
         <h1 className="mt-2 text-3xl font-semibold">Empresas</h1>
-        <p className="mt-2 text-sm text-slate-400">Central de cadastro, certificado digital e configuração fiscal.</p>
+        <p className="mt-2 text-sm text-slate-400">Central de cadastro, certificado digital e configurao fiscal.</p>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Status</p>
-            <p className="mt-2 font-semibold text-white">{companySummary >= 10 ? '🟢 Cadastro completo' : '🟠 Configuração incompleta'}</p>
+            <p className="mt-2 font-semibold text-white">{companySummary >= 10 ? 'xx Cadastro completo' : 'xx Configurao incompleta'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Certificado</p>
-            <p className="mt-2 font-semibold text-white">{certificateMeta ? '🟢 Válido' : '⚠️ Não enviado'}</p>
+            <p className="mt-2 font-semibold text-white">{certificateMeta ? 'xx Vlido' : 'a No enviado'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">NF-e</p>
-            <p className="mt-2 font-semibold text-white">{form.serie_nfe ? '🧾 Configurada' : '⚠️ Pendente'}</p>
+            <p className="mt-2 font-semibold text-white">{form.serie_nfe ? 'x Configurada' : 'a Pendente'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Ambiente</p>
-            <p className="mt-2 font-semibold text-white">{form.ambiente_nf === 'producao' ? '🔴 Produção' : '🟡 Homologação'}</p>
+            <p className="mt-2 font-semibold text-white">{form.ambiente_nf === 'producao' ? 'x Produo' : 'xx Homologao'}</p>
           </div>
         </div>
       </div>
@@ -547,7 +670,7 @@ export default function CompaniesPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{editingId ? 'Editar empresa' : 'Nova empresa'}</h2>
-          {editingId ? <span className="text-xs text-orange-300">Empresa em edição</span> : null}
+          {editingId ? <span className="text-xs text-orange-300">Empresa em edio</span> : null}
         </div>
         {message ? <p className="mt-3 text-sm text-slate-300">{message}</p> : null}
 
@@ -560,37 +683,37 @@ export default function CompaniesPage() {
                 <input className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CNPJ" value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: formatCNPJ(e.target.value) })} />
                 {cnpjState ? <p className={`text-xs ${isValidCNPJ(form.cnpj) ? 'text-emerald-300' : 'text-amber-300'}`}>{cnpjState}</p> : null}
               </div>
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Razão Social" value={form.razao_social} onChange={(e) => setForm({ ...form, razao_social: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Razo Social" value={form.razao_social} onChange={(e) => setForm({ ...form, razao_social: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Nome Fantasia" value={form.nome_fantasia} onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Inscrição Estadual" value={form.inscricao_estadual} onChange={(e) => setForm({ ...form, inscricao_estadual: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Inscrição Municipal" value={form.inscricao_municipal} onChange={(e) => setForm({ ...form, inscricao_municipal: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Inscrio Estadual" value={form.inscricao_estadual} onChange={(e) => setForm({ ...form, inscricao_estadual: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Inscrio Municipal" value={form.inscricao_municipal} onChange={(e) => setForm({ ...form, inscricao_municipal: e.target.value })} />
               <select className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" value={form.regime_tributario} onChange={(e) => setForm({ ...form, regime_tributario: e.target.value })}>
-                <option value="">Regime Tributário</option>
+                <option value="">Regime Tributrio</option>
                 {regimeOptions.map((option) => (
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Tipo de estabelecimento" value={form.tipo_estabelecimento} onChange={(e) => setForm({ ...form, tipo_estabelecimento: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Indicador de inscrição estadual" value={form.indicador_inscricao_estadual} onChange={(e) => setForm({ ...form, indicador_inscricao_estadual: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Indicador de inscrio estadual" value={form.indicador_inscricao_estadual} onChange={(e) => setForm({ ...form, indicador_inscricao_estadual: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CNAE principal" value={form.cnae_principal} onChange={(e) => setForm({ ...form, cnae_principal: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CRT" value={form.crt} onChange={(e) => setForm({ ...form, crt: e.target.value })} />
               <div className="space-y-1">
                 <input className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CEP" value={form.cep} onChange={(e) => handleCEPChange(e.target.value)} />
                 {cepState ? <p className={`text-xs ${onlyDigits(form.cep).length === 8 ? 'text-emerald-300' : 'text-amber-300'}`}>{cepState}</p> : null}
               </div>
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Endereço" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Número" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Endereo" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Nmero" value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Bairro" value={form.bairro} onChange={(e) => setForm({ ...form, bairro: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Cidade" value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="UF" value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value.toUpperCase() })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Código IBGE" value={form.codigo_ibge} onChange={(e) => setForm({ ...form, codigo_ibge: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Cdigo IBGE" value={form.codigo_ibge} onChange={(e) => setForm({ ...form, codigo_ibge: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Telefone" value={form.telefone} onChange={(e) => setForm({ ...form, telefone: formatPhone(e.target.value) })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="E-mail" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </div>
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Configuração fiscal</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Configurao fiscal</h3>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="CFOP" value={form.cfop} onChange={(e) => setForm({ ...form, cfop: e.target.value })} />
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="NCM" value={form.ncm} onChange={(e) => setForm({ ...form, ncm: e.target.value })} />
@@ -609,44 +732,44 @@ export default function CompaniesPage() {
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Configuração NF-e</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Configurao NF-e</h3>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <select className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" value={form.modelo_nf} onChange={(e) => setForm({ ...form, modelo_nf: e.target.value })}>
-                <option value="55">55 — NF-e</option>
+                <option value="55">55  NF-e</option>
               </select>
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Série" value={form.serie_nfe} onChange={(e) => setForm({ ...form, serie_nfe: e.target.value })} />
-              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Próximo número" value={form.proximo_numero_nf} onChange={(e) => setForm({ ...form, proximo_numero_nf: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Srie" value={form.serie_nfe} onChange={(e) => setForm({ ...form, serie_nfe: e.target.value })} />
+              <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="Prximo nmero" value={form.proximo_numero_nf} onChange={(e) => setForm({ ...form, proximo_numero_nf: e.target.value })} />
               <select className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" value={form.ambiente_nf} onChange={(e) => setForm({ ...form, ambiente_nf: e.target.value })}>
-                <option value="homologacao">Homologação</option>
-                <option value="producao">Produção</option>
+                <option value="homologacao">Homologao</option>
+                <option value="producao">Produo</option>
               </select>
               <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" placeholder="UF da SEFAZ" value={form.uf_sefaz} onChange={(e) => setForm({ ...form, uf_sefaz: e.target.value.toUpperCase() })} />
               <select className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" value={form.finalidade_nf} onChange={(e) => setForm({ ...form, finalidade_nf: e.target.value })}>
                 <option value="normal">Normal</option>
                 <option value="complementar">Complementar</option>
                 <option value="ajuste">Ajuste</option>
-                <option value="devolucao">Devolução</option>
+                <option value="devolucao">Devoluo</option>
               </select>
               <select className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3" value={form.tipo_emissao_nf} onChange={(e) => setForm({ ...form, tipo_emissao_nf: e.target.value })}>
                 <option value="1">Normal</option>
-                <option value="2">Contingência</option>
+                <option value="2">Contingncia</option>
               </select>
             </div>
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Numeração</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Numerao</h3>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Empresa</p>
-                <p className="mt-1 text-sm font-medium text-white">{form.name || 'Não informada'}</p>
+                <p className="mt-1 text-sm font-medium text-white">{form.name || 'No informada'}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Modelo</p>
                 <p className="mt-1 text-sm font-medium text-white">{form.modelo_nf || '55'}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
-                <p className="text-xs text-slate-400">Série</p>
+                <p className="text-xs text-slate-400">Srie</p>
                 <p className="mt-1 text-sm font-medium text-white">{form.serie_nfe || '1'}</p>
               </div>
             </div>
@@ -654,31 +777,31 @@ export default function CompaniesPage() {
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Certificado Digital (A1)</h3>
-            <p className="mb-4 text-sm text-slate-400">O arquivo do certificado e a senha são processados no backend. A senha não fica exposta no frontend.</p>
+            <p className="mb-4 text-sm text-slate-400">O arquivo do certificado e a senha so processados no backend. A senha no fica exposta no frontend.</p>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Nome do certificado</p>
-                <p className="mt-1 text-sm text-white">{certificateMeta?.filename || 'Não enviado'}</p>
+                <p className="mt-1 text-sm text-white">{certificateMeta?.filename || 'No enviado'}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">CNPJ</p>
-                <p className="mt-1 text-sm text-white">{form.cnpj || 'Não informado'}</p>
+                <p className="mt-1 text-sm text-white">{form.cnpj || 'No informado'}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Emissor</p>
-                <p className="mt-1 text-sm text-white">Não informado</p>
+                <p className="mt-1 text-sm text-white">No informado</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Validade inicial</p>
-                <p className="mt-1 text-sm text-white">Não informado</p>
+                <p className="mt-1 text-sm text-white">No informado</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Validade final</p>
-                <p className="mt-1 text-sm text-white">Não informado</p>
+                <p className="mt-1 text-sm text-white">No informado</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Status</p>
-                <p className="mt-1 text-sm text-emerald-300">{certificateMeta ? '🟢 Certificado válido' : '⚠️ Não enviado'}</p>
+                <p className="mt-1 text-sm text-emerald-300">{certificateMeta ? 'xx Certificado vlido' : 'a No enviado'}</p>
               </div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -692,19 +815,19 @@ export default function CompaniesPage() {
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
-            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Conexão SEFAZ</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Conexo SEFAZ</h3>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">SEFAZ</p>
-                <p className="mt-1 text-sm text-emerald-300">🟢 Configurada</p>
+                <p className="mt-1 text-sm text-emerald-300">xx Configurada</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Certificado</p>
-                <p className="mt-1 text-sm text-emerald-300">🟢 Válido</p>
+                <p className="mt-1 text-sm text-emerald-300">xx Vlido</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Ambiente</p>
-                <p className="mt-1 text-sm text-amber-300">🟡 {getStatusLabel(form.ambiente_nf || 'homologacao')}</p>
+                <p className="mt-1 text-sm text-amber-300">xx {getStatusLabel(form.ambiente_nf || 'homologacao')}</p>
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">UF</p>
@@ -712,7 +835,7 @@ export default function CompaniesPage() {
               </div>
             </div>
             <div className="mt-4">
-              <button type="button" onClick={handleTestSefaz} className="rounded-xl border border-orange-500 bg-orange-500/10 px-4 py-2 text-sm text-orange-300">Testar conexão com SEFAZ</button>
+              <button type="button" onClick={handleTestSefaz} className="rounded-xl border border-orange-500 bg-orange-500/10 px-4 py-2 text-sm text-orange-300">Testar conexo com SEFAZ</button>
             </div>
           </section>
 
@@ -722,17 +845,17 @@ export default function CompaniesPage() {
               {companyChecklist.map((item, index) => (
                 <div key={item.label} className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm">
                   <span className="text-slate-300">{index + 1}. {item.label}</span>
-                  <span className={item.ok ? 'text-emerald-300' : 'text-amber-300'}>{item.ok ? '✔' : '•'}</span>
+                  <span className={item.ok ? 'text-emerald-300' : 'text-amber-300'}>{item.ok ? 'S' : '"'}</span>
                 </div>
               ))}
             </div>
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-sm">
-              {companySummary >= 10 ? '🟢 EMPRESA PRONTA PARA HOMOLOGAÇÃO' : companySummary >= 6 ? '🟠 CONFIGURAÇÃO INCOMPLETA' : '🔴 EMPRESA NÃO ESTÁ PRONTA PARA FATURAR'}
+              {companySummary >= 10 ? 'xx EMPRESA PRONTA PARA HOMOLOGA!O' : companySummary >= 6 ? 'xx CONFIGURA!O INCOMPLETA' : 'x EMPRESA NO EST PRONTA PARA FATURAR'}
             </div>
           </section>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <button type="submit" className="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white">{editingId ? 'Salvar alterações' : 'Cadastrar empresa'}</button>
+            <button type="submit" className="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white">{editingId ? 'Salvar alteraes' : 'Cadastrar empresa'}</button>
             {editingId ? <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); setCertificateMeta(null); }} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300">Cancelar</button> : null}
           </div>
         </form>
@@ -741,7 +864,7 @@ export default function CompaniesPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h2 className="text-lg font-semibold">Empresas cadastradas</h2>
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome, CNPJ ou razão social" className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome, CNPJ ou razo social" className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2" />
         </div>
         {loading ? <p className="text-sm text-slate-500">Carregando...</p> : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -750,15 +873,15 @@ export default function CompaniesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">{company.name}</h3>
-                    <p className="mt-2 text-sm text-slate-400">{company.cnpj ? formatCNPJ(company.cnpj) : company.document || 'CNPJ não informado'}</p>
+                    <p className="mt-2 text-sm text-slate-400">{company.cnpj ? formatCNPJ(company.cnpj) : company.document || 'CNPJ no informado'}</p>
                   </div>
                   <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${company.status === 'inativo' ? 'bg-slate-700 text-slate-300' : 'bg-emerald-500/15 text-emerald-300'}`}>
                     {company.status === 'inativo' ? 'Inativo' : 'Ativo'}
                   </span>
                 </div>
                 <div className="mt-3 space-y-2 text-xs text-slate-300">
-                  <p>Ambiente: {company.ambiente_nf === 'producao' ? 'Produção' : 'Homologação'}</p>
-                  <p>Certificado: {company.cnpj ? '🟢 Válido' : '⚠️ Pendente'}</p>
+                  <p>Ambiente: {company.ambiente_nf === 'producao' ? 'Produo' : 'Homologao'}</p>
+                  <p>Certificado: {company.cnpj ? 'xx Vlido' : 'a Pendente'}</p>
                   <p>Status: {company.status === 'inativo' ? 'Inativo' : 'Pronto'}</p>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -773,4 +896,5 @@ export default function CompaniesPage() {
     </div>
   );
 }
+
 

@@ -56,6 +56,66 @@ export default function StockPage() {
   const [stats, setStats] = useState({ total: 0, baixo: 0, alto: 0, totalItens: 0 });
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
+  // =============================================
+  // VALIDAÇÃO DE DUPLICIDADE (FUNCIONANDO)
+  // =============================================
+  async function verificarDuplicado() {
+    const nome = form.name?.trim();
+    const sku = form.sku?.trim();
+
+    if (!nome && !sku) return { duplicado: false };
+
+    try {
+      let query = supabase
+        .from('products')
+        .select('id, name, sku')
+        .or(`name.ilike.${nome},sku.ilike.${sku}`);
+
+      // Se estiver editando, excluir o próprio produto
+      if (editingId) {
+        query = query.neq('id', editingId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro na validação:', error);
+        return { duplicado: false, erro: error.message };
+      }
+
+      if (data && data.length > 0) {
+        // Verificar quais campos coincidem
+        const encontrados = [];
+        data.forEach(p => {
+          const pNome = p.name?.toLowerCase();
+          const pSku = p.sku?.toLowerCase();
+          const nomeLower = nome.toLowerCase();
+          const skuLower = sku.toLowerCase();
+
+          if (pNome === nomeLower && pSku === skuLower) {
+            encontrados.push(`"${p.name}" (Nome e SKU exatamente iguais)`);
+          } else if (pNome === nomeLower) {
+            encontrados.push(`"${p.name}" (mesmo NOME)`);
+          } else if (pSku === skuLower) {
+            encontrados.push(`SKU "${p.sku}" (mesmo SKU)`);
+          }
+        });
+
+        if (encontrados.length > 0) {
+          return {
+            duplicado: true,
+            mensagem: `❌ Já existe: ${encontrados.join(', ')}`
+          };
+        }
+      }
+
+      return { duplicado: false };
+    } catch (error) {
+      console.error('Erro na validação:', error);
+      return { duplicado: false, erro: error.message };
+    }
+  }
+
   async function loadProducts() {
     setLoading(true);
     try {
@@ -200,7 +260,6 @@ export default function StockPage() {
         file_category: 'foto',
         photo_angle: 'front',
         sort_order: index + 1,
-        
         is_ai_training: false,
         added_by_name: 'sistema',
         created_date: new Date().toISOString(),
@@ -214,18 +273,56 @@ export default function StockPage() {
     }
   }
 
+  // =============================================
+  // HANDLE SUBMIT COM VALIDAÇÃO
+  // =============================================
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage('');
     setUploading(true);
 
+    // VALIDAÇÃO BÁSICA
+    if (!form.name?.trim()) {
+      setMessage('❌ Nome do produto é obrigatório!');
+      setUploading(false);
+      return;
+    }
+
+    if (!form.sku?.trim()) {
+      setMessage('❌ SKU é obrigatório!');
+      setUploading(false);
+      return;
+    }
+
+    // =============================================
+    // VERIFICAR DUPLICIDADE
+    // =============================================
+    const validacao = await verificarDuplicado();
+
+    if (validacao.duplicado) {
+      setMessage(validacao.mensagem);
+      setUploading(false);
+      return;
+    }
+
+    if (validacao.erro) {
+      setMessage(`⚠️ Erro na validação: ${validacao.erro}`);
+      setUploading(false);
+      return;
+    }
+
+    // CONTINUAR COM O CADASTRO
     const barcodeValue = form.barcode?.trim() || generateBarcode();
     const payload = {
-      ...form,
+      name: form.name.trim(),
+      sku: form.sku.trim(),
       barcode: barcodeValue,
-      current_stock: Number(form.current_stock),
-      min_stock: Number(form.min_stock),
+      current_stock: Number(form.current_stock) || 0,
+      min_stock: Number(form.min_stock) || 0,
       max_stock: Number(form.max_stock) || 99999,
+      status: form.status || 'ativo',
+      category: form.category || '',
+      unit: form.unit || '',
     };
 
     try {
@@ -331,20 +428,15 @@ export default function StockPage() {
     }
   }
 
-  // =============================================
-  // LEITURA AUTOMÁTICA - SEM PRECISAR DE ENTER
-  // =============================================
   function handleBipeCodeChange(e) {
     const value = e.target.value;
     setBipeCode(value);
     
-    // Limpar timeout anterior
     if (bipeTimeout) {
       clearTimeout(bipeTimeout);
       setBipeTimeout(null);
     }
     
-    // Se tiver pelo menos 3 caracteres, fazer busca automática após 300ms
     if (value.length >= 3) {
       const timeout = setTimeout(() => {
         buscarProdutoParaBipe(value);
@@ -417,7 +509,6 @@ export default function StockPage() {
         setMessage(`🔴 SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`);
       }
 
-      // Limpar o produto após 2 segundos para permitir nova leitura
       setTimeout(() => {
         setBipeProduct(null);
         setBipeCode('');
@@ -617,7 +708,7 @@ export default function StockPage() {
                         <img src={firstImage} alt={product.name} className="h-52 w-full object-contain object-center" />
                         {imageCount > 1 && <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1"><ImageIcon size={12} />{imageCount}</div>}
                         <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
-                          <span className="bg-black/60 text-white px-3 py-1 rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity">{imageCount > 1 ? `Ver ${imageCount} fotos` : 'Ver foto'}</span>
+                          <span className="bg-black/60 text-white px-3 py-1 rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity">{imageCount >1 ? `Ver ${imageCount} fotos` : 'Ver foto'}</span>
                         </div>
                       </button>
                     ) : (
@@ -656,7 +747,7 @@ export default function StockPage() {
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">✏️ Editar</button>
-                      <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10">🗑️ Excluir</button>
+                      <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semiboldtext-rose-300 transition hover:bg-rose-500/10">🗑️ Excluir</button>
                       <button onClick={async () => { const novaQtd = (product.current_stock ?? 0) + 1; await supabase.from('products').update({ current_stock: novaQtd }).eq('id', product.id); loadProducts(); }} className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"><Plus size={14} className="inline mr-1" />+1</button>
                     </div>
                   </div>
@@ -667,21 +758,14 @@ export default function StockPage() {
         )}
       </div>
 
-      {/* ============================================= */}
-      {/* MODAL DE BIPE COM LEITURA AUTOMÁTICA */}
-      {/* ============================================= */}
+      {/* MODAL DE BIPE */}
       {bipeModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
           <div className={`relative w-full max-w-lg rounded-2xl border-2 p-6 shadow-2xl transition-all duration-300 ${getBipeBgColor()}`}>
             <button onClick={fecharModalBipe} className="absolute top-4 right-4 text-slate-400 hover:text-white transition"><X size={24} /></button>
             
             <div className="text-center mb-6">
-              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 transition-all duration-300 ${
-                bipeStatus === 'entrada' ? 'bg-emerald-500/30 text-emerald-400' :
-                bipeStatus === 'saida' ? 'bg-rose-500/30 text-rose-400' :
-                bipeStatus === 'nao-encontrado' ? 'bg-blue-500/30 text-blue-400' :
-                'bg-emerald-500/20 text-emerald-400'
-              }`}>
+              <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 transition-all duration-300 ${bipeStatus === 'entrada' ? 'bg-emerald-500/30 text-emerald-400' : bipeStatus === 'saida' ? 'bg-rose-500/30 text-rose-400' : bipeStatus === 'nao-encontrado' ? 'bg-blue-500/30 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
                 <QrCode size={32} />
               </div>
               <h2 className="text-xl font-bold text-white">📡 Bipar Produto</h2>
@@ -692,12 +776,7 @@ export default function StockPage() {
             <input
               ref={bipeInputRef}
               type="text"
-              className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${
-                bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' :
-                bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' :
-                bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' :
-                'border-orange-500/50 bg-slate-950 focus:border-orange-500'
-              }`}
+              className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' : bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' : bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' : 'border-orange-500/50 bg-slate-950 focus:border-orange-500'}`}
               placeholder="Digite ou leia o código..."
               value={bipeCode}
               onChange={handleBipeCodeChange}
@@ -707,11 +786,7 @@ export default function StockPage() {
             {bipeLoading && <div className="mt-4 text-center text-slate-400"><span className="animate-pulse">Buscando produto...</span></div>}
 
             {bipeProduct && !bipeLoading && (
-              <div className={`mt-4 rounded-xl border p-4 transition-all duration-300 ${
-                bipeStatus === 'entrada' ? 'border-emerald-500/50 bg-emerald-500/10' :
-                bipeStatus === 'saida' ? 'border-rose-500/50 bg-rose-500/10' :
-                'border-slate-700 bg-slate-950/70'
-              }`}>
+              <div className={`mt-4 rounded-xl border p-4 transition-all duration-300 ${bipeStatus === 'entrada' ? 'border-emerald-500/50 bg-emerald-500/10' : bipeStatus === 'saida' ? 'border-rose-500/50 bg-rose-500/10' : 'border-slate-700 bg-slate-950/70'}`}>
                 <div className="flex items-center gap-4">
                   {bipeProduct.images && bipeProduct.images.length > 0 ? (
                     <img src={bipeProduct.images[0].file_url} alt={bipeProduct.name} className="w-20 h-20 rounded-xl object-cover" />
@@ -735,16 +810,14 @@ export default function StockPage() {
                     onClick={() => confirmarBipe('adicionar')}
                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/30"
                   >
-                    <Plus size={18} />
-                    🟢 Adicionar (+1)
+                    <Plus size={18} /> 🟢 Adicionar (+1)
                   </button>
                   <button
                     onClick={() => confirmarBipe('remover')}
                     disabled={(bipeProduct.current_stock ?? 0) <= 0}
                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white hover:bg-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-rose-500/30"
                   >
-                    <Minus size={18} />
-                    🔴 Remover (-1)
+                    <Minus size={18} /> 🔴 Remover (-1)
                   </button>
                 </div>
               </div>
@@ -758,9 +831,7 @@ export default function StockPage() {
               </div>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              🔄 A busca é feita automaticamente após digitar o código
-            </p>
+            <p className="mt-4 text-center text-xs text-slate-500">🔄 A busca é feita automaticamente após digitar o código</p>
           </div>
         </div>
       )}
@@ -791,17 +862,10 @@ export default function StockPage() {
 
       {/* TOAST */}
       {message && (message.includes('✅') || message.includes('❌') || message.includes('🗑️') || message.includes('🟢') || message.includes('🔴') || message.includes('🔵')) && (
-        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${
-          message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
-          message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' :
-          message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
-          message.includes('✅') || message.includes('🗑️') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
-          'border-rose-500/30 bg-rose-500/10 text-rose-400'
-        }`}>
+        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' : message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' : message.includes('✅') || message.includes('🗑️') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
           {message}
         </div>
       )}
     </div>
   );
 }
-

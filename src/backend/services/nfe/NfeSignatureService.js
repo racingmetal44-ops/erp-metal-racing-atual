@@ -1,104 +1,208 @@
-﻿// src/backend/services/nfe/NfeSignatureService.js
-import forge from 'node-forge';
-import { SignedXml } from 'xml-crypto';
-import fs from 'fs-extra';
+import fs from 'fs';
+import xmlCrypto from 'xml-crypto';
+import CertificateLoader from './CertificateLoader.js';
 import path from 'path';
+import { buscarEmpresa, resolverCaminhoCertificado } from '../empresa/EmpresaService.js';
 
-export class NfeSignatureService {
-    
+class NfeSignatureService {
+    static async getCertPem(absolutePath, senha) {
+        const loader = CertificateLoader;
+
+        const resultado =
+            loader.loadCertificate(
+                absolutePath,
+                senha
+            );
+
+        return {
+            cert: resultado.cert,
+            key: resultado.privateKey
+        };
+    }
+
+    static async signXml(xml, absolutePath, senha) {
+        const { cert, key } =
+            await this.getCertPem(
+                absolutePath,
+                senha
+            );
+
+        // A SEFAZ não aceita caracteres de edição
+        // (espaços/quebras de linha) entre elementos
+        // dentro do NFe/enviNFe.
+        //
+        // A compactação acontece ANTES da assinatura,
+        // para que o DigestValue seja calculado sobre
+        // exatamente o XML que será transmitido.
+        const xmlCompactado =
+            String(xml)
+                .replace(/>\s+</g, '><')
+                .trim();
+
+        const signer =
+            new xmlCrypto.SignedXml();
+
+        signer.privateKey = key;
+        signer.publicCert = cert;
+
+        const infNFeInicio =
+            xml.indexOf('<infNFe');
+
+        if (infNFeInicio < 0) {
+            throw new Error(
+                'Tag <infNFe> não encontrada no XML para assinatura.'
+            );
+        }
+
+        const infNFeFim =
+            xml.indexOf('>', infNFeInicio);
+
+        if (infNFeFim < 0) {
+            throw new Error(
+                'Tag <infNFe> inválida no XML para assinatura.'
+            );
+        }
+
+        const cabecalhoInfNFe =
+            xml.substring(
+                infNFeInicio,
+                infNFeFim + 1
+            );
+
+        const idInicio =
+            cabecalhoInfNFe.indexOf('Id="NFe');
+
+        if (idInicio < 0) {
+            throw new Error(
+                'Atributo Id da NF-e não encontrado na tag <infNFe>.'
+            );
+        }
+
+        const idValorInicio =
+            idInicio + 'Id="NFe'.length;
+
+        const idValorFim =
+            cabecalhoInfNFe.indexOf('"', idValorInicio);
+
+        if (idValorFim < 0) {
+            throw new Error(
+                'Valor do Id da NF-e não foi encerrado corretamente.'
+            );
+        }
+
+        const idNFe =
+            cabecalhoInfNFe.substring(
+                idValorInicio,
+                idValorFim
+            );
+
+        if (!/^\d{44}$/.test(idNFe)) {
+            throw new Error(
+                `Id da NF-e inválido. Chave encontrada: ${idNFe}`
+            );
+        }
+
+        console.log(
+            '[NFE ASSINATURA] Id encontrado:',
+            idNFe
+        );
+
+        const reference = {
+            xpath: `//*[@Id="NFe${idNFe}"]`,
+            transforms: [
+                'http://www.w3.org/2000/09/xmldsig#enveloped-signature',
+                'http://www.w3.org/TR/2001/REC-xml-c14n-20010315'
+            ],
+            digestAlgorithm:
+                'http://www.w3.org/2000/09/xmldsig#sha1'
+        };
+
+        signer.addReference(reference);
+
+        signer.canonicalizationAlgorithm =
+            'http://www.w3.org/TR/2001/REC-xml-c14n-20010315';
+
+        signer.signatureAlgorithm =
+            'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
+
+        signer.computeSignature(
+            xmlCompactado,
+            {
+                location: {
+                    reference: `//*[local-name(.)="infNFe"]`,
+                    action: 'after'
+                }
+            }
+        );
+
+        return signer.getSignedXml();
+    }
+
     async assinarXml(xml, empresaId) {
-        try {
-            // 1. Carregar o certificado
-            const certPath = path.join(process.cwd(), 'certificados', `empresa_${empresaId}.pfx`);
-            const senha = process.env.CERT_SENHA || '';
+        const empresa =
+            buscarEmpresa(empresaId);
 
-            if (!await fs.pathExists(certPath)) {
-                throw new Error(`Certificado não encontrado: ${certPath}`);
-            }
-
-            // 2. Ler o arquivo PFX
-            const pfxBuffer = await fs.readFile(certPath);
-            const pfx = forge.util.createBuffer(pfxBuffer.toString('binary'));
-            const p12Asn1 = forge.asn1.fromDer(pfx.getBytes());
-            const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, false, senha);
-
-            // 3. Extrair certificado e chave privada
-            const certBag = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag][0];
-            const keyBag = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag][0];
-
-            const cert = certBag.cert;
-            const privateKey = keyBag.key;
-
-            // 4. Assinar o XML
-            const xmlAssinado = this.assinarComXmlCrypto(xml, cert, privateKey);
-
-            return xmlAssinado;
-        } catch (error) {
-            console.error('❌ Erro na assinatura:', error.message);
-            throw new Error(`Falha ao assinar XML: ${error.message}`);
+        if (!empresa) {
+            throw new Error(
+                `Empresa ${empresaId} não encontrada`
+            );
         }
+
+        const certPath =
+            resolverCaminhoCertificado(empresa);
+
+        const senha =
+            process.env.CERT_SENHA ||
+            process.env.NFE_CERT_SENHA ||
+            process.env.CERTIFICADO_SENHA ||
+            '';
+
+        if (!fs.existsSync(certPath)) {
+            throw new Error(
+                `Certificado não encontrado: ${certPath}`
+            );
+        }
+
+        return await NfeSignatureService.signXml(
+            xml,
+            certPath,
+            senha
+        );
     }
 
-    assinarComXmlCrypto(xml, cert, privateKey) {
-        // Extrair o ID da NF-e
-        const idMatch = xml.match(/Id="(NFe[^"]+)"/);
-        if (!idMatch) {
-            throw new Error('ID da NF-e não encontrado no XML');
-        }
-        const id = idMatch[1];
-
-        // Criar a assinatura
-        const sig = new SignedXml({
-            privateKey: privateKey,
-            publicCert: cert,
-            algorithms: {
-                canonicalization: 'http://www.w3.org/TR/2001/REC-xml-c14n-20010315',
-                digest: 'http://www.w3.org/2000/09/xmldsig#sha1',
-                signature: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
-            }
-        });
-
-        // Configurar a referência
-        sig.addReference({
-            xpath: `//*[@Id="${id}"]`,
-            transforms: ['http://www.w3.org/TR/2001/REC-xml-c14n-20010315'],
-            digestAlgorithm: 'http://www.w3.org/2000/09/xmldsig#sha1',
-            uri: `#${id}`
-        });
-
-        // Adicionar a chave pública
-        sig.signingKey = privateKey;
-
-        // Assinar
-        sig.computeSignature(xml);
-
-        // Inserir a assinatura no XML
-        const assinaturaXml = sig.getSignatureXml();
-        
-        // Inserir a assinatura no local correto (antes do </infNFe>)
-        const xmlAssinado = xml.replace('</infNFe>', `${assinaturaXml}</infNFe>`);
-
-        return xmlAssinado;
-    }
-
-    async validarAssinatura(xmlAssinado) {
+    async validarAssinatura(xml) {
         try {
-            // Verificar se a assinatura está presente
-            if (!xmlAssinado.includes('<Signature')) {
-                return { valido: false, mensagem: 'Assinatura não encontrada no XML' };
+            if (
+                !xml ||
+                typeof xml !== 'string'
+            ) {
+                return {
+                    valido: false,
+                    mensagem: 'XML não informado.'
+                };
             }
 
-            // Verificar se a assinatura está bem formada
-            const signatureMatch = xmlAssinado.match(/<Signature[^>]*>([\s\S]*?)<\/Signature>/);
-            if (!signatureMatch) {
-                return { valido: false, mensagem: 'Assinatura mal formada' };
+            if (
+                !xml.includes('<Signature') &&
+                !xml.includes('<ds:Signature')
+            ) {
+                return {
+                    valido: false,
+                    mensagem: 'Assinatura digital não encontrada no XML.'
+                };
             }
 
-            return { valido: true, mensagem: 'Assinatura válida' };
+            return {
+                valido: true,
+                mensagem: 'Assinatura digital encontrada no XML.'
+            };
         } catch (error) {
-            return { valido: false, mensagem: `Erro na validação: ${error.message}` };
+            return {
+                valido: false,
+                mensagem: error.message
+            };
         }
     }
 }
 
-export default new NfeSignatureService();
+export default NfeSignatureService;

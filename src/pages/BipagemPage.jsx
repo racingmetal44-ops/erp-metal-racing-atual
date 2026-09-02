@@ -190,7 +190,7 @@ export default function BipagemPage() {
       return;
     }
 
-    const quantidadeAtual = product.estoque_atual || 0;
+    const quantidadeAtual = Number(product.current_stock ?? product.estoque_atual ?? 0);
     let novaQuantidade = quantidadeAtual;
 
     if (tipo === 'entrada') {
@@ -207,7 +207,10 @@ export default function BipagemPage() {
     try {
       const { error } = await supabase
         .from('products')
-        .update({ estoque_atual: novaQuantidade })
+        .update({
+        current_stock: novaQuantidade,
+        estoque_atual: novaQuantidade
+      })
         .eq('id', product.id);
 
       if (error) throw error;
@@ -512,3 +515,4 @@ export default function BipagemPage() {
     </div>
   );
 }
+

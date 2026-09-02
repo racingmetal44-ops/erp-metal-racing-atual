@@ -1,286 +1,715 @@
-﻿import nfeEntradaRoutes from './src/backend/routes/nfeEntradaRoutes.js';
-import certificateRoutes from './src/backend/routes/certificateRoutes.js';
+﻿// ============================================
+// ERP METAL RACING
+// SERVER PRINCIPAL
+// ============================================
+
+import 'dotenv/config';
+
 import express from 'express';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Rotas
+import nfeEntradaRoutes from './src/backend/routes/nfeEntradaRoutes.js';
+import certificateRoutes from './src/backend/routes/certificateRoutes.js';
+import assinaturaRoutes from './src/backend/routes/assinatura.js';
+import nfeRoutes from './src/backend/routes/nfeRoutes.js';
+import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js';
+
+
+// ============================================
+// CONFIGURAÇÃO
+// ============================================
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
 const PORT = 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Log de requisições
+// ============================================
+// MIDDLEWARE
+// ============================================
+
+app.use(cors());
+
+app.use(express.json({
+    limit: '20mb'
+}));
+
+app.use(express.urlencoded({
+    extended: true,
+    limit: '20mb'
+}));
+
+
+// ============================================
+// LOG DE REQUISIÇÕES
+// ============================================
+
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+
+    console.log(
+        `[${new Date().toISOString()}] ${req.method} ${req.url}`
+    );
+
     next();
 });
+
 
 // ============================================
 // ARMAZENAMENTO LOCAL
 // ============================================
-const DATA_DIR = path.join(__dirname, 'data');
-const COMPANIES_FILE = path.join(DATA_DIR, 'companies.json');
 
+const DATA_DIR =
+    path.join(__dirname, 'data');
+
+const COMPANIES_FILE =
+    path.join(DATA_DIR, 'companies.json');
+
+const NFE_FILE =
+    path.join(DATA_DIR, 'nfe.json');
+
+
+// Criar pasta data
 if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+
+    fs.mkdirSync(
+        DATA_DIR,
+        {
+            recursive: true
+        }
+    );
 }
 
+
+// Criar companies.json
 if (!fs.existsSync(COMPANIES_FILE)) {
-    fs.writeFileSync(COMPANIES_FILE, JSON.stringify([], null, 2));
+
+    fs.writeFileSync(
+        COMPANIES_FILE,
+        JSON.stringify([], null, 2),
+        'utf8'
+    );
 }
+
+
+// Criar nfe.json
+if (!fs.existsSync(NFE_FILE)) {
+
+    fs.writeFileSync(
+        NFE_FILE,
+        JSON.stringify([], null, 2),
+        'utf8'
+    );
+}
+
+
+// ============================================
+// EMPRESAS
+// ============================================
 
 function getCompanies() {
+
     try {
-        const data = fs.readFileSync(COMPANIES_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch {
+        const empresasNormalizadas = listarEmpresas();
+        if (empresasNormalizadas.length > 0) {
+            return empresasNormalizadas;
+        }
+
+        const data =
+            fs.readFileSync(
+                COMPANIES_FILE,
+                'utf8'
+            );
+
+        // Windows editors may save JSON with an UTF-8 BOM. It is not part of
+        // the JSON grammar, so remove it before parsing without changing data.
+        const companies =
+            JSON.parse(data.replace(/^\uFEFF/, ''));
+
+        // Older installations stored a single company as an object. Keep the
+        // API contract as an array so all fiscal routes can find empresa_id.
+        return Array.isArray(companies)
+            ? companies
+            : (companies && typeof companies === 'object' ? [companies] : []);
+
+    } catch (error) {
+
+        console.error(
+            '[EMPRESAS] Erro ao ler companies.json:',
+            error.message
+        );
+
         return [];
     }
 }
 
+
 function saveCompanies(companies) {
-    fs.writeFileSync(COMPANIES_FILE, JSON.stringify(companies, null, 2));
+
+    fs.writeFileSync(
+        COMPANIES_FILE,
+        JSON.stringify(
+            companies,
+            null,
+            2
+        ),
+        'utf8'
+    );
 }
 
+
 // ============================================
-// ROTAS EMPRESAS
+// NF-e
+// ============================================
+
+function getNFe() {
+
+    try {
+
+        const data =
+            fs.readFileSync(
+                NFE_FILE,
+                'utf8'
+            );
+
+        const nfeList =
+            JSON.parse(data);
+
+        return Array.isArray(nfeList)
+            ? nfeList
+            : [];
+
+    } catch (error) {
+
+        console.error(
+            '[NFE] Erro ao ler nfe.json:',
+            error.message
+        );
+
+        return [];
+    }
+}
+
+
+function saveNFe(nfeList) {
+
+    fs.writeFileSync(
+        NFE_FILE,
+        JSON.stringify(
+            nfeList,
+            null,
+            2
+        ),
+        'utf8'
+    );
+}
+
+
+// ============================================
+// STATUS DA API
 // ============================================
 
 app.get('/', (req, res) => {
+
     res.json({
-        name: 'ERP Metal Racing API',
-        version: '1.0.0',
-        status: 'online',
+
+        name:
+            'ERP Metal Racing API',
+
+        version:
+            '1.0.0',
+
+        status:
+            'online',
+
+        server:
+            `http://localhost:${PORT}`,
+
+        ambiente:
+            process.env.NFE_AMBIENTE ||
+            'homologacao',
+
         endpoints: {
-            empresas: ['GET /api/empresas', 'POST /api/empresas', 'PUT /api/empresas/:id', 'DELETE /api/empresas/:id'],
-            nfe: ['GET /api/nfe', 'POST /api/nfe/emitir', 'POST /api/nfe/testar-sefaz', 'DELETE /api/nfe/:id']
+
+            empresas: [
+                'GET /api/empresas',
+                'POST /api/empresas',
+                'PUT /api/empresas/:id',
+                'DELETE /api/empresas/:id'
+            ],
+
+            nfe: [
+                'GET /api/nfe',
+                'POST /api/nfe/emitir',
+                'POST /api/nfe/testar-sefaz',
+                'DELETE /api/nfe/:id'
+            ],
+
+            entradas: [
+                'API /api/nfe-entradas'
+            ],
+
+            assinatura: [
+                'POST /api/assinar-xml'
+            ]
+
         }
+
     });
+
 });
 
-// GET empresas
+
+// ============================================
+// GET EMPRESAS
+// ============================================
+
 app.get('/api/empresas', (req, res) => {
+
     try {
-        const companies = getCompanies();
+
+        const companies =
+            getCompanies();
+
         res.json(companies);
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        console.error(
+            '[EMPRESAS] GET:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            error:
+                error.message
+
+        });
     }
+
 });
 
-// POST empresas
+
+// ============================================
+// POST EMPRESA
+// ============================================
+
 app.post('/api/empresas', (req, res) => {
+
     try {
-        const companies = getCompanies();
+
+        const companies =
+            getCompanies();
+
+        const body =
+            req.body || {};
+
+        const cnpj =
+            String(
+                body.cnpj || ''
+            ).replace(/\D/g, '');
+
+        // Verificar CNPJ duplicado
+        if (cnpj) {
+
+            const exists =
+                companies.some(company =>
+                    String(
+                        company.cnpj || ''
+                    ).replace(/\D/g, '') === cnpj
+                );
+
+            if (exists) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'CNPJ já cadastrado'
+
+                });
+            }
+        }
+
+
+        const now =
+            new Date().toISOString();
+
+
         const newCompany = {
-            id: Date.now(),
-            ...req.body,
-            status: 'ativo',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+
+            id:
+                Date.now(),
+
+            ...body,
+
+            cnpj:
+                body.cnpj || '',
+
+            status:
+                'ativo',
+
+            created_at:
+                now,
+
+            updated_at:
+                now
+
         };
-        
-        const exists = companies.some(c => c.cnpj === newCompany.cnpj);
-        if (exists) {
-            return res.status(400).json({ error: 'CNPJ já cadastrado' });
-        }
-        
-        companies.push(newCompany);
-        saveCompanies(companies);
-        res.status(201).json({ success: true, data: newCompany });
+
+
+        companies.push(
+            newCompany
+        );
+
+        saveCompanies(
+            companies
+        );
+
+
+        res.status(201).json({
+
+            success: true,
+
+            data:
+                newCompany
+
+        });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        console.error(
+            '[EMPRESAS] POST:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            error:
+                error.message
+
+        });
     }
+
 });
 
-// PUT empresas
+
+// ============================================
+// PUT EMPRESA
+// ============================================
+
 app.put('/api/empresas/:id', (req, res) => {
+
     try {
-        const companies = getCompanies();
-        const id = parseInt(req.params.id);
-        const index = companies.findIndex(c => c.id === id);
-        
+
+        const companies =
+            getCompanies();
+
+        const id =
+            Number(
+                req.params.id
+            );
+
+        const index =
+            companies.findIndex(
+                company =>
+                    Number(company.id) === id
+            );
+
+
         if (index === -1) {
-            return res.status(404).json({ error: 'Empresa não encontrada' });
-        }
-        
-        companies[index] = { ...companies[index], ...req.body, updated_at: new Date().toISOString() };
-        saveCompanies(companies);
-        res.json({ success: true, data: companies[index] });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
-// DELETE empresas
-app.delete('/api/empresas/:id', (req, res) => {
-    try {
-        const companies = getCompanies();
-        const id = parseInt(req.params.id);
-        const filtered = companies.filter(c => c.id !== id);
-        
-        if (filtered.length === companies.length) {
-            return res.status(404).json({ error: 'Empresa não encontrada' });
-        }
-        
-        saveCompanies(filtered);
-        res.json({ success: true, message: 'Empresa removida!' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+            return res.status(404).json({
 
-// ============================================
-// ROTAS NF-e
-// ============================================
-const NFE_FILE = path.join(DATA_DIR, 'nfe.json');
+                success: false,
 
-if (!fs.existsSync(NFE_FILE)) {
-    fs.writeFileSync(NFE_FILE, JSON.stringify([], null, 2));
-}
+                error:
+                    'Empresa não encontrada'
 
-function getNFe() {
-    try {
-        const data = fs.readFileSync(NFE_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
-}
-
-function saveNFe(nfeList) {
-    fs.writeFileSync(NFE_FILE, JSON.stringify(nfeList, null, 2));
-}
-
-// GET NF-e
-app.get('/api/nfe', (req, res) => {
-    try {
-        const nfeList = getNFe();
-        res.json(nfeList);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// POST Emitir NF-e
-app.post('/api/nfe/emitir', (req, res) => {
-    try {
-        const { empresa_id, cliente, cnpj_cliente, produtos, total, numero, serie, natureza_operacao, observacao } = req.body;
-        
-        if (!empresa_id || !cliente || !produtos || produtos.length === 0) {
-            return res.status(400).json({ error: 'Dados incompletos' });
+            });
         }
 
-        const nfe = {
-            id: Date.now(),
-            empresa_id,
-            numero: numero || String(Date.now()).slice(-6),
-            serie: serie || '1',
-            cliente,
-            cnpj_cliente: cnpj_cliente || '',
-            produtos,
-            total: total || produtos.reduce((s, p) => s + (p.quantidade * p.valor_unitario), 0),
-            natureza_operacao: natureza_operacao || 'VENDA',
-            observacao: observacao || '',
-            status: 'EMITIDA',
-            chave_acesso: 'NFE' + Date.now(),
-            data_emissao: new Date().toISOString(),
-            created_at: new Date().toISOString()
+
+        const oldCompany =
+            companies[index];
+
+
+        companies[index] = {
+
+            ...oldCompany,
+
+            ...req.body,
+
+            id:
+                oldCompany.id,
+
+            updated_at:
+                new Date().toISOString()
+
         };
 
-        const nfeList = getNFe();
-        nfeList.push(nfe);
-        saveNFe(nfeList);
+
+        saveCompanies(
+            companies
+        );
+
 
         res.json({
+
             success: true,
-            data: nfe,
-            sefaz: {
-                cStat: '100',
-                xMotivo: 'Autorizado o uso da NF-e',
-                nProt: String(Date.now()).padStart(15, '0'),
-                dhRecbto: new Date().toISOString()
-            },
-            message: 'NF-e emitida com sucesso!'
+
+            data:
+                companies[index]
+
         });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        console.error(
+            '[EMPRESAS] PUT:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            error:
+                error.message
+
+        });
     }
+
 });
 
-// Testar SEFAZ
-app.post('/api/nfe/testar-sefaz', (req, res) => {
+
+// ============================================
+// DELETE EMPRESA
+// ============================================
+
+app.delete('/api/empresas/:id', (req, res) => {
+
     try {
-        const { empresa_id } = req.body;
-        
-        if (!empresa_id) {
-            return res.status(400).json({ error: 'Empresa não informada' });
+
+        const companies =
+            getCompanies();
+
+        const id =
+            Number(
+                req.params.id
+            );
+
+
+        const filtered =
+            companies.filter(
+                company =>
+                    Number(company.id) !== id
+            );
+
+
+        if (
+            filtered.length ===
+            companies.length
+        ) {
+
+            return res.status(404).json({
+
+                success: false,
+
+                error:
+                    'Empresa não encontrada'
+
+            });
         }
+
+
+        saveCompanies(
+            filtered
+        );
+
 
         res.json({
+
             success: true,
-            cStat: '107',
-            xMotivo: 'Serviço em operação',
-            ambiente: 'homologacao',
-            uf: 'SC',
-            data: new Date().toISOString(),
-            message: 'SEFAZ conectada com sucesso!'
+
+            message:
+                'Empresa removida!'
+
         });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+
+        console.error(
+            '[EMPRESAS] DELETE:',
+            error
+        );
+
+        res.status(500).json({
+
+            success: false,
+
+            error:
+                error.message
+
+        });
     }
+
 });
 
-// Delete NF-e
-app.delete('/api/nfe/:id', (req, res) => {
-    try {
-        const id = parseInt(req.params.id);
-        const nfeList = getNFe();
-        const filtered = nfeList.filter(n => n.id !== id);
-        
-        if (filtered.length === nfeList.length) {
-            return res.status(404).json({ error: 'NF-e não encontrada' });
-        }
-        
-        saveNFe(filtered);
-        res.json({ success: true, message: 'NF-e cancelada!' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 
 // ============================================
-// INICIAR SERVIDOR
+// NF-e
 // ============================================
 
+app.use('/api/nfe', nfeRoutes);
 
 
 // ============================================
 // NF-e - ENTRADAS DE MERCADORIAS
 // ============================================
-app.use('/api/nfe-entradas', nfeEntradaRoutes);
-app.use('/api/empresas', certificateRoutes);
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log('');
-    console.log('============================================');
-    console.log(' 🚀 ERP METAL RACING - SERVIDOR');
-    console.log('============================================');
-    console.log(` 📡 Servidor: http://localhost:${PORT}`);
-    console.log(` 📁 Dados: ${DATA_DIR}`);
-    console.log(` 📊 Empresas: ${getCompanies().length}`);
-    console.log(` 📄 NF-e emitidas: ${getNFe().length}`);
-    console.log('============================================');
-    console.log('');
-});
+app.use(
+    '/api/nfe-entradas',
+    nfeEntradaRoutes
+);
 
 
+// ============================================
+// CERTIFICADOS
+// ============================================
 
+app.use(
+    '/api/empresas',
+    certificateRoutes
+);
+
+
+// ============================================
+// ASSINATURA XML
+// ============================================
+
+app.use(
+    '/api',
+    assinaturaRoutes
+);
+
+
+// ============================================
+// TRATAMENTO DE ROTA NÃO ENCONTRADA
+// ============================================
+
+app.use(
+    (req, res) => {
+
+        res.status(404).json({
+
+            success: false,
+
+            error:
+                'Rota não encontrada.',
+
+            method:
+                req.method,
+
+            path:
+                req.originalUrl
+
+        });
+
+    }
+);
+
+
+// ============================================
+// TRATAMENTO GLOBAL DE ERROS
+// ============================================
+
+app.use(
+    (error, req, res, next) => {
+
+        console.error(
+            '[SERVER] Erro global:',
+            error
+        );
+
+        if (res.headersSent) {
+            return next(error);
+        }
+
+        res.status(500).json({
+
+            success: false,
+
+            error:
+                error.message ||
+                'Erro interno do servidor.'
+
+        });
+
+    }
+);
+
+
+// ============================================
+// INICIAR SERVIDOR
+// ============================================
+
+app.listen(
+    PORT,
+    '0.0.0.0',
+    () => {
+
+        console.log('');
+        console.log(
+            '============================================'
+        );
+        console.log(
+            ' 🚀 ERP METAL RACING - SERVIDOR'
+        );
+        console.log(
+            '============================================'
+        );
+        console.log(
+            ` 📡 Servidor: http://localhost:${PORT}`
+        );
+        console.log(
+            ` 📁 Dados: ${DATA_DIR}`
+        );
+        console.log(
+            ` 📊 Empresas: ${getCompanies().length}`
+        );
+        console.log(
+            ` 📄 NF-e armazenadas: ${getNFe().length}`
+        );
+        console.log(
+            ` 🔐 CERT_SENHA: ${
+                process.env.CERT_SENHA
+                    ? 'CONFIGURADA'
+                    : 'NÃO CONFIGURADA'
+            }`
+        );
+        console.log(
+            ` 🌎 Ambiente padrão: ${
+                process.env.NFE_AMBIENTE ||
+                'homologacao'
+            }`
+        );
+        console.log(
+            '============================================'
+        );
+        console.log('');
+
+    }
+);
