@@ -1,0 +1,27 @@
+﻿node_modules/
+.git/
+.vercel/
+dist/
+
+data/
+storage/
+certificados/
+
+**/*.backup*
+**/*.bak*
+**/*.zip
+
+patch-*.mjs
+teste-*.mjs
+verificar-*.mjs
+diagnostico-*.mjs
+
+*.log
+*.html
+*.cookies
+*.txt
+*.xml
+
+Qoder CN/
+claude-diagnostico/
+backup-*/
