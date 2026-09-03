@@ -60,7 +60,7 @@ export function NfeEntradaPanel({ empresaId }) {
     const [loading, setLoading] = useState(false);
 
     // =========================================
-    // SEFAZ - DistribuiÃ§Ã£o DF-e
+    // SEFAZ - Distribuição DF-e
     // =========================================
     const [consultandoSefaz, setConsultandoSefaz] = useState(false);
     const [resultadoSefaz, setResultadoSefaz] = useState(null);
@@ -148,7 +148,7 @@ setProdutosERP(data || []);
             String(produto?.ean || '')
                 .replace(/\D/g, '');
 
-        // 1 - CorrespondÃªncia exata pelo SKU
+        // 1 - Correspondência exata pelo SKU
         if (codigoNFe) {
 
             const porSku =
@@ -164,7 +164,7 @@ setProdutosERP(data || []);
             }
         }
 
-        // 2 - CorrespondÃªncia pelo EAN/barcode
+        // 2 - Correspondência pelo EAN/barcode
         if (
             eanNFe &&
             eanNFe !== 'SEM GTIN' &&
@@ -255,7 +255,7 @@ setProdutosERP(data || []);
     async function consultarSefaz() {
 
         if (!empresaId) {
-            setErro('Empresa nÃ£o informada.');
+            setErro('Empresa não informada.');
             return;
         }
 
@@ -279,7 +279,7 @@ setProdutosERP(data || []);
             );
 
             setErro(
-                'ðŸ”´ A consulta Ã  SEFAZ estÃ¡ temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
+                '🔴 A consulta à SEFAZ está temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
             );
 
             return;
@@ -338,7 +338,7 @@ setProdutosERP(data || []);
                 setMensagem('');
 
                 setErro(
-                    `ðŸ”´ SEFAZ bloqueou temporariamente a consulta. cStat 656 â€” Consumo Indevido. Aguarde 1 hora antes de consultar novamente.`
+                    `🔴 SEFAZ bloqueou temporariamente a consulta. cStat 656 — Consumo Indevido. Aguarde 1 hora antes de consultar novamente.`
                 );
 
                 return;
@@ -346,11 +346,11 @@ setProdutosERP(data || []);
 
             if (data.success) {
                 setMensagem(
-                    `âœ… ${data.message}`
+                    `✅ ${data.message}`
                 );
             } else {
                 setErro(
-                    `âŒ SEFAZ: ${data.xMotivo || data.error || 'Consulta sem sucesso fiscal.'}`
+                    `❌ SEFAZ: ${data.xMotivo || data.error || 'Consulta sem sucesso fiscal.'}`
                 );
             }
 
@@ -368,7 +368,7 @@ setProdutosERP(data || []);
     }
 
     // =========================================
-    // MANIFESTAÃ‡ÃƒO DO DESTINATÃRIO
+    // MANIFESTAÇÃO DO DESTINATÁRIO
     // =========================================
     async function manifestar(entrada, tipoEvento) {
 
@@ -378,12 +378,12 @@ setProdutosERP(data || []);
         const justificativa =
             tipoEvento === '210240'
                 ? window.prompt(
-                    'OperaÃ§Ã£o nÃ£o Realizada exige justificativa (mÃ­nimo 15 caracteres):'
+                    'Operação não Realizada exige justificativa (mínimo 15 caracteres):'
                 )
                 : null;
 
         if (tipoEvento === '210240' && (!justificativa || justificativa.trim().length < 15)) {
-            setErro('Justificativa obrigatÃ³ria (mÃ­nimo 15 caracteres) para OperaÃ§Ã£o nÃ£o Realizada.');
+            setErro('Justificativa obrigatória (mínimo 15 caracteres) para Operação não Realizada.');
             return;
         }
 
@@ -408,16 +408,16 @@ setProdutosERP(data || []);
             const data = await response.json();
 
             if (!response.ok || !data.success) {
-                throw new Error(data.xMotivo || data.error || 'Falha na manifestaÃ§Ã£o.');
+                throw new Error(data.xMotivo || data.error || 'Falha na manifestação.');
             }
 
-            setMensagem(`âœ… ${data.message} (cStat ${data.cStat})`);
+            setMensagem(`✅ ${data.message} (cStat ${data.cStat})`);
 
             await carregarEntradas();
 
         } catch (error) {
 
-            setErro(`ManifestaÃ§Ã£o: ${error.message}`);
+            setErro(`Manifestação: ${error.message}`);
 
         } finally {
 
@@ -473,7 +473,7 @@ setProdutosERP(data || []);
         }
 
         if (!empresaId) {
-            setErro('Empresa nÃ£o informada.');
+            setErro('Empresa não informada.');
             return;
         }
 
@@ -513,7 +513,7 @@ setProdutosERP(data || []);
             }
 
             setMensagem(
-                'âœ… XML importado para conferÃªncia.'
+                '✅ XML importado para conferência.'
             );
 
             setArquivo(null);
@@ -598,7 +598,7 @@ setProdutosERP(data || []);
     async function cadastrarManual() {
 
         if (!empresaId) {
-            setErro('Empresa nÃ£o informada.');
+            setErro('Empresa não informada.');
             return;
         }
 
@@ -608,7 +608,7 @@ setProdutosERP(data || []);
         }
 
         if (!manual.numero.trim()) {
-            setErro('Informe o nÃºmero da NF-e.');
+            setErro('Informe o número da NF-e.');
             return;
         }
 
@@ -657,7 +657,7 @@ setProdutosERP(data || []);
             }
 
             setMensagem(
-                'âœ… Entrada manual criada para conferÃªncia.'
+                '✅ Entrada manual criada para conferência.'
             );
 
             await carregarEntradas();
@@ -679,9 +679,9 @@ setProdutosERP(data || []);
 
     // =========================================
     // CONFIRMAR ENTRADA (backend transacional)
-    // O estoque Ã© atualizado pelo BACKEND com
-    // transaÃ§Ã£o e rollback. O frontend apenas
-    // envia os vÃ­nculos.
+    // O estoque é atualizado pelo BACKEND com
+    // transação e rollback. O frontend apenas
+    // envia os vínculos.
     // =========================================
     // =========================================
     // CONFIRMAR ENTRADA
@@ -692,12 +692,12 @@ setProdutosERP(data || []);
         setMensagem('');
 
         if (!entrada?.id) {
-            setErro('Entrada NF-e nÃ£o informada.');
+            setErro('Entrada NF-e não informada.');
             return;
         }
 
         if (entrada.status === 'CONFIRMADA') {
-            setErro('Esta NF-e jÃ¡ possui entrada de estoque.');
+            setErro('Esta NF-e já possui entrada de estoque.');
             return;
         }
 
@@ -707,16 +707,16 @@ setProdutosERP(data || []);
                 : [];
 
         if (!produtos.length) {
-            setErro('Esta NF-e nÃ£o possui produtos para entrada.');
+            setErro('Esta NF-e não possui produtos para entrada.');
             return;
         }
 
         const confirmado = window.confirm(
-            'âš ï¸ ESTA OPERAÃ‡ÃƒO IRÃ ALTERAR O ESTOQUE.\n\n' +
+            '⚠️ ESTA OPERAÇÃO IRÁ ALTERAR O ESTOQUE.\n\n' +
             `NF-e ${entrada.numero || '-'} - ` +
             `${entrada.fornecedor?.razaoSocial || 'fornecedor'}\n` +
-            `${produtos.length} item(ns) receberÃ£o entrada de estoque.\n\n` +
-            'Produtos nÃ£o cadastrados serÃ£o criados automaticamente.\n\n' +
+            `${produtos.length} item(ns) receberão entrada de estoque.\n\n` +
+            'Produtos não cadastrados serão criados automaticamente.\n\n' +
             'Confirma a entrada?'
         );
 
@@ -813,7 +813,7 @@ setProdutosERP(data || []);
 
         if (invalidos.length) {
             setErro(
-                'Existe pelo menos um item com quantidade invÃ¡lida.'
+                'Existe pelo menos um item com quantidade inválida.'
             );
             return;
         }
@@ -863,31 +863,31 @@ setProdutosERP(data || []);
             if (sefaz.success) {
 
                 mensagemSefaz =
-                    '\nâœ… CONFIRMAÃ‡ÃƒO DA OPERAÃ‡ÃƒO ACEITA PELA SEFAZ' +
+                    '\n✅ CONFIRMAÇÃO DA OPERAÇÃO ACEITA PELA SEFAZ' +
                     `\ncStat: ${sefaz.cStat || '-'}` +
                     `\nProtocolo: ${sefaz.protocolo || '-'}`;
 
             } else if (sefaz.enviada) {
 
                 mensagemSefaz =
-                    '\nâš ï¸ ENTRADA REALIZADA, MAS A MANIFESTAÃ‡ÃƒO NÃƒO FOI ACEITA PELA SEFAZ' +
+                    '\n⚠️ ENTRADA REALIZADA, MAS A MANIFESTAÇÃO NÃO FOI ACEITA PELA SEFAZ' +
                     `\ncStat: ${sefaz.cStat || '-'}` +
                     `\nMotivo: ${sefaz.xMotivo || '-'}`;
 
             } else {
 
                 mensagemSefaz =
-                    '\nâš ï¸ ENTRADA REALIZADA NO ERP' +
-                    '\nManifestaÃ§Ã£o nÃ£o enviada Ã  SEFAZ' +
+                    '\n⚠️ ENTRADA REALIZADA NO ERP' +
+                    '\nManifestação não enviada à SEFAZ' +
                     `\nMotivo: ${sefaz.xMotivo || '-'}`;
             }
 
             setMensagem(
-                'âœ… Entrada realizada com sucesso.' +
+                '✅ Entrada realizada com sucesso.' +
                 `\nNF-e ${resumo.numero || entrada.numero || '-'}` +
-                ` â€” ${resumo.fornecedor || entrada.fornecedor?.razaoSocial || ''}` +
-                ` â€” ${resumo.quantidadeItens ?? itens.length} item(ns)` +
-                ` â€” quantidade total ${resumo.quantidadeTotal ?? '-'}.` +
+                ` — ${resumo.fornecedor || entrada.fornecedor?.razaoSocial || ''}` +
+                ` — ${resumo.quantidadeItens ?? itens.length} item(ns)` +
+                ` — quantidade total ${resumo.quantidadeTotal ?? '-'}.` +
                 mensagemSefaz
             );
 
@@ -934,7 +934,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    ðŸŒ SEFAZ
+                    🌐 SEFAZ
                 </button>
 
                 <button
@@ -947,7 +947,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    ðŸ“„ Entrada por XML
+                    📄 Entrada por XML
                 </button>
 
                 <button
@@ -960,7 +960,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    âœï¸ Entrada Manual
+                    ✏️ Entrada Manual
                 </button>
 
             </div>
@@ -973,24 +973,24 @@ setProdutosERP(data || []);
 
             {erro && (
                 <div className="p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300">
-                    âŒ {erro}
+                    ❌ {erro}
                 </div>
             )}
 
             {/* =========================================
-                ABA SEFAZ - DISTRIBUIÃ‡ÃƒO DF-e
+                ABA SEFAZ - DISTRIBUIÇÃO DF-e
             ========================================== */}
             {aba === 'sefaz' && (
 
                 <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50 space-y-4">
 
                     <h2 className="text-lg font-semibold text-white">
-                        ðŸŒ Consultar SEFAZ (DistribuiÃ§Ã£o DF-e)
+                        🌐 Consultar SEFAZ (Distribuição DF-e)
                     </h2>
 
                     <p className="text-sm text-slate-400">
                         Consulta os documentos fiscais destinados ao CNPJ da empresa
-                        usando o certificado A1 e o serviÃ§o oficial NFeDistribuicaoDFe.
+                        usando o certificado A1 e o serviço oficial NFeDistribuicaoDFe.
                     </p>
 
                     <button
@@ -1003,20 +1003,20 @@ setProdutosERP(data || []);
                         className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white font-semibold"
                     >
                         {consultandoSefaz
-                            ? 'â³ Consultando SEFAZ...'
+                            ? '⏳ Consultando SEFAZ...'
                             : tempoBloqueioSefaz > 0
-                                ? `â±ï¸ Aguardar ${Math.floor(tempoBloqueioSefaz / 60000)}:${String(Math.floor((tempoBloqueioSefaz % 60000) / 1000)).padStart(2, '0')}`
-                                : 'ðŸŒ Consultar SEFAZ'}
+                                ? `⏱️ Aguardar ${Math.floor(tempoBloqueioSefaz / 60000)}:${String(Math.floor((tempoBloqueioSefaz % 60000) / 1000)).padStart(2, '0')}`
+                                : '🌐 Consultar SEFAZ'}
                     </button>
 
                     {tempoBloqueioSefaz > 0 && (
                         <div className="p-4 rounded-lg bg-red-900/30 border border-red-700 text-red-300">
                             <div className="font-bold">
-                                ðŸ”´ CONSULTA Ã€ SEFAZ TEMPORARIAMENTE BLOQUEADA
+                                🔴 CONSULTA À SEFAZ TEMPORARIAMENTE BLOQUEADA
                             </div>
 
                             <div className="text-sm mt-1">
-                                cStat: 656 â€” Consumo Indevido
+                                cStat: 656 — Consumo Indevido
                             </div>
 
                             <div className="text-sm mt-1">
@@ -1024,7 +1024,7 @@ setProdutosERP(data || []);
                             </div>
 
                             <div className="text-lg font-bold mt-2">
-                                â±ï¸ {Math.floor(tempoBloqueioSefaz / 60000)}:
+                                ⏱️ {Math.floor(tempoBloqueioSefaz / 60000)}:
                                 {String(
                                     Math.floor(
                                         (tempoBloqueioSefaz % 60000) / 1000
@@ -1054,7 +1054,7 @@ setProdutosERP(data || []);
                 <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50">
 
                     <h2 className="text-lg font-semibold text-white">
-                        ðŸ“¥ Importar XML de NF-e
+                        📥 Importar XML de NF-e
                     </h2>
 
                     <input
@@ -1076,8 +1076,8 @@ setProdutosERP(data || []);
                         className="mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white"
                     >
                         {loading
-                            ? 'â³ Processando...'
-                            : 'ðŸ“¥ Importar XML'}
+                            ? '⏳ Processando...'
+                            : '📥 Importar XML'}
                     </button>
 
                 </div>
@@ -1116,7 +1116,7 @@ setProdutosERP(data || []);
                     />
 
                     <input
-                        placeholder="NÃºmero NF-e"
+                        placeholder="Número NF-e"
                         value={manual.numero}
                         onChange={
                             e =>
@@ -1138,7 +1138,7 @@ setProdutosERP(data || []);
                             >
 
                                 <input
-                                    placeholder="CÃ³digo"
+                                    placeholder="Código"
                                     value={produto.codigo}
                                     onChange={
                                         e =>
@@ -1152,7 +1152,7 @@ setProdutosERP(data || []);
                                 />
 
                                 <input
-                                    placeholder="DescriÃ§Ã£o"
+                                    placeholder="Descrição"
                                     value={produto.descricao}
                                     onChange={
                                         e =>
@@ -1183,7 +1183,7 @@ setProdutosERP(data || []);
                                 <input
                                     type="number"
                                     step="0.01"
-                                    placeholder="Valor unitÃ¡rio"
+                                    placeholder="Valor unitário"
                                     value={produto.valorUnitario}
                                     onChange={
                                         e =>
@@ -1205,7 +1205,7 @@ setProdutosERP(data || []);
                         onClick={adicionarProdutoManual}
                         className="px-3 py-2 rounded-lg bg-slate-700 text-white"
                     >
-                        âž• Produto
+                        ➕ Produto
                     </button>
 
                     <button
@@ -1213,7 +1213,7 @@ setProdutosERP(data || []);
                         disabled={loading}
                         className="ml-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
-                        âœ… Criar Entrada
+                        ✅ Criar Entrada
                     </button>
 
                 </div>
@@ -1225,7 +1225,7 @@ setProdutosERP(data || []);
             <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50">
 
                 <h2 className="text-lg font-semibold text-white mb-4">
-                    ðŸ“‹ Entradas de NF-e
+                    📋 Entradas de NF-e
                 </h2>
 
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -1258,7 +1258,7 @@ setProdutosERP(data || []);
                 </div>
 
                 <input
-                    placeholder="ðŸ”Ž Buscar por chave, CNPJ, fornecedor ou nÃºmero..."
+                    placeholder="🔎 Buscar por chave, CNPJ, fornecedor ou número..."
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     className="w-full rounded-lg bg-slate-900 border border-slate-700 p-2 text-white mb-4"
@@ -1292,7 +1292,7 @@ setProdutosERP(data || []);
                                             <div className="text-white">
                                                 {entrada.numero}
                                                 {entrada.serie && (
-                                                    <span className="text-slate-500"> / sÃ©rie {entrada.serie}</span>
+                                                    <span className="text-slate-500"> / série {entrada.serie}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -1366,13 +1366,13 @@ setProdutosERP(data || []);
                                                 )
                                             }>
                                                 {entrada.manifestacao.success
-                                                    ? "âœ… RETORNO DA SEFAZ"
-                                                    : "âŒ RETORNO DA SEFAZ"}
+                                                    ? "✅ RETORNO DA SEFAZ"
+                                                    : "❌ RETORNO DA SEFAZ"}
                                             </div>
 
                                             <div className="text-xs text-slate-300 mt-1">
                                                 Evento:{" "}
-                                                {entrada.manifestacao.descricao || "ManifestaÃ§Ã£o"}
+                                                {entrada.manifestacao.descricao || "Manifestação"}
                                             </div>
 
                                             <div className="text-xs text-slate-300 mt-1">
@@ -1385,7 +1385,7 @@ setProdutosERP(data || []);
                                             <div className="text-xs text-slate-300 mt-1">
                                                 Mensagem SEFAZ:{" "}
                                                 <span className="text-white">
-                                                    {entrada.manifestacao.xMotivo || "NÃ£o informado"}
+                                                    {entrada.manifestacao.xMotivo || "Não informado"}
                                                 </span>
                                             </div>
 
@@ -1410,7 +1410,7 @@ setProdutosERP(data || []);
                                     )}
 
 
-                                    {/* AÃ§Ãµes fiscais */}
+                                    {/* Ações fiscais */}
                                     <div className="mt-3 flex flex-wrap gap-2">
 
                                         {entrada.chave && entrada.status !== 'CONFIRMADA' && (
@@ -1420,7 +1420,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    âœ… ConfirmaÃ§Ã£o da OperaÃ§Ã£o
+                                                    ✅ Confirmação da Operação
                                                 </button>
 
                                                 <button
@@ -1428,7 +1428,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    ðŸ“¨ CiÃªncia da OperaÃ§Ã£o
+                                                    📨 Ciência da Operação
                                                 </button>
 
                                                 <button
@@ -1436,7 +1436,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    â“ Desconhecimento
+                                                    ❓ Desconhecimento
                                                 </button>
 
                                                 <button
@@ -1444,7 +1444,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    ðŸš« OperaÃ§Ã£o nÃ£o Realizada
+                                                    🚫 Operação não Realizada
                                                 </button>
                                             </>
                                         )}
@@ -1455,7 +1455,7 @@ setProdutosERP(data || []);
                                             rel="noreferrer"
                                             className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                         >
-                                            ðŸ“„ Baixar XML
+                                            📄 Baixar XML
                                         </a>
 
                                     </div>
@@ -1475,7 +1475,7 @@ setProdutosERP(data || []);
                                                         <div className="text-sm text-white p-2 bg-slate-900 rounded-lg">
                                                             {produto.descricao}
                                                             <div className="text-xs text-slate-500">
-                                                                {produto.quantidade} {produto.unidade} Ã— R$ {Number(produto.valorUnitario).toFixed(2)}
+                                                                {produto.quantidade} {produto.unidade} × R$ {Number(produto.valorUnitario).toFixed(2)}
                                                                 {produto.ncm ? ` | NCM ${produto.ncm}` : ''}
                                                                 {produto.cfop ? ` | CFOP ${produto.cfop}` : ''}
                                                             </div>
@@ -1490,7 +1490,7 @@ setProdutosERP(data || []);
                                                         >
 
                                                             <option value="">
-                                                                Produto nÃ£o cadastrado â€” selecione
+                                                                Produto não cadastrado — selecione
                                                             </option>
 
                                                             {produtosERP.map(
@@ -1501,7 +1501,7 @@ setProdutosERP(data || []);
                                                                         value={produtoERP.id}
                                                                     >
                                                                         {produtoERP.name}
-                                                                        {' â€” '}
+                                                                        {' — '}
                                                                         {produtoERP.sku}
                                                                     </option>
 
@@ -1528,7 +1528,7 @@ setProdutosERP(data || []);
                                             )}
 
                                             <div className="p-3 rounded-lg bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm">
-                                                âš ï¸ Esta operaÃ§Ã£o irÃ¡ alterar o estoque.
+                                                ⚠️ Esta operação irá alterar o estoque.
                                             </div>
 
                                             <button
@@ -1541,7 +1541,7 @@ setProdutosERP(data || []);
                                                 disabled={loading}
                                                 className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 text-white font-semibold"
                                             >
-                                                âœ… CONFIRMAR ENTRADA
+                                                ✅ CONFIRMAR ENTRADA
                                             </button>
 
                                         </div>
