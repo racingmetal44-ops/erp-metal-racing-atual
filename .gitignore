@@ -14,3 +14,113 @@ data/*.backup*
 *.backup
 
 .vscode/
+.vercel
+
+# ===== Metal Racing - arquivos temporários/backup =====
+*.backup
+*.backup-*
+*.bak
+*.bak-*
+*.before-*
+*.encoding-backup
+*.placeholder-backup
+
+# Logs e resultados temporários
+*.log
+resultado-*.json
+diff-*.txt
+
+# XML/HTML gerados durante testes
+consulta-nfe.xml
+consulta-sefsc.cjs
+sefsc-*.html
+sefsc-cookies.txt
+nfe_*_assinado.xml
+teste-*.xml
+teste-*.html
+xml-teste-*.txt
+
+# Diretórios temporários/diagnóstico
+storage/
+claude-diagnostico/
+claude-diagnostico.zip
+Qoder CN/
+backup-nfe-*/
+src/backend/data/
+
+# Scripts temporários de patch/diagnóstico
+patch-*.mjs
+diagnostico-*.mjs
+verificar-*.mjs
+salvar-chain-*.cjs
+
+# Scripts de teste locais
+teste-*.mjs
+
+# Backups e testes adicionais
+*.backup-*
+*.backup_*
+teste-*.mjs
+verificar-*.mjs
+*.xml
+webservices.cjs
+webservices.js.backup-*
+backup-*.txt
+*teste*.xml
+
+# Backups e testes adicionais
+*.backup-*
+*.backup_*
+teste-*.mjs
+verificar-*.mjs
+*.xml
+webservices.cjs
+webservices.js.backup-*
+backup-*.txt
+*teste*.xml
+
+# ===== Dados locais do ERP - NÃO enviar ao GitHub =====
+/data/
+storage/
+
+# ===== Qualquer arquivo com backup no nome =====
+*.backup*
+*.bak*
+*.before*
+*.encoding-backup
+*.placeholder-backup
+
+# ===== Arquivos de teste =====
+teste-*.mjs
+teste-*.xml
+teste-*.html
+verificar-*.mjs
+
+# ===== Arquivos temporários específicos =====
+webservices.cjs
+xml-teste-*.txt
+*teste*.xml
+
+# ===== Dados locais do ERP - NÃO enviar ao GitHub =====
+/data/
+/storage/
+
+# ===== Backups =====
+*.backup*
+*.bak*
+*.before*
+*.encoding-backup
+*.placeholder-backup
+
+# ===== Testes temporários =====
+teste-*.mjs
+teste-*.xml
+teste-*.html
+verificar-*.mjs
+*teste*.xml
+
+# ===== Arquivos temporários =====
+webservices.cjs
+xml-teste-*.txt
+resultado-*.json
+diff-*.txt
