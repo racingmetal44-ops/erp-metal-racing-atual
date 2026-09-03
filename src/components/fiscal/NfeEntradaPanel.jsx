@@ -1,7 +1,15 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 
 const API = import.meta.env.VITE_API_URL || ''
+
+function apiUrl(path) {
+    if (!API) return path;
+
+    const separador = path.includes('?') ? '&' : '?';
+
+    return `${API}${path}${separador}ngrok-skip-browser-warning=true`;
+}
 
 export function NfeEntradaPanel({ empresaId }) {
 
@@ -96,7 +104,7 @@ export function NfeEntradaPanel({ empresaId }) {
     async function carregarEntradas() {
 
         const response =
-            await fetch(`${API}/api/nfe-entradas`);
+            await fetch(apiUrl('/api/nfe-entradas'));
 
         const data =
             await response.json();
@@ -285,7 +293,7 @@ setProdutosERP(data || []);
         try {
 
             const response = await fetch(
-                `${API}/api/nfe-entradas/sincronizar-sefaz`,
+                apiUrl('/api/nfe-entradas/sincronizar-sefaz'),
                 {
                     method: 'POST',
                     headers: {
@@ -384,7 +392,7 @@ setProdutosERP(data || []);
         try {
 
             const response = await fetch(
-                `${API}/api/nfe-entradas/${entrada.id}/manifestar`,
+                apiUrl(`/api/nfe-entradas/${entrada.id}/manifestar`),
                 {
                     method: 'POST',
                     headers: {
@@ -488,7 +496,7 @@ setProdutosERP(data || []);
             );
 
             const response = await fetch(
-                `${API}/api/nfe-entradas/importar-xml`,
+                apiUrl('/api/nfe-entradas/importar-xml'),
                 {
                     method: 'POST',
                     body: formData
@@ -612,7 +620,7 @@ setProdutosERP(data || []);
 
             const response =
                 await fetch(
-                    `${API}/api/nfe-entradas/manual`,
+                    apiUrl('/api/nfe-entradas/manual'),
                     {
                         method: 'POST',
                         headers: {
@@ -821,7 +829,7 @@ setProdutosERP(data || []);
 
             const response =
                 await fetch(
-                    `${API}/api/nfe-entradas/${entrada.id}/confirmar`,
+                    apiUrl(`/api/nfe-entradas/${entrada.id}/confirmar`),
                     {
                         method: 'POST',
                         headers: {
