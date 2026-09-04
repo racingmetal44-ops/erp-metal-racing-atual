@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.js": {
-      "includeFiles": "certificados/*.pem"
+      "includeFiles": "public-certs/*.pem"
     }
   },
   "rewrites": [
