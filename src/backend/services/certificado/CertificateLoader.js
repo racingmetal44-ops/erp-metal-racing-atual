@@ -106,11 +106,32 @@ export async function localizarPfx(empresaId) {
 // =========================================================
 
 export async function carregarCertificado(empresaId) {
-    const certPath = await localizarPfx(empresaId);
     const senha = obterSenha();
 
-    const pfxBuffer = await fs.readFile(certPath);
+    let certPath = null;
+    let pfxBuffer;
 
+    if (process.env.NFE_CERT_PFX_BASE64) {
+        try {
+            pfxBuffer = Buffer.from(
+                process.env.NFE_CERT_PFX_BASE64,
+                'base64'
+            );
+
+            if (!pfxBuffer.length) {
+                throw new Error('NFE_CERT_PFX_BASE64 está vazia.');
+            }
+
+            certPath = '[NFE_CERT_PFX_BASE64]';
+        } catch (error) {
+            throw new Error(
+                'Certificado A1 em Base64 inválido: ' + error.message
+            );
+        }
+    } else {
+        certPath = await localizarPfx(empresaId);
+        pfxBuffer = await fs.readFile(certPath);
+    }
     // -----------------------------------------------------
     // Abrir PFX
     // -----------------------------------------------------

@@ -30,11 +30,13 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const ENTRADAS_FILE = path.join(DATA_DIR, 'nfe-entradas.json');
 const UPLOAD_DIR = path.join(DATA_DIR, 'xml-nfe-entrada');
 
-fs.ensureDirSync(DATA_DIR);
-fs.ensureDirSync(UPLOAD_DIR);
+if (!process.env.VERCEL) {
+    fs.ensureDirSync(DATA_DIR);
+    fs.ensureDirSync(UPLOAD_DIR);
 
-if (!fs.existsSync(ENTRADAS_FILE)) {
-    fs.writeJsonSync(ENTRADAS_FILE, []);
+    if (!fs.existsSync(ENTRADAS_FILE)) {
+        fs.writeJsonSync(ENTRADAS_FILE, []);
+    }
 }
 
 // =====================================================
@@ -65,8 +67,10 @@ function saveEntradas(lista) {
     });
 }
 
+const uploadDirVercel = process.env.VERCEL ? '/tmp/xml-nfe-entrada' : UPLOAD_DIR;
+
 const upload = multer({
-    dest: UPLOAD_DIR,
+    dest: uploadDirVercel,
 
     limits: {
         fileSize: 10 * 1024 * 1024

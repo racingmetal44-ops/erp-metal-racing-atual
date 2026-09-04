@@ -31,13 +31,13 @@ class NfeSoapService {
 
         if (!await fs.pathExists(intermediariaPath)) {
             throw new Error(
-                `Certificado CA intermediário não encontrado: ${intermediariaPath}`
+                `Certificado CA intermediÃ¡rio nÃ£o encontrado: ${intermediariaPath}`
             );
         }
 
         if (!await fs.pathExists(raizPath)) {
             throw new Error(
-                `Certificado CA raiz não encontrado: ${raizPath}`
+                `Certificado CA raiz nÃ£o encontrado: ${raizPath}`
             );
         }
 
@@ -48,7 +48,7 @@ class NfeSoapService {
             await fs.readFile(raizPath);
 
         console.log(
-            '[SEFAZ] CA intermediária carregada:',
+            '[SEFAZ] CA intermediÃ¡ria carregada:',
             intermediaria.length,
             'bytes'
         );
@@ -67,40 +67,17 @@ class NfeSoapService {
 
 
     static async carregarCertificado(empresaId = 1) {
-        const empresa = getEmpresaConfig(empresaId);
-
-        const certPath =
-            empresa.certificado?.absolutePath ||
-            empresa.certificado?.path;
-
-        if (!certPath) {
-            throw new Error(
-                `Certificado não configurado para a empresa ${empresaId}.`
-            );
-        }
-
-        const senha =
-            process.env.CERT_SENHA ||
-            process.env.NFE_CERT_SENHA ||
-            process.env.CERTIFICADO_SENHA ||
-            empresa.certificado?.senha ||
-            '';
-
         const certificado =
-            CertificateLoader.loadCertificate(
-                certPath,
-                senha
-            );
+            await CertificateLoader.carregarCertificado(empresaId);
 
         return {
             cert: certificado.cert,
-            key: certificado.privateKey,
+            key: certificado.key,
             pfx: certificado.pfx,
-            validFrom: certificado.validFrom,
-            validTo: certificado.validTo
+            validFrom: certificado.info?.validFrom || null,
+            validTo: certificado.info?.validTo || null
         };
     }
-
     static obterWebService(empresa, ambiente, servico) {
         const cUF = Number(empresa.cUF);
         const tpAmb =
@@ -114,7 +91,7 @@ class NfeSoapService {
 
         if (!config) {
             throw new Error(
-                `Endpoint SEFAZ não encontrado para cUF=${cUF}, tpAmb=${tpAmb}, serviço=${servico}.`
+                `Endpoint SEFAZ nÃ£o encontrado para cUF=${cUF}, tpAmb=${tpAmb}, serviÃ§o=${servico}.`
             );
         }
 
@@ -141,13 +118,13 @@ class NfeSoapService {
 
         if (!fs.existsSync(intermediariaPath)) {
             throw new Error(
-                `Certificado CA intermediário não encontrado: ${intermediariaPath}`
+                `Certificado CA intermediÃ¡rio nÃ£o encontrado: ${intermediariaPath}`
             );
         }
 
         if (!fs.existsSync(raizPath)) {
             throw new Error(
-                `Certificado CA raiz não encontrado: ${raizPath}`
+                `Certificado CA raiz nÃ£o encontrado: ${raizPath}`
             );
         }
 
@@ -163,7 +140,7 @@ class NfeSoapService {
         ];
 
         console.log(
-            '[SEFAZ] CA intermediária carregada:',
+            '[SEFAZ] CA intermediÃ¡ria carregada:',
             intermediaria.length,
             'bytes'
         );
@@ -201,7 +178,7 @@ class NfeSoapService {
         const namespaceWsdl =
             'http://www.portalfiscal.inf.br/nfe/wsdl/NFeAutorizacao4';
 
-        // Remove a declaração XML para que o XML da NF-e
+        // Remove a declaraÃ§Ã£o XML para que o XML da NF-e
         // possa ser incorporado corretamente dentro do lote.
         const nfeSemDeclaracao =
             String(xmlAssinado)
@@ -211,8 +188,8 @@ class NfeSoapService {
                 )
                 .trim();
 
-        // Lote único para processamento síncrono.
-        // O identificador deve ter no máximo 15 dígitos.
+        // Lote Ãºnico para processamento sÃ­ncrono.
+        // O identificador deve ter no mÃ¡ximo 15 dÃ­gitos.
         const idLote =
             String(Date.now())
                 .replace(/\D/g, '')
@@ -294,7 +271,7 @@ class NfeSoapService {
 
         } catch (error) {
             throw new Error(
-                `Erro de comunicação com a SEFAZ: ${error.message}`
+                `Erro de comunicaÃ§Ã£o com a SEFAZ: ${error.message}`
             );
         }
     }
@@ -317,7 +294,7 @@ class NfeSoapService {
     ) {
         if (!nRec) {
             throw new Error(
-                'Número do recibo (nRec) não informado.'
+                'NÃºmero do recibo (nRec) nÃ£o informado.'
             );
         }
 
@@ -383,7 +360,7 @@ class NfeSoapService {
 
         } catch (error) {
             throw new Error(
-                `Erro de comunicação com a SEFAZ: ${error.message}`
+                `Erro de comunicaÃ§Ã£o com a SEFAZ: ${error.message}`
             );
         }
     }
@@ -454,7 +431,7 @@ class NfeSoapService {
                 success: false,
                 cStat: null,
                 xMotivo:
-                    `Erro de comunicação: ${error.message}`,
+                    `Erro de comunicaÃ§Ã£o: ${error.message}`,
                 tempoMs:
                     Date.now() - inicio,
                 httpStatus:
@@ -488,7 +465,7 @@ class NfeSoapService {
         }
 
         // =====================================================
-        // EXTRATOR GENÉRICO DE TAG XML
+        // EXTRATOR GENÃ‰RICO DE TAG XML
         // Aceita tags com ou sem prefixo de namespace.
         // =====================================================
 
@@ -509,7 +486,7 @@ class NfeSoapService {
         };
 
         // =====================================================
-        // STATUS DO SERVIÇO
+        // STATUS DO SERVIÃ‡O
         // NfeStatusServico4
         // =====================================================
 
@@ -575,7 +552,7 @@ class NfeSoapService {
 
                 xMotivo:
                     xMotivo ||
-                    'Retorno do serviço de status da SEFAZ.',
+                    'Retorno do serviÃ§o de status da SEFAZ.',
 
                 nRec:
                     null,
@@ -601,7 +578,7 @@ class NfeSoapService {
         }
 
         // =====================================================
-        // AUTORIZAÇÃO NF-e
+        // AUTORIZAÃ‡ÃƒO NF-e
         // NfeAutorizacao4
         // =====================================================
 
@@ -724,7 +701,7 @@ class NfeSoapService {
         const motivoPrincipal =
             xMotivoNFe ||
             xMotivoLote ||
-            'Retorno não interpretado';
+            'Retorno nÃ£o interpretado';
 
         return {
 

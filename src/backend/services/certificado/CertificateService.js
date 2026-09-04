@@ -15,9 +15,12 @@ export class CertificateService {
                 'certificados'
             );
 
-        fs.ensureDirSync(
+        if (!process.env.VERCEL) {
+fs.ensureDirSync(
             this.certsPath
         );
+
+}
     }
 
 

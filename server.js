@@ -21,7 +21,7 @@ import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js
 
 
 // ============================================
-// CONFIGURAÇÃO
+// CONFIGURAï¿½ï¿½O
 // ============================================
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,7 +49,7 @@ app.use(express.urlencoded({
 
 
 // ============================================
-// LOG DE REQUISIÇÕES
+// LOG DE REQUISIï¿½ï¿½ES
 // ============================================
 
 app.use((req, res, next) => {
@@ -76,6 +76,7 @@ const NFE_FILE =
     path.join(DATA_DIR, 'nfe.json');
 
 
+if (!process.env.VERCEL) {
 // Criar pasta data
 if (!fs.existsSync(DATA_DIR)) {
 
@@ -109,6 +110,9 @@ if (!fs.existsSync(NFE_FILE)) {
     );
 }
 
+
+
+}
 
 // ============================================
 // EMPRESAS
@@ -336,7 +340,7 @@ app.post('/api/empresas', (req, res) => {
                     success: false,
 
                     error:
-                        'CNPJ já cadastrado'
+                        'CNPJ jï¿½ cadastrado'
 
                 });
             }
@@ -437,7 +441,7 @@ app.put('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa não encontrada'
+                    'Empresa nï¿½o encontrada'
 
             });
         }
@@ -530,7 +534,7 @@ app.delete('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa não encontrada'
+                    'Empresa nï¿½o encontrada'
 
             });
         }
@@ -616,7 +620,7 @@ app.use(
 
 
 // ============================================
-// TRATAMENTO DE ROTA NÃO ENCONTRADA
+// TRATAMENTO DE ROTA Nï¿½O ENCONTRADA
 // ============================================
 
 app.use(
@@ -627,7 +631,7 @@ app.use(
             success: false,
 
             error:
-                'Rota não encontrada.',
+                'Rota nï¿½o encontrada.',
 
             method:
                 req.method,
@@ -675,6 +679,9 @@ app.use(
 // INICIAR SERVIDOR
 // ============================================
 
+export default app;
+
+if (!process.env.VERCEL) {
 app.listen(
     PORT,
     '0.0.0.0',
@@ -706,11 +713,11 @@ app.listen(
             ` ?? CERT_SENHA: ${
                 process.env.CERT_SENHA
                     ? 'CONFIGURADA'
-                    : 'NÃO CONFIGURADA'
+                    : 'Nï¿½O CONFIGURADA'
             }`
         );
         console.log(
-            ` ?? Ambiente padrão: ${
+            ` ?? Ambiente padrï¿½o: ${
                 process.env.NFE_AMBIENTE ||
                 'homologacao'
             }`
@@ -722,6 +729,4 @@ app.listen(
 
     }
 );
-
-
-
+}

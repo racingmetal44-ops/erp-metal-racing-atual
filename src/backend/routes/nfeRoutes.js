@@ -32,12 +32,16 @@ const STORAGE_DIR = path.join(process.cwd(), 'storage', 'nfe');
 const DATA_DIR = path.join(process.cwd(), 'data');
 const NFE_FILE = path.join(DATA_DIR, 'nfe.json');
 
+if (!process.env.VERCEL) {
 if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 if (!fs.existsSync(NFE_FILE)) {
     fs.writeJsonSync(NFE_FILE, []);
+}
+
+
 }
 
 function getNFe() {

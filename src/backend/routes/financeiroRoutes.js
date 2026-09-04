@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -13,6 +13,10 @@ const CONTAS_FILE = path.join(DATA_DIR, 'contas-pagar.json');
 const NFE_FILE = path.join(DATA_DIR, 'nfe-entradas.json');
 
 function garantirArquivo() {
+    if (process.env.VERCEL) {
+        return;
+    }
+
     fs.mkdirSync(DATA_DIR, { recursive: true });
 
     if (!fs.existsSync(CONTAS_FILE)) {
@@ -462,4 +466,3 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
 });
 
 export default router;
-

@@ -32,6 +32,42 @@ const CODIGOS_UF = {
 };
 
 export function loadEmpresas() {
+    if (process.env.VERCEL) {
+        return {
+            empresas: [
+                {
+                    id: Number(
+                        process.env.NFE_EMPRESA_ID || 1
+                    ),
+                    razaoSocial:
+                        process.env.NFE_RAZAO_SOCIAL ||
+                        'ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA',
+                    nomeFantasia:
+                        process.env.NFE_NOME_FANTASIA ||
+                        'METAL RACING ACESSÓRIOS AUTOMOTIVO',
+                    cnpj:
+                        process.env.NFE_CNPJ || '',
+                    ie:
+                        process.env.NFE_IE || '',
+                    uf:
+                        process.env.NFE_UF || 'SC',
+                    cUF:
+                        Number(
+                            process.env.NFE_CUF || 42
+                        ),
+                    certificado: {
+                        path:
+                            process.env.NFE_CERTIFICADO ||
+                            '',
+                        senha:
+                            process.env.NFE_CERT_SENHA ||
+                            ''
+                    }
+                }
+            ]
+        };
+    }
+
     const filePath =
         path.resolve(
             process.cwd(),
@@ -54,7 +90,6 @@ export function loadEmpresas() {
 
     return JSON.parse(content);
 }
-
 export function getEmpresaConfig(
     empresaId = 1
 ) {
