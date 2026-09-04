@@ -2,10 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "certificados/serpro-sslv1.pem",
-        "certificados/ICP-Brasilv10.pem"
-      ]
+      "includeFiles": "certificados/*.pem"
     }
   },
   "rewrites": [
