@@ -1,12 +1,18 @@
-import express from 'express';
+﻿import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
 import { XMLParser } from 'fast-xml-parser';
 
 // Serviços da integração SEFAZ / entrada
-import NfeDistribuicaoService, { lerNsu } from '../services/nfe/NfeDistribuicaoService.js';
-import NfeManifestacaoService, { DESCRICOES_EVENTO } from '../services/nfe/NfeManifestacaoService.js';
+import NfeDistribuicaoService, {
+    lerNsu
+} from '../services/nfe/NfeDistribuicaoService.js';
+
+import NfeManifestacaoService, {
+    DESCRICOES_EVENTO
+} from '../services/nfe/NfeManifestacaoService.js';
+
 import {
     vincularFornecedor,
     verificarDuplicidade,
@@ -15,6 +21,7 @@ import {
     getEntradas as getEntradasService,
     saveEntradas as saveEntradasService
 } from '../services/nfe/NfeEntradaService.js';
+
 import { normalizarAmbiente } from '../config/sefaz.js';
 
 const router = express.Router();
@@ -29,6 +36,10 @@ fs.ensureDirSync(UPLOAD_DIR);
 if (!fs.existsSync(ENTRADAS_FILE)) {
     fs.writeJsonSync(ENTRADAS_FILE, []);
 }
+
+// =====================================================
+// UTILITÁRIOS
+// =====================================================
 
 function getEntradas() {
     try {
@@ -47,48 +58,70 @@ function getEntradas() {
         return [];
     }
 }
+
 function saveEntradas(lista) {
-    fs.writeJsonSync(ENTRADAS_FILE, lista, { spaces: 2 });
+    fs.writeJsonSync(ENTRADAS_FILE, lista, {
+        spaces: 2
+    });
 }
 
 const upload = multer({
     dest: UPLOAD_DIR,
+
     limits: {
         fileSize: 10 * 1024 * 1024
     },
+
     fileFilter: (req, file, cb) => {
         const nome = file.originalname.toLowerCase();
 
-        if (nome.endsWith('.xml') || file.mimetype.includes('xml')) {
+        if (
+            nome.endsWith('.xml') ||
+            file.mimetype.includes('xml')
+        ) {
             cb(null, true);
         } else {
-            cb(new Error('Somente arquivos XML de NF-e são permitidos.'));
+            cb(
+                new Error(
+                    'Somente arquivos XML de NF-e são permitidos.'
+                )
+            );
         }
     }
 });
 
 function texto(valor) {
-    if (valor === undefined || valor === null) return '';
+    if (
+        valor === undefined ||
+        valor === null
+    ) {
+        return '';
+    }
+
     return String(valor);
 }
 
 function numeroSeguro(valor) {
     const n = Number(valor);
-    return Number.isFinite(n) ? n : 0;
-}
 
-function localizarNFe(parsed) {
-    return (
-        parsed?.nfeProc?.NFe ||
-        parsed?.NFe ||
-        parsed?.['nfeProc']?.['NFe'] ||
-        null
-    );
+    return Number.isFinite(n)
+        ? n
+        : 0;
 }
 
 function arredondar2(valor) {
-    return Math.round((Number(valor) + Number.EPSILON) * 100) / 100;
+    return Math.round(
+        (Number(valor) + Number.EPSILON) * 100
+    ) / 100;
 }
+
+function normalizarDocumento(valor) {
+    return texto(valor).replace(/\D/g, '');
+}
+
+// =====================================================
+// CHAVE NF-e
+// =====================================================
 
 function validarChaveNFe(chave) {
 
@@ -99,18 +132,33 @@ function validarChaveNFe(chave) {
     }
 
     const base = chave.substring(0, 43);
-    const informado = Number(chave.substring(43));
+    const informado = Number(
+        chave.substring(43)
+    );
 
     let soma = 0;
     let peso = 2;
 
-    for (let i = base.length - 1; i >= 0; i--) {
-        soma += Number(base[i]) * peso;
-        peso = peso === 9 ? 2 : peso + 1;
+    for (
+        let i = base.length - 1;
+        i >= 0;
+        i--
+    ) {
+        soma +=
+            Number(base[i]) * peso;
+
+        peso =
+            peso === 9
+                ? 2
+                : peso + 1;
     }
 
     const resto = soma % 11;
-    const calculado = resto < 2 ? 0 : 11 - resto;
+
+    const calculado =
+        resto < 2
+            ? 0
+            : 11 - resto;
 
     if (calculado !== informado) {
         throw new Error(
@@ -120,6 +168,10 @@ function validarChaveNFe(chave) {
 
     return true;
 }
+
+// =====================================================
+// VALIDAÇÕES XML
+// =====================================================
 
 function validarTextoXml(valor, campo) {
 
@@ -139,15 +191,31 @@ function validarTextoXml(valor, campo) {
 
 function validarProdutoXml(produto) {
 
-    const quantidade = arredondar2(produto.quantidade);
-    const unitario = arredondar2(produto.valorUnitario);
-    const totalInformado = arredondar2(produto.valorTotal);
+    const quantidade =
+        arredondar2(
+            produto.quantidade
+        );
+
+    const unitario =
+        arredondar2(
+            produto.valorUnitario
+        );
+
+    const totalInformado =
+        arredondar2(
+            produto.valorTotal
+        );
 
     const totalCalculado =
-        arredondar2(quantidade * unitario);
+        arredondar2(
+            quantidade * unitario
+        );
 
     if (
-        Math.abs(totalCalculado - totalInformado) > 0.02
+        Math.abs(
+            totalCalculado -
+            totalInformado
+        ) > 0.02
     ) {
         throw new Error(
             `Produto "${produto.descricao}" inconsistente: ` +
@@ -160,29 +228,46 @@ function validarProdutoXml(produto) {
     return true;
 }
 
-
-function normalizarDocumento(valor) {
-    return texto(valor).replace(/\D/g, '');
-}
+// =====================================================
+// EMPRESA / CONFIGURAÇÃO FISCAL
+// =====================================================
 
 function obterEmpresa(empresaId) {
 
     const arquivoEmpresas =
-        path.join(process.cwd(), 'data', 'companies.json');
+        path.join(
+            process.cwd(),
+            'data',
+            'companies.json'
+        );
 
     if (!fs.existsSync(arquivoEmpresas)) {
-        throw new Error('Arquivo de empresas não encontrado.');
+        throw new Error(
+            'Arquivo de empresas não encontrado.'
+        );
     }
 
-    const empresasRaw = fs.readJsonSync(arquivoEmpresas);
+    const empresasRaw =
+        fs.readJsonSync(
+            arquivoEmpresas
+        );
 
-    const empresas = Array.isArray(empresasRaw)
-        ? empresasRaw
-        : (empresasRaw && typeof empresasRaw === 'object' ? [empresasRaw] : []);
+    const empresas =
+        Array.isArray(empresasRaw)
+            ? empresasRaw
+            : (
+                empresasRaw &&
+                typeof empresasRaw === 'object'
+                    ? [empresasRaw]
+                    : []
+            );
 
-    const empresa = empresas.find(
-        item => String(item.id) === String(empresaId)
-    );
+    const empresa =
+        empresas.find(
+            item =>
+                String(item.id) ===
+                String(empresaId)
+        );
 
     if (!empresa) {
         throw new Error(
@@ -193,19 +278,19 @@ function obterEmpresa(empresaId) {
     return empresa;
 }
 
-/**
- * Configuração fiscal da empresa para a integração SEFAZ.
- * UF, CNPJ e ambiente vêm SEMPRE da empresa (nunca hardcoded).
- */
 function obterConfigEmpresa(empresaId) {
-    const empresa = obterEmpresa(empresaId);
+
+    const empresa =
+        obterEmpresa(empresaId);
 
     return {
+
         empresa,
 
         cnpj:
-            String(empresa.cnpj || '')
-                .replace(/\D/g, ''),
+            String(
+                empresa.cnpj || ''
+            ).replace(/\D/g, ''),
 
         uf:
             String(
@@ -224,17 +309,33 @@ function obterConfigEmpresa(empresaId) {
     };
 }
 
-function validarEntradaNFe(nfe, empresaId) {
+// =====================================================
+// VALIDAÇÃO DA NF-e
+// =====================================================
 
-    validarChaveNFe(nfe.chave);
+function validarEntradaNFe(
+    nfe,
+    empresaId
+) {
 
-    const empresa = obterEmpresa(empresaId);
+    validarChaveNFe(
+        nfe.chave
+    );
+
+    const empresa =
+        obterEmpresa(
+            empresaId
+        );
 
     const cnpjEmpresa =
-        normalizarDocumento(empresa.cnpj);
+        normalizarDocumento(
+            empresa.cnpj
+        );
 
     const cnpjDestinatario =
-        normalizarDocumento(nfe.destinatario?.cnpj);
+        normalizarDocumento(
+            nfe.destinatario?.cnpj
+        );
 
     if (!cnpjDestinatario) {
         throw new Error(
@@ -242,256 +343,337 @@ function validarEntradaNFe(nfe, empresaId) {
         );
     }
 
-    if (cnpjDestinatario !== cnpjEmpresa) {
+    if (
+        cnpjDestinatario !==
+        cnpjEmpresa
+    ) {
         throw new Error(
             `NF-e destinada ao CNPJ ${cnpjDestinatario}, ` +
             `mas a empresa selecionada possui CNPJ ${cnpjEmpresa}.`
         );
     }
 
-    for (const produto of nfe.produtos) {
+    for (
+        const produto of
+        nfe.produtos
+    ) {
 
         validarTextoXml(
             produto.descricao,
             `produto ${produto.item}`
         );
 
-        validarProdutoXml(produto);
+        validarProdutoXml(
+            produto
+        );
     }
 
     return true;
 }
 
+// =====================================================
+// LOCALIZAR NF-e
+// =====================================================
+
+function localizarNFe(parsed) {
+
+    return (
+        parsed?.nfeProc?.NFe ||
+        parsed?.NFe ||
+        parsed?.['nfeProc']?.['NFe'] ||
+        null
+    );
+}
+
+// =====================================================
+// EXTRAIR XML NF-e
+// =====================================================
+
 function extrairXmlNfe(xml) {
 
-    const parser = new XMLParser({
-        ignoreAttributes: false,
-        attributeNamePrefix: '@_',
-        removeNSPrefix: true,
-        parseTagValue: true,
-        trimValues: true
-    });
+    const parser =
+        new XMLParser({
 
-    const parsed = parser.parse(xml);
+            ignoreAttributes: false,
 
-    const nfe = localizarNFe(parsed);
+            attributeNamePrefix: '@_',
+
+            removeNSPrefix: true,
+
+            parseTagValue: true,
+
+            trimValues: true
+        });
+
+    const parsed =
+        parser.parse(xml);
+
+    const nfe =
+        localizarNFe(parsed);
 
     if (!nfe) {
-        throw new Error('XML não contém uma NF-e válida.');
+        throw new Error(
+            'XML não contém uma NF-e válida.'
+        );
     }
 
-    const infNFe = nfe.infNFe;
+    const infNFe =
+        nfe.infNFe;
 
     if (!infNFe) {
-        throw new Error('Elemento infNFe não encontrado no XML.');
+        throw new Error(
+            'Elemento infNFe não encontrado no XML.'
+        );
     }
 
-    const ide = infNFe.ide || {};
-    const emit = infNFe.emit || {};
-    const dest = infNFe.dest || {};
-    const transp = infNFe.transp || {};
-    const pag = infNFe.pag || {};
-    const cobr = infNFe.cobr || {};
-    const infAdic = infNFe.infAdic || {};
-    const infIntermed = infNFe.infIntermed || {};
+    const ide =
+        infNFe.ide || {};
 
-    const textoSeguro = valor => {
-        if (valor === undefined || valor === null) {
-            return '';
-        }
+    const emit =
+        infNFe.emit || {};
 
-        return String(valor);
-    };
+    const dest =
+        infNFe.dest || {};
 
-    const numeroSeguroLocal = valor => {
-        const n = Number(valor);
+    const transp =
+        infNFe.transp || {};
 
-        return Number.isFinite(n)
-            ? n
-            : 0;
-    };
+    const pag =
+        infNFe.pag || {};
 
-    const somenteNumeros = valor =>
-        textoSeguro(valor).replace(/\D/g, '');
+    const cobr =
+        infNFe.cobr || {};
 
-    const arraySeguro = valor => {
+    const infAdic =
+        infNFe.infAdic || {};
 
-        if (valor === undefined || valor === null) {
-            return [];
-        }
+    const infIntermed =
+        infNFe.infIntermed || {};
 
-        return Array.isArray(valor)
-            ? valor
-            : [valor];
-    };
-
-    const primeiroObjeto = valor => {
-
-        if (
-            valor &&
-            typeof valor === 'object' &&
-            !Array.isArray(valor)
-        ) {
-            return valor;
-        }
-
-        if (Array.isArray(valor)) {
-            return valor[0] || {};
-        }
-
-        return {};
-    };
-
-    const localizarSubgrupo = (objeto, nomes = []) => {
-
-        for (const nome of nomes) {
+    const textoSeguro =
+        valor => {
 
             if (
-                objeto &&
-                objeto[nome] &&
-                typeof objeto[nome] === 'object'
+                valor === undefined ||
+                valor === null
             ) {
-                return objeto[nome];
+                return '';
             }
-        }
 
-        return {};
-    };
+            return String(valor);
+        };
 
-    const extrairTributo = (imposto, grupo) => {
+    const numeroSeguroLocal =
+        valor => {
 
-        const bloco = imposto?.[grupo];
+            const n =
+                Number(valor);
 
-        if (!bloco) {
-            return {
-                grupo: null,
-                dados: {}
-            };
-        }
+            return Number.isFinite(n)
+                ? n
+                : 0;
+        };
 
-        const chaves =
-            Object.keys(bloco || {});
-
-        for (const chaveGrupo of chaves) {
+    const arraySeguro =
+        valor => {
 
             if (
-                bloco[chaveGrupo] &&
-                typeof bloco[chaveGrupo] === 'object'
+                valor === undefined ||
+                valor === null
             ) {
+                return [];
+            }
+
+            return Array.isArray(valor)
+                ? valor
+                : [valor];
+        };
+
+    const primeiroObjeto =
+        valor => {
+
+            if (
+                valor &&
+                typeof valor === 'object' &&
+                !Array.isArray(valor)
+            ) {
+                return valor;
+            }
+
+            if (
+                Array.isArray(valor)
+            ) {
+                return valor[0] || {};
+            }
+
+            return {};
+        };
+
+    // =================================================
+    // TRIBUTOS
+    // =================================================
+
+    const extrairTributo =
+        (imposto, grupo) => {
+
+            const bloco =
+                imposto?.[grupo];
+
+            if (!bloco) {
+
                 return {
-                    grupo: chaveGrupo,
-                    dados: bloco[chaveGrupo]
+                    grupo: null,
+                    dados: {}
                 };
             }
-        }
 
-        return {
-            grupo: grupo,
-            dados: primeiroObjeto(bloco)
-        };
-    };
+            const chaves =
+                Object.keys(
+                    bloco || {}
+                );
 
-    const extrairImpostos = imposto => {
+            for (
+                const chaveGrupo
+                of chaves
+            ) {
 
-        const icms = extrairTributo(
-            imposto,
-            'ICMS'
-        );
+                if (
+                    bloco[chaveGrupo] &&
+                    typeof bloco[chaveGrupo] === 'object'
+                ) {
 
-        const ipi = extrairTributo(
-            imposto,
-            'IPI'
-        );
-
-        const pis = extrairTributo(
-            imposto,
-            'PIS'
-        );
-
-        const cofins = extrairTributo(
-            imposto,
-            'COFINS'
-        );
-
-        const ii = extrairTributo(
-            imposto,
-            'II'
-        );
-
-        const issqn = extrairTributo(
-            imposto,
-            'ISSQN'
-        );
-
-        return {
-
-            icms,
-            ipi,
-            pis,
-            cofins,
-            ii,
-            issqn,
-
-            resumo: {
-
-                icmsCst:
-                    textoSeguro(
-                        icms.dados.CST ||
-                        icms.dados.CSOSN
-                    ),
-
-                icmsBase:
-                    numeroSeguroLocal(
-                        icms.dados.vBC
-                    ),
-
-                icmsAliquota:
-                    numeroSeguroLocal(
-                        icms.dados.pICMS
-                    ),
-
-                icmsValor:
-                    numeroSeguroLocal(
-                        icms.dados.vICMS
-                    ),
-
-                ipiCst:
-                    textoSeguro(
-                        ipi.dados.CST
-                    ),
-
-                ipiValor:
-                    numeroSeguroLocal(
-                        ipi.dados.vIPI
-                    ),
-
-                pisCst:
-                    textoSeguro(
-                        pis.dados.CST
-                    ),
-
-                pisValor:
-                    numeroSeguroLocal(
-                        pis.dados.vPIS
-                    ),
-
-                cofinsCst:
-                    textoSeguro(
-                        cofins.dados.CST
-                    ),
-
-                cofinsValor:
-                    numeroSeguroLocal(
-                        cofins.dados.vCOFINS
-                    )
+                    return {
+                        grupo: chaveGrupo,
+                        dados: bloco[chaveGrupo]
+                    };
+                }
             }
+
+            return {
+                grupo,
+                dados:
+                    primeiroObjeto(
+                        bloco
+                    )
+            };
         };
-    };
+
+    const extrairImpostos =
+        imposto => {
+
+            const icms =
+                extrairTributo(
+                    imposto,
+                    'ICMS'
+                );
+
+            const ipi =
+                extrairTributo(
+                    imposto,
+                    'IPI'
+                );
+
+            const pis =
+                extrairTributo(
+                    imposto,
+                    'PIS'
+                );
+
+            const cofins =
+                extrairTributo(
+                    imposto,
+                    'COFINS'
+                );
+
+            const ii =
+                extrairTributo(
+                    imposto,
+                    'II'
+                );
+
+            const issqn =
+                extrairTributo(
+                    imposto,
+                    'ISSQN'
+                );
+
+            return {
+
+                icms,
+                ipi,
+                pis,
+                cofins,
+                ii,
+                issqn,
+
+                resumo: {
+
+                    icmsCst:
+                        textoSeguro(
+                            icms.dados.CST ||
+                            icms.dados.CSOSN
+                        ),
+
+                    icmsBase:
+                        numeroSeguroLocal(
+                            icms.dados.vBC
+                        ),
+
+                    icmsAliquota:
+                        numeroSeguroLocal(
+                            icms.dados.pICMS
+                        ),
+
+                    icmsValor:
+                        numeroSeguroLocal(
+                            icms.dados.vICMS
+                        ),
+
+                    ipiCst:
+                        textoSeguro(
+                            ipi.dados.CST
+                        ),
+
+                    ipiValor:
+                        numeroSeguroLocal(
+                            ipi.dados.vIPI
+                        ),
+
+                    pisCst:
+                        textoSeguro(
+                            pis.dados.CST
+                        ),
+
+                    pisValor:
+                        numeroSeguroLocal(
+                            pis.dados.vPIS
+                        ),
+
+                    cofinsCst:
+                        textoSeguro(
+                            cofins.dados.CST
+                        ),
+
+                    cofinsValor:
+                        numeroSeguroLocal(
+                            cofins.dados.vCOFINS
+                        )
+                }
+            };
+        };
+
+    // =================================================
+    // CHAVE
+    // =================================================
 
     let chave =
-        textoSeguro(infNFe['@_Id']);
+        textoSeguro(
+            infNFe['@_Id']
+        );
 
-    if (chave.startsWith('NFe')) {
+    if (
+        chave.startsWith('NFe')
+    ) {
         chave =
             chave.substring(3);
     }
@@ -504,153 +686,170 @@ function extrairXmlNfe(xml) {
             );
 
         chave =
-            textoSeguro(prot.chNFe);
+            textoSeguro(
+                prot.chNFe
+            );
     }
+
+    // =================================================
+    // PRODUTOS
+    // =================================================
 
     const produtosRaw =
         infNFe.det || [];
 
     const detalhes =
-        arraySeguro(produtosRaw);
+        arraySeguro(
+            produtosRaw
+        );
 
     const produtos =
-        detalhes.map((det, index) => {
+        detalhes.map(
+            (det, index) => {
 
-            const prod =
-                det?.prod || {};
+                const prod =
+                    det?.prod || {};
 
-            const imposto =
-                det?.imposto || {};
+                const imposto =
+                    det?.imposto || {};
 
-            const tributos =
-                extrairImpostos(imposto);
+                const tributos =
+                    extrairImpostos(
+                        imposto
+                    );
 
-            const impostoDevol =
-                det?.impostoDevol ||
-                null;
+                const impostoDevol =
+                    det?.impostoDevol ||
+                    null;
 
-            const rastro =
-                arraySeguro(
-                    prod?.rastro
-                );
+                const rastro =
+                    arraySeguro(
+                        prod?.rastro
+                    );
 
-            return {
+                return {
 
-                item:
-                    numeroSeguro(
-                        det?.['@_nItem']
-                    ) || index + 1,
+                    item:
+                        numeroSeguro(
+                            det?.['@_nItem']
+                        ) ||
+                        index + 1,
 
-                codigo:
-                    textoSeguro(
-                        prod.cProd
-                    ),
+                    codigo:
+                        textoSeguro(
+                            prod.cProd
+                        ),
 
-                descricao:
-                    textoSeguro(
-                        prod.xProd
-                    ),
+                    descricao:
+                        textoSeguro(
+                            prod.xProd
+                        ),
 
-                ean:
-                    textoSeguro(
-                        prod.cEAN
-                    ),
+                    ean:
+                        textoSeguro(
+                            prod.cEAN
+                        ),
 
-                eanTrib:
-                    textoSeguro(
-                        prod.cEANTrib
-                    ),
+                    eanTrib:
+                        textoSeguro(
+                            prod.cEANTrib
+                        ),
 
-                ncm:
-                    textoSeguro(
-                        prod.NCM
-                    ),
+                    ncm:
+                        textoSeguro(
+                            prod.NCM
+                        ),
 
-                cest:
-                    textoSeguro(
-                        prod.CEST
-                    ),
+                    cest:
+                        textoSeguro(
+                            prod.CEST
+                        ),
 
-                cfop:
-                    textoSeguro(
-                        prod.CFOP
-                    ),
+                    cfop:
+                        textoSeguro(
+                            prod.CFOP
+                        ),
 
-                unidade:
-                    textoSeguro(
-                        prod.uCom
-                    ),
+                    unidade:
+                        textoSeguro(
+                            prod.uCom
+                        ),
 
-                unidadeTributada:
-                    textoSeguro(
-                        prod.uTrib
-                    ),
+                    unidadeTributada:
+                        textoSeguro(
+                            prod.uTrib
+                        ),
 
-                quantidade:
-                    numeroSeguro(
-                        prod.qCom
-                    ),
+                    quantidade:
+                        numeroSeguro(
+                            prod.qCom
+                        ),
 
-                quantidadeTributada:
-                    numeroSeguro(
-                        prod.qTrib
-                    ),
+                    quantidadeTributada:
+                        numeroSeguro(
+                            prod.qTrib
+                        ),
 
-                valorUnitario:
-                    numeroSeguro(
-                        prod.vUnCom
-                    ),
+                    valorUnitario:
+                        numeroSeguro(
+                            prod.vUnCom
+                        ),
 
-                valorUnitarioTributado:
-                    numeroSeguro(
-                        prod.vUnTrib
-                    ),
+                    valorUnitarioTributado:
+                        numeroSeguro(
+                            prod.vUnTrib
+                        ),
 
-                valorTotal:
-                    numeroSeguro(
-                        prod.vProd
-                    ),
+                    valorTotal:
+                        numeroSeguro(
+                            prod.vProd
+                        ),
 
-                frete:
-                    numeroSeguro(
-                        prod.vFrete
-                    ),
+                    frete:
+                        numeroSeguro(
+                            prod.vFrete
+                        ),
 
-                seguro:
-                    numeroSeguro(
-                        prod.vSeg
-                    ),
+                    seguro:
+                        numeroSeguro(
+                            prod.vSeg
+                        ),
 
-                desconto:
-                    numeroSeguro(
-                        prod.vDesc
-                    ),
+                    desconto:
+                        numeroSeguro(
+                            prod.vDesc
+                        ),
 
-                outrasDespesas:
-                    numeroSeguro(
-                        prod.vOutro
-                    ),
+                    outrasDespesas:
+                        numeroSeguro(
+                            prod.vOutro
+                        ),
 
-                pedidoCompra:
-                    textoSeguro(
-                        prod.xPed
-                    ),
+                    pedidoCompra:
+                        textoSeguro(
+                            prod.xPed
+                        ),
 
-                itemPedidoCompra:
-                    textoSeguro(
-                        prod.nItemPed
-                    ),
+                    itemPedidoCompra:
+                        textoSeguro(
+                            prod.nItemPed
+                        ),
 
-                impostos:
-                    tributos,
+                    impostos:
+                        tributos,
 
-                impostoDevolucao:
-                    impostoDevol,
+                    impostoDevolucao:
+                        impostoDevol,
 
-                rastreabilidade:
-                    rastro
-            };
-        });
+                    rastreabilidade:
+                        rastro
+                };
+            }
+        );
+
+    // =================================================
+    // TOTAIS
+    // =================================================
 
     const total =
         infNFe.total?.ICMSTot || {};
@@ -661,113 +860,135 @@ function extrairXmlNfe(xml) {
     const totalRet =
         infNFe.total?.retTrib || {};
 
+    // =================================================
+    // DOCUMENTOS REFERENCIADOS
+    // =================================================
+
     const documentoReferenciado =
         arraySeguro(
             ide.NFref
-        ).map(ref => ({
+        ).map(
+            ref => ({
 
-            chave:
-                textoSeguro(
-                    ref?.refNFe
-                ),
+                chave:
+                    textoSeguro(
+                        ref?.refNFe
+                    ),
 
-            nECF:
-                textoSeguro(
-                    ref?.refECF
-                ),
+                nECF:
+                    textoSeguro(
+                        ref?.refECF
+                    ),
 
-            modelo:
-                textoSeguro(
-                    ref?.refNF?.mod
-                ),
+                modelo:
+                    textoSeguro(
+                        ref?.refNF?.mod
+                    ),
 
-            numero:
-                textoSeguro(
-                    ref?.refNF?.nNF
-                ),
+                numero:
+                    textoSeguro(
+                        ref?.refNF?.nNF
+                    ),
 
-            serie:
-                textoSeguro(
-                    ref?.refNF?.serie
-                ),
+                serie:
+                    textoSeguro(
+                        ref?.refNF?.serie
+                    ),
 
-            aAMM:
-                textoSeguro(
-                    ref?.refNF?.AAMM
-                ),
+                aAMM:
+                    textoSeguro(
+                        ref?.refNF?.AAMM
+                    ),
 
-            cUF:
-                textoSeguro(
-                    ref?.refNF?.cUF
-                )
-        }));
+                cUF:
+                    textoSeguro(
+                        ref?.refNF?.cUF
+                    )
+            })
+        );
+
+    // =================================================
+    // PAGAMENTOS
+    // =================================================
 
     const pagamentos =
         arraySeguro(
             pag.detPag
-        ).map(item => ({
+        ).map(
+            item => ({
 
-            indicadorPagamento:
-                textoSeguro(
-                    item?.indPag
-                ),
+                indicadorPagamento:
+                    textoSeguro(
+                        item?.indPag
+                    ),
 
-            forma:
-                textoSeguro(
-                    item?.tPag
-                ),
+                forma:
+                    textoSeguro(
+                        item?.tPag
+                    ),
 
-            descricaoForma:
-                textoSeguro(
-                    item?.xPag
-                ),
+                descricaoForma:
+                    textoSeguro(
+                        item?.xPag
+                    ),
 
-            valor:
-                numeroSeguro(
-                    item?.vPag
-                ),
+                valor:
+                    numeroSeguro(
+                        item?.vPag
+                    ),
 
-            troco:
-                numeroSeguro(
-                    pag.vTroco
-                ),
+                troco:
+                    numeroSeguro(
+                        pag.vTroco
+                    ),
 
-            bandeira:
-                textoSeguro(
-                    item?.card?.tBand
-                ),
+                bandeira:
+                    textoSeguro(
+                        item?.card?.tBand
+                    ),
 
-            cnpjCredenciadora:
-                textoSeguro(
-                    item?.card?.CNPJ
-                ),
+                cnpjCredenciadora:
+                    textoSeguro(
+                        item?.card?.CNPJ
+                    ),
 
-            autorizacao:
-                textoSeguro(
-                    item?.card?.cAut
-                )
-        }));
+                autorizacao:
+                    textoSeguro(
+                        item?.card?.cAut
+                    )
+            })
+        );
+
+    // =================================================
+    // DUPLICATAS
+    // =================================================
 
     const duplicatas =
         arraySeguro(
             cobr.dup
-        ).map(item => ({
+        ).map(
+            item => ({
 
-            numero:
-                textoSeguro(
-                    item?.nDup
-                ),
+                numero:
+                    textoSeguro(
+                        item?.nDup
+                    ),
 
-            vencimento:
-                textoSeguro(
-                    item?.dVenc
-                ),
+                vencimento:
+                    textoSeguro(
+                        item?.dVenc
+                    ),
 
-            valor:
-                numeroSeguro(
-                    item?.vDup
-                )
-        }));
+                valor:
+                    numeroSeguro(
+                        item?.vDup
+                    )
+            })
+        );
+
+    // =================================================
+    // TRANSPORTE
+    // =================================================
 
     const transportadora =
         transp.transporta || {};
@@ -775,48 +996,58 @@ function extrairXmlNfe(xml) {
     const volumes =
         arraySeguro(
             transp.vol
-        ).map(vol => ({
+        ).map(
+            vol => ({
 
-            quantidade:
-                numeroSeguro(
-                    vol?.qVol
-                ),
+                quantidade:
+                    numeroSeguro(
+                        vol?.qVol
+                    ),
 
-            especie:
-                textoSeguro(
-                    vol?.esp
-                ),
+                especie:
+                    textoSeguro(
+                        vol?.esp
+                    ),
 
-            marca:
-                textoSeguro(
-                    vol?.marca
-                ),
+                marca:
+                    textoSeguro(
+                        vol?.marca
+                    ),
 
-            numeracao:
-                textoSeguro(
-                    vol?.nVol
-                ),
+                numeracao:
+                    textoSeguro(
+                        vol?.nVol
+                    ),
 
-            pesoLiquido:
-                numeroSeguro(
-                    vol?.pesoL
-                ),
+                pesoLiquido:
+                    numeroSeguro(
+                        vol?.pesoL
+                    ),
 
-            pesoBruto:
-                numeroSeguro(
-                    vol?.pesoB
-                ),
+                pesoBruto:
+                    numeroSeguro(
+                        vol?.pesoB
+                    ),
 
-            lacres:
-                arraySeguro(
-                    vol?.lacres
-                )
-        }));
+                lacres:
+                    arraySeguro(
+                        vol?.lacres
+                    )
+            })
+        );
+
+    // =================================================
+    // PROTOCOLO SEFAZ
+    // =================================================
 
     const protNFe =
         primeiroObjeto(
             nfe.protNFe?.infProt
         );
+
+    // =================================================
+    // RETORNO
+    // =================================================
 
     return {
 
@@ -909,6 +1140,10 @@ function extrairXmlNfe(xml) {
                 ide.dhSaiEnt ||
                 ''
             ),
+
+        // =================================================
+        // FORNECEDOR
+        // =================================================
 
         fornecedor: {
 
@@ -1021,6 +1256,10 @@ function extrairXmlNfe(xml) {
             }
         },
 
+        // =================================================
+        // DESTINATÁRIO
+        // =================================================
+
         destinatario: {
 
             cnpj:
@@ -1122,6 +1361,10 @@ function extrairXmlNfe(xml) {
         documentoReferenciado,
 
         produtos,
+
+        // =================================================
+        // TOTAIS
+        // =================================================
 
         totais: {
 
@@ -1237,7 +1480,7 @@ function extrairXmlNfe(xml) {
 
             retIRRF:
                 numeroSeguro(
-                    totalRet.vIRRF
+                    totalRet.vRetIRRF
                 ),
 
             nota:
@@ -1245,6 +1488,10 @@ function extrairXmlNfe(xml) {
                     total.vNF
                 )
         },
+
+        // =================================================
+        // TRANSPORTE
+        // =================================================
 
         transporte: {
 
@@ -1312,6 +1559,10 @@ function extrairXmlNfe(xml) {
             volumes
         },
 
+        // =================================================
+        // ENTREGA
+        // =================================================
+
         entrega: {
 
             logradouro:
@@ -1365,6 +1616,10 @@ function extrairXmlNfe(xml) {
                 )
         },
 
+        // =================================================
+        // RETIRADA
+        // =================================================
+
         retirada: {
 
             logradouro:
@@ -1398,6 +1653,10 @@ function extrairXmlNfe(xml) {
                 )
         },
 
+        // =================================================
+        // PAGAMENTO
+        // =================================================
+
         pagamento: {
 
             indicador:
@@ -1414,6 +1673,10 @@ function extrairXmlNfe(xml) {
                     pag.vTroco
                 )
         },
+
+        // =================================================
+        // INTERMEDIADOR
+        // =================================================
 
         intermediador: {
 
@@ -1434,6 +1697,10 @@ function extrairXmlNfe(xml) {
                 )
         },
 
+        // =================================================
+        // INFORMAÇÕES ADICIONAIS
+        // =================================================
+
         informacoesAdicionais: {
 
             complementares:
@@ -1447,56 +1714,63 @@ function extrairXmlNfe(xml) {
                 ),
 
             observacoes:
-
                 arraySeguro(
                     infAdic.obsCont
-                ).map(item => ({
+                ).map(
+                    item => ({
 
-                    campo:
-                        textoSeguro(
-                            item?.xCampo
-                        ),
+                        campo:
+                            textoSeguro(
+                                item?.xCampo
+                            ),
 
-                    texto:
-                        textoSeguro(
-                            item?.xTexto
-                        )
-                })),
+                        texto:
+                            textoSeguro(
+                                item?.xTexto
+                            )
+                    })
+                ),
 
             observacoesFisco:
-
                 arraySeguro(
                     infAdic.obsFisco
-                ).map(item => ({
+                ).map(
+                    item => ({
 
-                    campo:
-                        textoSeguro(
-                            item?.xCampo
-                        ),
+                        campo:
+                            textoSeguro(
+                                item?.xCampo
+                            ),
 
-                    texto:
-                        textoSeguro(
-                            item?.xTexto
-                        )
-                })),
+                        texto:
+                            textoSeguro(
+                                item?.xTexto
+                            )
+                    })
+                ),
 
             processosReferenciados:
-
                 arraySeguro(
                     infAdic.procRef
-                ).map(item => ({
+                ).map(
+                    item => ({
 
-                    processo:
-                        textoSeguro(
-                            item?.nProc
-                        ),
+                        processo:
+                            textoSeguro(
+                                item?.nProc
+                            ),
 
-                    origem:
-                        textoSeguro(
-                            item?.indProc
-                        )
-                }))
+                        origem:
+                            textoSeguro(
+                                item?.indProc
+                            )
+                    })
+                )
         },
+
+        // =================================================
+        // COMPRA
+        // =================================================
 
         compra: {
 
@@ -1516,1193 +1790,1850 @@ function extrairXmlNfe(xml) {
                 )
         },
 
+        // =================================================
+        // EXPORTAÇÃO
+        // =================================================
+
         exportacao: {
 
             registro:
                 arraySeguro(
                     infNFe.exporta
-                ).map(item => ({
+                ).map(
+                    item => ({
 
-                    drawback:
-                        textoSeguro(
-                            item?.nDraw
-                        ),
+                        drawback:
+                            textoSeguro(
+                                item?.nDraw
+                            ),
 
-                    exportacao:
-                        textoSeguro(
-                            item?.exportInd?.nRE
-                        )
-                }))
+                        exportacao:
+                            textoSeguro(
+                                item?.exportInd?.nRE
+                            )
+                    })
+                )
         },
 
-        xmlOriginal:
-            xml
+        xmlOriginal: xml
     };
 }
 
-
 // =====================================================
 // LISTAR ENTRADAS
+// GET /
 // =====================================================
 
 router.get('/', (req, res) => {
 
     try {
 
-        const entradas = getEntradas();
+        const entradas =
+            getEntradas();
 
         res.json({
+
             success: true,
+
             entradas,
-            count: entradas.length
-        });
 
-    } catch (error) {
-
-        console.error(error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-
-// =====================================================
-// IMPORTAR XML
-// =====================================================
-
-router.post('/importar-xml', upload.single('xml'), async (req, res) => {
-
-    let arquivo = null;
-
-    try {
-
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                error: 'Arquivo XML não enviado.'
-            });
-        }
-
-        arquivo = req.file.path;
-
-        const xml = fs.readFileSync(arquivo, 'utf8');
-
-        const nfe = extrairXmlNfe(xml);
-
-        validarEntradaNFe(
-            nfe,
-            req.body.empresaId
-        );
-
-        if (!nfe.chave) {
-            throw new Error('Não foi possível identificar a chave de acesso da NF-e.');
-        }
-
-        const entradas = getEntradas();
-
-        const duplicada = entradas.find(
-            item => item.chave === nfe.chave
-        );
-
-        if (duplicada) {
-
-            return res.status(409).json({
-                success: false,
-                error: 'Esta NF-e já foi importada.',
-                entrada: duplicada
-            });
-        }
-
-        const entrada = {
-
-            id: Date.now(),
-
-            tipo: 'XML',
-
-            status: 'CONFERENCIA',
-
-            empresaId:
-                req.body.empresaId || null,
-
-            // =========================================
-            // IDENTIFICAÇÃO DA NF-e
-            // =========================================
-
-            chave:
-                nfe.chave,
-
-            numero:
-                nfe.numero,
-
-            serie:
-                nfe.serie,
-
-            modelo:
-                nfe.modelo,
-
-            naturezaOperacao:
-                nfe.naturezaOperacao,
-
-            tipoOperacao:
-                nfe.tipoOperacao,
-
-            finalidade:
-                nfe.finalidade,
-
-            indicadorPresenca:
-                nfe.indicadorPresenca,
-
-            indicadorIntermediador:
-                nfe.indicadorIntermediador,
-
-            indicadorConsumidorFinal:
-                nfe.indicadorConsumidorFinal,
-
-            tipoEmissao:
-                nfe.tipoEmissao,
-
-            codigoMunicipio:
-                nfe.codigoMunicipio,
-
-            // =========================================
-            // DATAS
-            // =========================================
-
-            dataEmissao:
-                nfe.dataEmissao,
-
-            dataEntrada:
-                nfe.dataEntrada,
-
-            // =========================================
-            // STATUS SEFAZ
-            // =========================================
-
-            ambiente:
-                nfe.ambiente,
-
-            statusSefaz:
-                nfe.statusSefaz,
-
-            motivoSefaz:
-                nfe.motivoSefaz,
-
-            protocoloSefaz:
-                nfe.protocoloSefaz,
-
-            // =========================================
-            // FORNECEDOR
-            // =========================================
-
-            fornecedor:
-                nfe.fornecedor,
-
-            // =========================================
-            // DESTINATÁRIO
-            // =========================================
-
-            destinatario:
-                nfe.destinatario,
-
-            // =========================================
-            // DOCUMENTOS REFERENCIADOS
-            // =========================================
-
-            documentoReferenciado:
-                nfe.documentoReferenciado,
-
-            // =========================================
-            // ITENS
-            // =========================================
-
-            produtos:
-                nfe.produtos,
-
-            // =========================================
-            // TOTAIS E IMPOSTOS
-            // =========================================
-
-            totais:
-                nfe.totais,
-
-            // =========================================
-            // TRANSPORTE / VOLUMES
-            // =========================================
-
-            transporte:
-                nfe.transporte,
-
-            // =========================================
-            // ENDEREÇO DE ENTREGA
-            // =========================================
-
-            entrega:
-                nfe.entrega,
-
-            // =========================================
-            // RETIRADA
-            // =========================================
-
-            retirada:
-                nfe.retirada,
-
-            // =========================================
-            // PAGAMENTO
-            // =========================================
-
-            pagamento:
-                nfe.pagamento,
-
-            // =========================================
-            // INTERMEDIADOR
-            // =========================================
-
-            intermediador:
-                nfe.intermediador,
-
-            // =========================================
-            // INFORMAÇÕES ADICIONAIS
-            // =========================================
-
-            informacoesAdicionais:
-                nfe.informacoesAdicionais,
-
-            // =========================================
-            // COMPRA
-            // =========================================
-
-            compra:
-                nfe.compra,
-
-            // =========================================
-            // EXPORTAÇÃO
-            // =========================================
-
-            exportacao:
-                nfe.exportacao,
-
-            // =========================================
-            // XML ORIGINAL
-            // =========================================
-
-            xmlOriginal:
-                xml,
-
-            arquivoOriginal:
-                req.file.originalname,
-
-            createdAt:
-                new Date().toISOString(),
-
-            updatedAt:
-                new Date().toISOString()
-        };
-
-        entradas.push(entrada);
-
-        saveEntradas(entradas);
-
-        res.status(201).json({
-            success: true,
-            message: 'XML importado com sucesso. Confira os produtos antes de dar entrada.',
-            entrada
-        });
-
-    } catch (error) {
-
-        console.error('Erro ao importar XML:', error);
-
-        res.status(400).json({
-            success: false,
-            error: error.message
-        });
-
-    } finally {
-
-        if (arquivo) {
-            try {
-                fs.removeSync(arquivo);
-            } catch {}
-        }
-    }
-});
-
-
-// =====================================================
-// ENTRADA MANUAL
-// =====================================================
-
-router.post('/manual', (req, res) => {
-
-    try {
-
-        const {
-            empresaId,
-            fornecedor,
-            numero: numeroNfe,
-            serie,
-            chave,
-            dataEmissao,
-            naturezaOperacao,
-            cfop,
-            frete,
-            desconto,
-            valorTotal,
-            produtos,
-            observacao
-        } = req.body;
-
-        if (!empresaId) {
-            return res.status(400).json({
-                success: false,
-                error: 'Empresa não informada.'
-            });
-        }
-
-        if (!fornecedor) {
-            return res.status(400).json({
-                success: false,
-                error: 'Fornecedor não informado.'
-            });
-        }
-
-        if (!numeroNfe) {
-            return res.status(400).json({
-                success: false,
-                error: 'Número da NF-e não informado.'
-            });
-        }
-
-        if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'Informe pelo menos um produto.'
-            });
-        }
-
-        const entradas = getEntradas();
-
-        if (chave) {
-
-            const duplicada = entradas.find(
-                item => item.chave === chave
-            );
-
-            if (duplicada) {
-                return res.status(409).json({
-                    success: false,
-                    error: 'Esta chave de NF-e já está cadastrada.',
-                    entrada: duplicada
-                });
-            }
-        }
-
-        const produtosNormalizados = produtos.map((produto, index) => ({
-
-            item: index + 1,
-
-            codigo: texto(produto.codigo),
-
-            descricao: texto(produto.descricao),
-
-            ncm: texto(produto.ncm),
-
-            cfop: texto(produto.cfop),
-
-            unidade: texto(produto.unidade || 'UN'),
-
-            quantidade: numeroSeguro(produto.quantidade),
-
-            valorUnitario: numeroSeguro(produto.valorUnitario),
-
-            valorTotal:
-                numeroSeguro(produto.valorTotal) ||
-                numeroSeguro(produto.quantidade) * numeroSeguro(produto.valorUnitario),
-
-            cstCsosn: texto(produto.cstCsosn),
-
-            ipi: numeroSeguro(produto.ipi),
-
-            pis: numeroSeguro(produto.pis),
-
-            cofins: numeroSeguro(produto.cofins)
-        }));
-
-        const totalProdutos = produtosNormalizados.reduce(
-            (soma, produto) => soma + produto.valorTotal,
-            0
-        );
-
-        const valorFrete = Math.max(0, numeroSeguro(frete));
-
-        const valorDesconto = Math.max(0, numeroSeguro(desconto));
-
-        const totalCalculado = Math.max(
-            0,
-            totalProdutos + valorFrete - valorDesconto
-        );
-
-        const totalInformado = numeroSeguro(valorTotal);
-
-        const totalNota = totalInformado > 0
-            ? totalInformado
-            : totalCalculado;
-
-        const entrada = {
-
-            id: Date.now(),
-
-            tipo: 'MANUAL',
-
-            status: 'CONFERENCIA',
-
-            empresaId,
-
-            chave: chave || '',
-
-            numero: texto(numeroNfe),
-
-            serie: texto(serie || '1'),
-
-            naturezaOperacao: texto(
-                naturezaOperacao || 'COMPRA'
-            ),
-
-            cfop: texto(cfop),
-
-            dataEmissao:
-                dataEmissao || new Date().toISOString(),
-
-            fornecedor,
-
-            produtos: produtosNormalizados,
-
-            totais: {
-                produtos: totalProdutos,
-                frete: valorFrete,
-                desconto: valorDesconto,
-                nota: totalNota
-            },
-
-            valorTotalInformado: totalInformado || null,
-
-            observacao: texto(observacao),
-
-            createdAt: new Date().toISOString(),
-
-            updatedAt: new Date().toISOString()
-        };
-
-        entradas.push(entrada);
-
-        saveEntradas(entradas);
-
-        res.status(201).json({
-            success: true,
-            message: 'Entrada manual cadastrada para conferência.',
-            entrada
-        });
-
-    } catch (error) {
-
-        console.error('Erro na entrada manual:', error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-
-// =====================================================
-// CONSULTAR UMA ENTRADA
-// =====================================================
-
-router.post('/sincronizar-sefaz', async (req, res) => {
-
-    try {
-
-        const { empresaId, nsuEspecifico, chNFe } = req.body || {};
-
-        if (!empresaId) {
-            return res.status(400).json({
-                success: false,
-                error: 'Empresa não informada.'
-            });
-        }
-
-        const config = obterConfigEmpresa(empresaId);
-
-        if (!config.cnpj || config.cnpj.length !== 14) {
-            return res.status(400).json({
-                success: false,
-                error: `Empresa sem CNPJ válido configurado (${config.cnpj || 'vazio'}).`
-            });
-        }
-
-        const resultado = await NfeDistribuicaoService.consultar({
-            empresaId,
-            cnpj: config.cnpj,
-            uf: config.uf,
-            ambiente: config.ambiente,
-            nsuEspecifico: nsuEspecifico || null,
-            chNFe: chNFe || null
-        });
-
-        // =============================================
-        // TRATAMENTO ESPECÍFICO DA SEFAZ
-        // 656 = CONSUMO INDEVIDO
-        // Não avançar o NSU e não tratar como "nenhum documento".
-        // =============================================
-
-        if (String(resultado.cStat) === '656') {
-
-            return res.status(429).json({
-                success: false,
-                comunicacao: true,
-                cStat: resultado.cStat,
-                xMotivo: resultado.xMotivo,
-                ultNSU: resultado.ultNSU || lerNsu(empresaId).ultimoNsu,
-                maxNSU: resultado.maxNSU || '000000000000000',
-                quantidadeDocumentos: 0,
-                novasEntradas: 0,
-                bloqueado: true,
-                aguardarMinutos: 60,
-                message:
-                    'A SEFAZ bloqueou temporariamente a consulta por consumo indevido. Aguarde 1 hora antes de consultar novamente.'
-            });
-
-        }
-
-        // ---------------------------------------------
-        // REGISTRAR DOCUMENTOS NF-e ENCONTRADOS COMO ENTRADAS
-        // (apenas procNFe / NFe completas; resNFe vira pendência)
-        // ---------------------------------------------
-        let novasEntradas = 0;
-
-        if (resultado.success && resultado.documentos?.length) {
-
-            const entradas = getEntradas();
-
-            for (const doc of resultado.documentos) {
-
-                // Apenas documentos que contenham a NF-e completa
-                if (doc.tipo !== 'PROC_NFE' && doc.tipo !== 'NFE') {
-                    continue;
-                }
-
-                try {
-                    const nfe = extrairXmlNfe(doc.xml);
-
-                    if (!nfe.chave) continue;
-
-                    // Duplicidade por empresa + chave
-                    const jaExiste = entradas.find(
-                        e =>
-                            String(e.empresaId) === String(empresaId) &&
-                            e.chave === nfe.chave
-                    );
-
-                    if (jaExiste) continue;
-
-                    // Valida destinatário = empresa
-                    try {
-                        validarEntradaNFe(nfe, empresaId);
-                    } catch (erroValidacao) {
-                        console.warn(
-                            `[SINCRONIZAR] NF-e ${nfe.chave} ignorada: ${erroValidacao.message}`
-                        );
-                        continue;
-                    }
-
-                    entradas.push({
-                        id: Date.now() + novasEntradas,
-                        tipo: 'SEFAZ',
-                        status: 'CONFERENCIA',
-                        empresaId: String(empresaId),
-                        chave: nfe.chave,
-                        numero: nfe.numero,
-                        serie: nfe.serie,
-                        naturezaOperacao: nfe.naturezaOperacao,
-                        dataEmissao: nfe.dataEmissao,
-                        fornecedor: nfe.fornecedor,
-                        destinatario: nfe.destinatario,
-                        produtos: nfe.produtos,
-                        totais: nfe.totais,
-                        nsu: doc.nsu,
-                        xmlPath: doc.xmlPath || null,
-                        xmlOriginal: doc.xml,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    });
-
-                    novasEntradas++;
-
-                    // Vincula/cria fornecedor pelo CNPJ do emitente
-                    vincularFornecedor({
-                        ...nfe.fornecedor,
-                        origem: 'NFE_SEFAZ'
-                    });
-
-                } catch (erroDoc) {
-                    console.error('[SINCRONIZAR] Erro ao processar documento:', erroDoc.message);
-                }
-            }
-
-            if (novasEntradas > 0) {
-                saveEntradas(entradas);
-            }
-        }
-
-        res.json({
-            success: resultado.success,
-            cStat: resultado.cStat,
-            xMotivo: resultado.xMotivo,
-            ultNSU: resultado.ultNSU || lerNsu(empresaId).ultimoNsu,
-            maxNSU: resultado.maxNSU,
-            ultNSUAtualizado: resultado.ultNSUAtualizado || null,
-            quantidadeDocumentos: resultado.documentos?.length || 0,
-            novasEntradas,
-            tipoErro: resultado.tipoErro || null,
-            tempoMs: resultado.tempoMs,
-            httpStatus: resultado.httpStatus,
-            message: resultado.success
-                ? (resultado.temDocumentos
-                    ? `${resultado.documentos.length} documento(s) recebido(s); ${novasEntradas} nova(s) NF-e importada(s).`
-                    : 'Nenhum documento novo destinado à empresa.')
-                : (resultado.xMotivo || 'Consulta ao SEFAZ sem sucesso fiscal.')
-        });
-
-    } catch (error) {
-
-        console.error('[SINCRONIZAR] Erro:', error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// NOVO: STATUS DA DISTRIBUIÇÃO (NSU atual da empresa)
-// GET /api/nfe-entradas/distribuicao?empresaId=1
-// =====================================================
-
-router.get('/distribuicao', (req, res) => {
-
-    try {
-
-        const { empresaId } = req.query;
-
-        if (!empresaId) {
-            return res.status(400).json({
-                success: false,
-                error: 'empresaId é obrigatório.'
-            });
-        }
-
-        const config = obterConfigEmpresa(empresaId);
-        const nsu = lerNsu(empresaId);
-
-        res.json({
-            success: true,
-            empresaId: String(empresaId),
-            cnpj: config.cnpj,
-            uf: config.uf,
-            ambiente: config.ambiente,
-            ultimoNsu: nsu.ultimoNsu,
-            atualizadoEm: nsu.atualizadoEm
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// NOVO: NF-e PENDENTES DE CONFERÊNCIA
-// GET /api/nfe-entradas/pendentes?empresaId=1
-// =====================================================
-
-router.get('/pendentes', (req, res) => {
-
-    try {
-
-        const { empresaId } = req.query;
-
-        let entradas = getEntradas();
-
-        if (empresaId) {
-            entradas = entradas.filter(
-                e => String(e.empresaId) === String(empresaId)
-            );
-        }
-
-        const pendentes = entradas.filter(
-            e => e.status === 'CONFERENCIA'
-        );
-
-        res.json({
-            success: true,
-            pendentes,
-            count: pendentes.length
-        });
-
-router.get('/:id', (req, res) => {
-
-    try {
-
-        const id = Number(req.params.id);
-
-        const entrada = getEntradas().find(
-            item => item.id === id
-        );
-
-        if (!entrada) {
-
-            return res.status(404).json({
-                success: false,
-                error: 'Entrada não encontrada.'
-            });
-        }
-
-        res.json({
-            success: true,
-            entrada
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// NOVO: SINCRONIZAR COM SEFAZ (NFeDistribuicaoDFe)
-// POST /api/nfe-entradas/sincronizar-sefaz
-// Body: { empresaId, nsuEspecifico?, chNFe? }
-// =====================================================
-
-
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// NOVO: MANIFESTAÇÃO DO DESTINATÁRIO
-// POST /api/nfe-entradas/:id/manifestar
-// Body: { tipoEvento, justificativa? }
-// =====================================================
-
-router.post('/:id/manifestar', async (req, res) => {
-
-    try {
-
-        const id = Number(req.params.id);
-        const { tipoEvento, justificativa } = req.body || {};
-
-        const entrada = getEntradas().find(e => Number(e.id) === id);
-
-        if (!entrada) {
-            return res.status(404).json({
-                success: false,
-                error: 'Entrada não encontrada.'
-            });
-        }
-
-        if (!entrada.chave) {
-            return res.status(400).json({
-                success: false,
-                error: 'Esta entrada não possui chave de acesso (entrada manual sem chave).'
-            });
-        }
-
-        if (!DESCRICOES_EVENTO[tipoEvento]) {
-            return res.status(400).json({
-                success: false,
-                error:
-                    `tipoEvento inválido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} ` +
-                    `(210200=Confirmação, 210210=Ciência, 210220=Desconhecimento, 210240=Não Realizada).`
-            });
-        }
-
-        const config = obterConfigEmpresa(entrada.empresaId);
-
-        const resultado = await NfeManifestacaoService.manifestar({
-            empresaId: entrada.empresaId,
-            cnpj: config.cnpj,
-            uf: config.uf,
-
-            // IMPORTANTE:
-            // A manifestação deve usar o mesmo ambiente da NF-e importada.
-            // Não usar o .env como prioridade neste ponto.
-            ambiente: normalizarAmbiente(
-                entrada.ambiente ||
-                config.ambiente
-            ),
-
-            chNFe: entrada.chave,
-            tipoEvento,
-            justificativa
-        });
-
-        // Registra a manifestação na entrada
-        const entradas = getEntradas();
-        const index = entradas.findIndex(e => Number(e.id) === id);
-        if (index >= 0) {
-            entradas[index].manifestacao = {
-                tipoEvento,
-                descricao: DESCRICOES_EVENTO[tipoEvento],
-                cStat: resultado.cStat,
-                xMotivo: resultado.xMotivo,
-                protocolo: resultado.protocolo,
-                success: resultado.success,
-                dataHora: new Date().toISOString()
-            };
-            entradas[index].updatedAt = new Date().toISOString();
-            saveEntradas(entradas);
-        }
-
-        res.status(resultado.success ? 200 : 502).json({
-            success: resultado.success,
-            cStat: resultado.cStat,
-            xMotivo: resultado.xMotivo,
-            protocolo: resultado.protocolo,
-            message: resultado.success
-                ? `Manifestação enviada: ${DESCRICOES_EVENTO[tipoEvento]}.`
-                : (resultado.xMotivo || 'SEFAZ não vinculou o evento.')
-        });
-
-    } catch (error) {
-
-        console.error('[MANIFESTAR] Erro:', error);
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// NOVO: DOWNLOAD DO XML ARMAZENADO
-// GET /api/nfe-entradas/:id/xml
-// =====================================================
-
-router.get('/:id/xml', (req, res) => {
-
-    try {
-
-        const id = Number(req.params.id);
-
-        const entrada = getEntradas().find(e => Number(e.id) === id);
-
-        if (!entrada) {
-            return res.status(404).json({
-                success: false,
-                error: 'Entrada não encontrada.'
-            });
-        }
-
-        // Preferência: arquivo no storage; fallback: XML embutido
-        if (entrada.xmlPath && fs.existsSync(entrada.xmlPath)) {
-            res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-            res.setHeader(
-                'Content-Disposition',
-                `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
-            );
-            return res.send(fs.readFileSync(entrada.xmlPath, 'utf8'));
-        }
-
-        if (entrada.xmlOriginal) {
-            res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-            res.setHeader(
-                'Content-Disposition',
-                `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
-            );
-            return res.send(entrada.xmlOriginal);
-        }
-
-        res.status(404).json({
-            success: false,
-            error: 'XML não disponível para esta entrada.'
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
-
-// =====================================================
-// CONFIRMAR ENTRADA (TRANSAÇÃO COM ESTOQUE + ROLLBACK)
-// =====================================================
-
-router.post('/:id/confirmar', async (req, res) => {
-
-    try {
-
-        const id = Number(req.params.id);
-
-        const entradas = getEntradas();
-
-        const index = entradas.findIndex(
-            item => Number(item.id) === id
-        );
-
-        if (index === -1) {
-
-            return res.status(404).json({
-                success: false,
-                error: 'Entrada não encontrada.'
-            });
-
-        }
-
-        const entrada = entradas[index];
-
-        if (entrada.status === 'CONFIRMADA') {
-
-            return res.status(400).json({
-                success: false,
-                error: 'Esta NF-e já possui entrada de estoque.'
-            });
-
-        }
-
-        const itens = Array.isArray(req.body?.itens)
-            ? req.body.itens
-            : [];
-
-        if (entrada.produtos?.length && itens.length !== entrada.produtos.length) {
-
-            return res.status(400).json({
-                success: false,
-                error:
-                    'A quantidade de itens enviados não corresponde à quantidade de itens da NF-e.'
-            });
-
-        }
-
-        // ---------------------------------------------
-        // ENTRADA TRANSACIONAL (estoque + movimentações)
-        // ---------------------------------------------
-        const { entrada: entradaAtualizada, resumo } =
-            await confirmarEntradaTransacional({
-                entradaId: id,
-                itens,
-                usuario: req.body?.usuario || null
-            });
-
-        // ---------------------------------------------
-        // SALVAR ENTRADA NO ERP
-        // ---------------------------------------------
-        entradas[index] = entradaAtualizada;
-        saveEntradas(entradas);
-
-        // ---------------------------------------------
-        // CONFIRMAÇÃO DA OPERAÇÃO NA SEFAZ
-        // 210200 = Confirmação da Operação
-        // ---------------------------------------------
-        let sefaz = {
-            enviada: false,
-            success: false,
-            cStat: null,
-            xMotivo: null,
-            protocolo: null,
-            tipoEvento: null
-        };
-
-        if (entradaAtualizada.chave) {
-
-            sefaz.tipoEvento = '210200';
-
-            try {
-
-                const config =
-                    obterConfigEmpresa(
-                        entradaAtualizada.empresaId
-                    );
-
-                const resultado =
-                    await NfeManifestacaoService.manifestar({
-                        empresaId:
-                            entradaAtualizada.empresaId,
-
-                        cnpj:
-                            config.cnpj,
-
-                        uf:
-                            config.uf,
-
-                        ambiente:
-                            normalizarAmbiente(
-                                entradaAtualizada.ambiente ||
-                                config.ambiente
-                            ),
-
-                        chNFe:
-                            entradaAtualizada.chave,
-
-                        tipoEvento:
-                            '210200'
-                    });
-
-                sefaz = {
-                    enviada: true,
-
-                    success:
-                        Boolean(resultado.success),
-
-                    cStat:
-                        resultado.cStat || null,
-
-                    xMotivo:
-                        resultado.xMotivo || null,
-
-                    protocolo:
-                        resultado.protocolo || null,
-
-                    tipoEvento:
-                        '210200'
-                };
-
-                entradaAtualizada.manifestacao = {
-                    tipoEvento: '210200',
-                    descricao:
-                        'Confirmação da Operação',
-
-                    success:
-                        Boolean(resultado.success),
-
-                    cStat:
-                        resultado.cStat || null,
-
-                    xMotivo:
-                        resultado.xMotivo || null,
-
-                    protocolo:
-                        resultado.protocolo || null,
-
-                    dataHora:
-                        new Date().toISOString()
-                };
-
-                entradas[index] =
-                    entradaAtualizada;
-
-                saveEntradas(entradas);
-
-            } catch (error) {
-
-                console.error(
-                    '[ENTRADA] Erro ao enviar confirmação para SEFAZ:',
-                    error
-                );
-
-                sefaz = {
-                    enviada: true,
-                    success: false,
-                    cStat: null,
-                    xMotivo: error.message,
-                    protocolo: null,
-                    tipoEvento: '210200'
-                };
-
-                entradaAtualizada.manifestacao = {
-                    tipoEvento: '210200',
-                    descricao:
-                        'Confirmação da Operação',
-
-                    success: false,
-
-                    cStat: null,
-
-                    xMotivo:
-                        error.message,
-
-                    protocolo: null,
-
-                    dataHora:
-                        new Date().toISOString()
-                };
-
-                entradas[index] =
-                    entradaAtualizada;
-
-                saveEntradas(entradas);
-            }
-
-        } else {
-
-            sefaz = {
-                enviada: false,
-                success: false,
-                cStat: null,
-                xMotivo:
-                    'Entrada sem chave de acesso. A confirmação não foi enviada à SEFAZ.',
-                protocolo: null,
-                tipoEvento: null
-            };
-
-        }
-
-        const mensagem =
-            sefaz.success
-                ? 'Entrada realizada com sucesso. Estoque atualizado. Confirmação da Operação aceita pela SEFAZ.'
-                : (
-                    sefaz.enviada
-                        ? 'Entrada realizada com sucesso. Estoque atualizado, mas a Confirmação da Operação não foi aceita pela SEFAZ.'
-                        : 'Entrada realizada com sucesso. Estoque atualizado. Não foi enviada manifestação à SEFAZ porque esta entrada não possui chave de acesso.'
-                );
-
-        res.json({
-            success: true,
-            message: mensagem,
-
-            entrada:
-                entradaAtualizada,
-
-            resumo,
-
-            sefaz
+            count:
+                entradas.length
         });
 
     } catch (error) {
 
         console.error(
-            'Erro ao confirmar entrada:',
+            '[ENTRADAS] Erro ao listar:',
             error
         );
 
-        res.status(400).json({
-            success: false,
-            error: error.message
-        });
+        res.status(500).json({
 
+            success: false,
+
+            error:
+                error.message
+        });
     }
 });
 
-export default router;
+// =====================================================
+// IMPORTAR XML
+// POST /importar-xml
+// =====================================================
 
+router.post(
+    '/importar-xml',
+    upload.single('xml'),
+    async (req, res) => {
+
+        let arquivo = null;
+
+        try {
+
+            if (!req.file) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Arquivo XML não enviado.'
+                });
+            }
+
+            arquivo =
+                req.file.path;
+
+            const xml =
+                fs.readFileSync(
+                    arquivo,
+                    'utf8'
+                );
+
+            const nfe =
+                extrairXmlNfe(xml);
+
+            validarEntradaNFe(
+                nfe,
+                req.body.empresaId
+            );
+
+            if (!nfe.chave) {
+
+                throw new Error(
+                    'Não foi possível identificar a chave de acesso da NF-e.'
+                );
+            }
+
+            const entradas =
+                getEntradas();
+
+            const duplicada =
+                entradas.find(
+                    item =>
+                        item.chave ===
+                        nfe.chave
+                );
+
+            if (duplicada) {
+
+                return res.status(409).json({
+
+                    success: false,
+
+                    error:
+                        'Esta NF-e já foi importada.',
+
+                    entrada:
+                        duplicada
+                });
+            }
+
+            const entrada = {
+
+                id:
+                    Date.now(),
+
+                tipo:
+                    'XML',
+
+                status:
+                    'CONFERENCIA',
+
+                empresaId:
+                    req.body.empresaId ||
+                    null,
+
+                chave:
+                    nfe.chave,
+
+                numero:
+                    nfe.numero,
+
+                serie:
+                    nfe.serie,
+
+                modelo:
+                    nfe.modelo,
+
+                naturezaOperacao:
+                    nfe.naturezaOperacao,
+
+                tipoOperacao:
+                    nfe.tipoOperacao,
+
+                finalidade:
+                    nfe.finalidade,
+
+                indicadorPresenca:
+                    nfe.indicadorPresenca,
+
+                indicadorIntermediador:
+                    nfe.indicadorIntermediador,
+
+                indicadorConsumidorFinal:
+                    nfe.indicadorConsumidorFinal,
+
+                tipoEmissao:
+                    nfe.tipoEmissao,
+
+                codigoMunicipio:
+                    nfe.codigoMunicipio,
+
+                dataEmissao:
+                    nfe.dataEmissao,
+
+                dataEntrada:
+                    nfe.dataEntrada,
+
+                ambiente:
+                    nfe.ambiente,
+
+                statusSefaz:
+                    nfe.statusSefaz,
+
+                motivoSefaz:
+                    nfe.motivoSefaz,
+
+                protocoloSefaz:
+                    nfe.protocoloSefaz,
+
+                fornecedor:
+                    nfe.fornecedor,
+
+                destinatario:
+                    nfe.destinatario,
+
+                documentoReferenciado:
+                    nfe.documentoReferenciado,
+
+                produtos:
+                    nfe.produtos,
+
+                totais:
+                    nfe.totais,
+
+                transporte:
+                    nfe.transporte,
+
+                entrega:
+                    nfe.entrega,
+
+                retirada:
+                    nfe.retirada,
+
+                pagamento:
+                    nfe.pagamento,
+
+                intermediador:
+                    nfe.intermediador,
+
+                informacoesAdicionais:
+                    nfe.informacoesAdicionais,
+
+                compra:
+                    nfe.compra,
+
+                exportacao:
+                    nfe.exportacao,
+
+                xmlOriginal:
+                    xml,
+
+                arquivoOriginal:
+                    req.file.originalname,
+
+                createdAt:
+                    new Date().toISOString(),
+
+                updatedAt:
+                    new Date().toISOString()
+            };
+
+            entradas.push(
+                entrada
+            );
+
+            saveEntradas(
+                entradas
+            );
+
+            res.status(201).json({
+
+                success: true,
+
+                message:
+                    'XML importado com sucesso. Confira os produtos antes de dar entrada.',
+
+                entrada
+            });
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao importar XML:',
+                error
+            );
+
+            res.status(400).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+
+        } finally {
+
+            if (arquivo) {
+
+                try {
+
+                    fs.removeSync(
+                        arquivo
+                    );
+
+                } catch {}
+            }
+        }
+    }
+);
+
+// =====================================================
+// ENTRADA MANUAL
+// POST /manual
+// =====================================================
+
+router.post(
+    '/manual',
+    (req, res) => {
+
+        try {
+
+            const {
+                empresaId,
+                fornecedor,
+                numero: numeroNfe,
+                serie,
+                chave,
+                dataEmissao,
+                naturezaOperacao,
+                cfop,
+                frete,
+                desconto,
+                valorTotal,
+                produtos,
+                observacao
+            } = req.body;
+
+            if (!empresaId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Empresa não informada.'
+                });
+            }
+
+            if (!fornecedor) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Fornecedor não informado.'
+                });
+            }
+
+            if (!numeroNfe) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Número da NF-e não informado.'
+                });
+            }
+
+            if (
+                !produtos ||
+                !Array.isArray(produtos) ||
+                produtos.length === 0
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Informe pelo menos um produto.'
+                });
+            }
+
+            const entradas =
+                getEntradas();
+
+            if (chave) {
+
+                const duplicada =
+                    entradas.find(
+                        item =>
+                            item.chave ===
+                            chave
+                    );
+
+                if (duplicada) {
+
+                    return res.status(409).json({
+
+                        success: false,
+
+                        error:
+                            'Esta chave de NF-e já está cadastrada.',
+
+                        entrada:
+                            duplicada
+                    });
+                }
+            }
+
+            const produtosNormalizados =
+                produtos.map(
+                    (produto, index) => ({
+
+                        item:
+                            index + 1,
+
+                        codigo:
+                            texto(
+                                produto.codigo
+                            ),
+
+                        descricao:
+                            texto(
+                                produto.descricao
+                            ),
+
+                        ncm:
+                            texto(
+                                produto.ncm
+                            ),
+
+                        cfop:
+                            texto(
+                                produto.cfop
+                            ),
+
+                        unidade:
+                            texto(
+                                produto.unidade ||
+                                'UN'
+                            ),
+
+                        quantidade:
+                            numeroSeguro(
+                                produto.quantidade
+                            ),
+
+                        valorUnitario:
+                            numeroSeguro(
+                                produto.valorUnitario
+                            ),
+
+                        valorTotal:
+                            numeroSeguro(
+                                produto.valorTotal
+                            ) ||
+                            numeroSeguro(
+                                produto.quantidade
+                            ) *
+                            numeroSeguro(
+                                produto.valorUnitario
+                            ),
+
+                        cstCsosn:
+                            texto(
+                                produto.cstCsosn
+                            ),
+
+                        ipi:
+                            numeroSeguro(
+                                produto.ipi
+                            ),
+
+                        pis:
+                            numeroSeguro(
+                                produto.pis
+                            ),
+
+                        cofins:
+                            numeroSeguro(
+                                produto.cofins
+                            )
+                    })
+                );
+
+            const totalProdutos =
+                produtosNormalizados.reduce(
+                    (soma, produto) =>
+                        soma +
+                        produto.valorTotal,
+                    0
+                );
+
+            const valorFrete =
+                Math.max(
+                    0,
+                    numeroSeguro(
+                        frete
+                    )
+                );
+
+            const valorDesconto =
+                Math.max(
+                    0,
+                    numeroSeguro(
+                        desconto
+                    )
+                );
+
+            const totalCalculado =
+                Math.max(
+                    0,
+                    totalProdutos +
+                    valorFrete -
+                    valorDesconto
+                );
+
+            const totalInformado =
+                numeroSeguro(
+                    valorTotal
+                );
+
+            const totalNota =
+                totalInformado > 0
+                    ? totalInformado
+                    : totalCalculado;
+
+            const entrada = {
+
+                id:
+                    Date.now(),
+
+                tipo:
+                    'MANUAL',
+
+                status:
+                    'CONFERENCIA',
+
+                empresaId,
+
+                chave:
+                    chave || '',
+
+                numero:
+                    texto(
+                        numeroNfe
+                    ),
+
+                serie:
+                    texto(
+                        serie || '1'
+                    ),
+
+                naturezaOperacao:
+                    texto(
+                        naturezaOperacao ||
+                        'COMPRA'
+                    ),
+
+                cfop:
+                    texto(cfop),
+
+                dataEmissao:
+                    dataEmissao ||
+                    new Date().toISOString(),
+
+                fornecedor,
+
+                produtos:
+                    produtosNormalizados,
+
+                totais: {
+
+                    produtos:
+                        totalProdutos,
+
+                    frete:
+                        valorFrete,
+
+                    desconto:
+                        valorDesconto,
+
+                    nota:
+                        totalNota
+                },
+
+                valorTotalInformado:
+                    totalInformado ||
+                    null,
+
+                observacao:
+                    texto(
+                        observacao
+                    ),
+
+                createdAt:
+                    new Date().toISOString(),
+
+                updatedAt:
+                    new Date().toISOString()
+            };
+
+            entradas.push(
+                entrada
+            );
+
+            saveEntradas(
+                entradas
+            );
+
+            res.status(201).json({
+
+                success: true,
+
+                message:
+                    'Entrada manual cadastrada para conferência.',
+
+                entrada
+            });
+
+        } catch (error) {
+
+            console.error(
+                'Erro na entrada manual:',
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// SINCRONIZAR COM SEFAZ
+// POST /sincronizar-sefaz
+// =====================================================
+
+router.post(
+    '/sincronizar-sefaz',
+    async (req, res) => {
+
+        try {
+
+            const {
+                empresaId,
+                nsuEspecifico,
+                chNFe
+            } = req.body || {};
+
+            if (!empresaId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Empresa não informada.'
+                });
+            }
+
+            const config =
+                obterConfigEmpresa(
+                    empresaId
+                );
+
+            if (
+                !config.cnpj ||
+                config.cnpj.length !== 14
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        `Empresa sem CNPJ válido configurado (${config.cnpj || 'vazio'}).`
+                });
+            }
+
+            const resultado =
+                await NfeDistribuicaoService.consultar({
+
+                    empresaId,
+
+                    cnpj:
+                        config.cnpj,
+
+                    uf:
+                        config.uf,
+
+                    ambiente:
+                        config.ambiente,
+
+                    nsuEspecifico:
+                        nsuEspecifico ||
+                        null,
+
+                    chNFe:
+                        chNFe ||
+                        null
+                });
+
+            // =============================================
+            // 656 = CONSUMO INDEVIDO
+            // =============================================
+
+            if (
+                String(
+                    resultado.cStat
+                ) === '656'
+            ) {
+
+                return res.status(429).json({
+
+                    success: false,
+
+                    comunicacao: true,
+
+                    cStat:
+                        resultado.cStat,
+
+                    xMotivo:
+                        resultado.xMotivo,
+
+                    ultNSU:
+                        resultado.ultNSU ||
+                        lerNsu(
+                            empresaId
+                        ).ultimoNsu,
+
+                    maxNSU:
+                        resultado.maxNSU ||
+                        '000000000000000',
+
+                    quantidadeDocumentos:
+                        0,
+
+                    novasEntradas:
+                        0,
+
+                    bloqueado:
+                        true,
+
+                    aguardarMinutos:
+                        60,
+
+                    message:
+                        'A SEFAZ bloqueou temporariamente a consulta por consumo indevido. Aguarde 1 hora antes de consultar novamente.'
+                });
+            }
+
+            // =============================================
+            // DOCUMENTOS ENCONTRADOS
+            // =============================================
+
+            let novasEntradas = 0;
+
+            if (
+                resultado.success &&
+                resultado.documentos?.length
+            ) {
+
+                const entradas =
+                    getEntradas();
+
+                for (
+                    const doc
+                    of resultado.documentos
+                ) {
+
+                    if (
+                        doc.tipo !== 'PROC_NFE' &&
+                        doc.tipo !== 'NFE'
+                    ) {
+                        continue;
+                    }
+
+                    try {
+
+                        const nfe =
+                            extrairXmlNfe(
+                                doc.xml
+                            );
+
+                        if (!nfe.chave) {
+                            continue;
+                        }
+
+                        const jaExiste =
+                            entradas.find(
+                                e =>
+                                    String(
+                                        e.empresaId
+                                    ) ===
+                                    String(
+                                        empresaId
+                                    ) &&
+                                    e.chave ===
+                                    nfe.chave
+                            );
+
+                        if (jaExiste) {
+                            continue;
+                        }
+
+                        // =================================
+                        // VALIDAR DESTINATÁRIO
+                        // =================================
+
+                        try {
+
+                            validarEntradaNFe(
+                                nfe,
+                                empresaId
+                            );
+
+                        } catch (
+                            erroValidacao
+                        ) {
+
+                            console.warn(
+                                `[SINCRONIZAR] NF-e ${nfe.chave} ignorada: ${erroValidacao.message}`
+                            );
+
+                            continue;
+                        }
+
+                        // =================================
+                        // CRIAR ENTRADA
+                        // =================================
+
+                        entradas.push({
+
+                            id:
+                                Date.now() +
+                                novasEntradas,
+
+                            tipo:
+                                'SEFAZ',
+
+                            status:
+                                'CONFERENCIA',
+
+                            empresaId:
+                                String(
+                                    empresaId
+                                ),
+
+                            chave:
+                                nfe.chave,
+
+                            numero:
+                                nfe.numero,
+
+                            serie:
+                                nfe.serie,
+
+                            naturezaOperacao:
+                                nfe.naturezaOperacao,
+
+                            dataEmissao:
+                                nfe.dataEmissao,
+
+                            fornecedor:
+                                nfe.fornecedor,
+
+                            destinatario:
+                                nfe.destinatario,
+
+                            produtos:
+                                nfe.produtos,
+
+                            totais:
+                                nfe.totais,
+
+                            nsu:
+                                doc.nsu,
+
+                            xmlPath:
+                                doc.xmlPath ||
+                                null,
+
+                            xmlOriginal:
+                                doc.xml,
+
+                            createdAt:
+                                new Date().toISOString(),
+
+                            updatedAt:
+                                new Date().toISOString()
+                        });
+
+                        novasEntradas++;
+
+                        // =================================
+                        // VINCULAR FORNECEDOR
+                        // =================================
+
+                        vincularFornecedor({
+
+                            ...nfe.fornecedor,
+
+                            origem:
+                                'NFE_SEFAZ'
+                        });
+
+                    } catch (erroDoc) {
+
+                        console.error(
+                            '[SINCRONIZAR] Erro ao processar documento:',
+                            erroDoc.message
+                        );
+                    }
+                }
+
+                if (
+                    novasEntradas > 0
+                ) {
+
+                    saveEntradas(
+                        entradas
+                    );
+                }
+            }
+
+            res.json({
+
+                success:
+                    resultado.success,
+
+                cStat:
+                    resultado.cStat,
+
+                xMotivo:
+                    resultado.xMotivo,
+
+                ultNSU:
+                    resultado.ultNSU ||
+                    lerNsu(
+                        empresaId
+                    ).ultimoNsu,
+
+                maxNSU:
+                    resultado.maxNSU,
+
+                ultNSUAtualizado:
+                    resultado.ultNSUAtualizado ||
+                    null,
+
+                quantidadeDocumentos:
+                    resultado.documentos?.length ||
+                    0,
+
+                novasEntradas,
+
+                tipoErro:
+                    resultado.tipoErro ||
+                    null,
+
+                tempoMs:
+                    resultado.tempoMs,
+
+                httpStatus:
+                    resultado.httpStatus,
+
+                message:
+                    resultado.success
+
+                        ? (
+                            resultado.temDocumentos
+
+                                ? `${resultado.documentos.length} documento(s) recebido(s); ${novasEntradas} nova(s) NF-e importada(s).`
+
+                                : 'Nenhum documento novo destinado à empresa.'
+                        )
+
+                        : (
+                            resultado.xMotivo ||
+                            'Consulta ao SEFAZ sem sucesso fiscal.'
+                        )
+            });
+
+        } catch (error) {
+
+            console.error(
+                '[SINCRONIZAR] Erro:',
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// STATUS DA DISTRIBUIÇÃO
+// GET /distribuicao?empresaId=1
+// =====================================================
+
+router.get(
+    '/distribuicao',
+    (req, res) => {
+
+        try {
+
+            const {
+                empresaId
+            } = req.query;
+
+            if (!empresaId) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'empresaId é obrigatório.'
+                });
+            }
+
+            const config =
+                obterConfigEmpresa(
+                    empresaId
+                );
+
+            const nsu =
+                lerNsu(
+                    empresaId
+                );
+
+            res.json({
+
+                success: true,
+
+                empresaId:
+                    String(
+                        empresaId
+                    ),
+
+                cnpj:
+                    config.cnpj,
+
+                uf:
+                    config.uf,
+
+                ambiente:
+                    config.ambiente,
+
+                ultimoNsu:
+                    nsu.ultimoNsu,
+
+                atualizadoEm:
+                    nsu.atualizadoEm
+            });
+
+        } catch (error) {
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// NF-e PENDENTES DE CONFERÊNCIA
+// GET /pendentes?empresaId=1
+// =====================================================
+
+router.get(
+    '/pendentes',
+    (req, res) => {
+
+        try {
+
+            const {
+                empresaId
+            } = req.query;
+
+            let entradas =
+                getEntradas();
+
+            if (empresaId) {
+
+                entradas =
+                    entradas.filter(
+                        e =>
+                            String(
+                                e.empresaId
+                            ) ===
+                            String(
+                                empresaId
+                            )
+                    );
+            }
+
+            const pendentes =
+                entradas.filter(
+                    e =>
+                        e.status ===
+                        'CONFERENCIA'
+                );
+
+            res.json({
+
+                success: true,
+
+                pendentes,
+
+                count:
+                    pendentes.length
+            });
+
+        } catch (error) {
+
+            console.error(
+                '[PENDENTES] Erro:',
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// CONSULTAR UMA ENTRADA
+// GET /:id
+// =====================================================
+
+router.get(
+    '/:id',
+    (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+            const entrada =
+                getEntradas().find(
+                    item =>
+                        item.id === id
+                );
+
+            if (!entrada) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        'Entrada não encontrada.'
+                });
+            }
+
+            res.json({
+
+                success: true,
+
+                entrada
+            });
+
+        } catch (error) {
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// MANIFESTAÇÃO DO DESTINATÁRIO
+// POST /:id/manifestar
+// =====================================================
+
+router.post(
+    '/:id/manifestar',
+    async (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+            const {
+                tipoEvento,
+                justificativa
+            } =
+                req.body || {};
+
+            const entrada =
+                getEntradas().find(
+                    e =>
+                        Number(e.id) ===
+                        id
+                );
+
+            if (!entrada) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        'Entrada não encontrada.'
+                });
+            }
+
+            if (!entrada.chave) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Esta entrada não possui chave de acesso (entrada manual sem chave).'
+                });
+            }
+
+            if (
+                !DESCRICOES_EVENTO[
+                    tipoEvento
+                ]
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        `tipoEvento inválido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} (210200=Confirmação, 210210=Ciência, 210220=Desconhecimento, 210240=Não Realizada).`
+                });
+            }
+
+            const config =
+                obterConfigEmpresa(
+                    entrada.empresaId
+                );
+
+            const resultado =
+                await NfeManifestacaoService.manifestar({
+
+                    empresaId:
+                        entrada.empresaId,
+
+                    cnpj:
+                        config.cnpj,
+
+                    uf:
+                        config.uf,
+
+                    ambiente:
+                        normalizarAmbiente(
+                            entrada.ambiente ||
+                            config.ambiente
+                        ),
+
+                    chNFe:
+                        entrada.chave,
+
+                    tipoEvento,
+
+                    justificativa
+                });
+
+            const entradas =
+                getEntradas();
+
+            const index =
+                entradas.findIndex(
+                    e =>
+                        Number(e.id) ===
+                        id
+                );
+
+            if (index >= 0) {
+
+                entradas[index].manifestacao = {
+
+                    tipoEvento,
+
+                    descricao:
+                        DESCRICOES_EVENTO[
+                            tipoEvento
+                        ],
+
+                    cStat:
+                        resultado.cStat,
+
+                    xMotivo:
+                        resultado.xMotivo,
+
+                    protocolo:
+                        resultado.protocolo,
+
+                    success:
+                        resultado.success,
+
+                    dataHora:
+                        new Date().toISOString()
+                };
+
+                entradas[index].updatedAt =
+                    new Date().toISOString();
+
+                saveEntradas(
+                    entradas
+                );
+            }
+
+            res.status(
+                resultado.success
+                    ? 200
+                    : 502
+            ).json({
+
+                success:
+                    resultado.success,
+
+                cStat:
+                    resultado.cStat,
+
+                xMotivo:
+                    resultado.xMotivo,
+
+                protocolo:
+                    resultado.protocolo,
+
+                message:
+                    resultado.success
+
+                        ? `Manifestação enviada: ${DESCRICOES_EVENTO[tipoEvento]}.`
+
+                        : (
+                            resultado.xMotivo ||
+                            'SEFAZ não vinculou o evento.'
+                        )
+            });
+
+        } catch (error) {
+
+            console.error(
+                '[MANIFESTAR] Erro:',
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// DOWNLOAD DO XML
+// GET /:id/xml
+// =====================================================
+
+router.get(
+    '/:id/xml',
+    (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+            const entrada =
+                getEntradas().find(
+                    e =>
+                        Number(e.id) ===
+                        id
+                );
+
+            if (!entrada) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        'Entrada não encontrada.'
+                });
+            }
+
+            if (
+                entrada.xmlPath &&
+                fs.existsSync(
+                    entrada.xmlPath
+                )
+            ) {
+
+                res.setHeader(
+                    'Content-Type',
+                    'application/xml; charset=utf-8'
+                );
+
+                res.setHeader(
+                    'Content-Disposition',
+                    `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
+                );
+
+                return res.send(
+                    fs.readFileSync(
+                        entrada.xmlPath,
+                        'utf8'
+                    )
+                );
+            }
+
+            if (
+                entrada.xmlOriginal
+            ) {
+
+                res.setHeader(
+                    'Content-Type',
+                    'application/xml; charset=utf-8'
+                );
+
+                res.setHeader(
+                    'Content-Disposition',
+                    `attachment; filename="nfe-${entrada.chave || entrada.id}.xml"`
+                );
+
+                return res.send(
+                    entrada.xmlOriginal
+                );
+            }
+
+            return res.status(404).json({
+
+                success: false,
+
+                error:
+                    'XML não disponível para esta entrada.'
+            });
+
+        } catch (error) {
+
+            res.status(500).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// CONFIRMAR ENTRADA
+// Estoque + manifestação 210200
+// =====================================================
+
+router.post(
+    '/:id/confirmar',
+    async (req, res) => {
+
+        try {
+
+            const id =
+                Number(
+                    req.params.id
+                );
+
+            const entradas =
+                getEntradas();
+
+            const index =
+                entradas.findIndex(
+                    item =>
+                        Number(item.id) ===
+                        id
+                );
+
+            if (index === -1) {
+
+                return res.status(404).json({
+
+                    success: false,
+
+                    error:
+                        'Entrada não encontrada.'
+                });
+            }
+
+            const entrada =
+                entradas[index];
+
+            if (
+                entrada.status ===
+                'CONFIRMADA'
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'Esta NF-e já possui entrada de estoque.'
+                });
+            }
+
+            const itens =
+                Array.isArray(
+                    req.body?.itens
+                )
+                    ? req.body.itens
+                    : [];
+
+            if (
+                entrada.produtos?.length &&
+                itens.length !==
+                entrada.produtos.length
+            ) {
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    error:
+                        'A quantidade de itens enviados não corresponde à quantidade de itens da NF-e.'
+                });
+            }
+
+            // =============================================
+            // ENTRADA TRANSACIONAL
+            // =============================================
+
+            const {
+                entrada:
+                    entradaAtualizada,
+                resumo
+            } =
+                await confirmarEntradaTransacional({
+
+                    entradaId:
+                        id,
+
+                    itens,
+
+                    usuario:
+                        req.body?.usuario ||
+                        null
+                });
+
+            // =============================================
+            // SALVAR ERP
+            // =============================================
+
+            entradas[index] =
+                entradaAtualizada;
+
+            saveEntradas(
+                entradas
+            );
+
+            // =============================================
+            // CONFIRMAÇÃO SEFAZ
+            // 210200
+            // =============================================
+
+            let sefaz = {
+
+                enviada: false,
+
+                success: false,
+
+                cStat: null,
+
+                xMotivo: null,
+
+                protocolo: null,
+
+                tipoEvento: null
+            };
+
+            if (
+                entradaAtualizada.chave
+            ) {
+
+                sefaz.tipoEvento =
+                    '210200';
+
+                try {
+
+                    const config =
+                        obterConfigEmpresa(
+                            entradaAtualizada.empresaId
+                        );
+
+                    const resultado =
+                        await NfeManifestacaoService.manifestar({
+
+                            empresaId:
+                                entradaAtualizada.empresaId,
+
+                            cnpj:
+                                config.cnpj,
+
+                            uf:
+                                config.uf,
+
+                            ambiente:
+                                normalizarAmbiente(
+                                    entradaAtualizada.ambiente ||
+                                    config.ambiente
+                                ),
+
+                            chNFe:
+                                entradaAtualizada.chave,
+
+                            tipoEvento:
+                                '210200'
+                        });
+
+                    sefaz = {
+
+                        enviada: true,
+
+                        success:
+                            Boolean(
+                                resultado.success
+                            ),
+
+                        cStat:
+                            resultado.cStat ||
+                            null,
+
+                        xMotivo:
+                            resultado.xMotivo ||
+                            null,
+
+                        protocolo:
+                            resultado.protocolo ||
+                            null,
+
+                        tipoEvento:
+                            '210200'
+                    };
+
+                    entradaAtualizada.manifestacao = {
+
+                        tipoEvento:
+                            '210200',
+
+                        descricao:
+                            'Confirmação da Operação',
+
+                        success:
+                            Boolean(
+                                resultado.success
+                            ),
+
+                        cStat:
+                            resultado.cStat ||
+                            null,
+
+                        xMotivo:
+                            resultado.xMotivo ||
+                            null,
+
+                        protocolo:
+                            resultado.protocolo ||
+                            null,
+
+                        dataHora:
+                            new Date().toISOString()
+                    };
+
+                    entradas[index] =
+                        entradaAtualizada;
+
+                    saveEntradas(
+                        entradas
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        '[ENTRADA] Erro ao enviar confirmação para SEFAZ:',
+                        error
+                    );
+
+                    sefaz = {
+
+                        enviada: true,
+
+                        success: false,
+
+                        cStat: null,
+
+                        xMotivo:
+                            error.message,
+
+                        protocolo: null,
+
+                        tipoEvento:
+                            '210200'
+                    };
+
+                    entradaAtualizada.manifestacao = {
+
+                        tipoEvento:
+                            '210200',
+
+                        descricao:
+                            'Confirmação da Operação',
+
+                        success: false,
+
+                        cStat: null,
+
+                        xMotivo:
+                            error.message,
+
+                        protocolo: null,
+
+                        dataHora:
+                            new Date().toISOString()
+                    };
+
+                    entradas[index] =
+                        entradaAtualizada;
+
+                    saveEntradas(
+                        entradas
+                    );
+                }
+
+            } else {
+
+                sefaz = {
+
+                    enviada: false,
+
+                    success: false,
+
+                    cStat: null,
+
+                    xMotivo:
+                        'Entrada sem chave de acesso. A confirmação não foi enviada à SEFAZ.',
+
+                    protocolo: null,
+
+                    tipoEvento: null
+                };
+            }
+
+            // =============================================
+            // MENSAGEM
+            // =============================================
+
+            const mensagem =
+                sefaz.success
+
+                    ? 'Entrada realizada com sucesso. Estoque atualizado. Confirmação da Operação aceita pela SEFAZ.'
+
+                    : (
+                        sefaz.enviada
+
+                            ? 'Entrada realizada com sucesso. Estoque atualizado, mas a Confirmação da Operação não foi aceita pela SEFAZ.'
+
+                            : 'Entrada realizada com sucesso. Estoque atualizado. Não foi enviada manifestação à SEFAZ porque esta entrada não possui chave de acesso.'
+                    );
+
+            res.json({
+
+                success: true,
+
+                message:
+                    mensagem,
+
+                entrada:
+                    entradaAtualizada,
+
+                resumo,
+
+                sefaz
+            });
+
+        } catch (error) {
+
+            console.error(
+                'Erro ao confirmar entrada:',
+                error
+            );
+
+            res.status(400).json({
+
+                success: false,
+
+                error:
+                    error.message
+            });
+        }
+    }
+);
+
+// =====================================================
+// EXPORT
+// =====================================================
+
+export default router;

@@ -171,7 +171,7 @@ export function getSefazServiceUrl(
                     'https://hom1.nfe.fazenda.gov.br/NFeDistribuicaoDFe/NFeDistribuicaoDFe.asmx',
 
                 RecepcaoEvento:
-                    'https://hom.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx'
+                    'https://nfe-homologacao.svrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx'
             },
 
             producao: {
@@ -179,7 +179,7 @@ export function getSefazServiceUrl(
                     'https://www1.nfe.fazenda.gov.br/NFeDistribuicaoDFe/NFeDistribuicaoDFe.asmx',
 
                 RecepcaoEvento:
-                    'https://www.nfe.fazenda.gov.br/NFeRecepcaoEvento4/NFeRecepcaoEvento4.asmx'
+                    'https://nfe.svrs.rs.gov.br/ws/recepcaoevento/recepcaoevento4.asmx'
             }
         }
     };
@@ -195,3 +195,4 @@ export function getSefazServiceUrl(
 
     return url;
 }
+

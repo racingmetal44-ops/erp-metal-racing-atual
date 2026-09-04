@@ -519,8 +519,6 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
             ...produtoNfe,
             ...item,
 
-            // Os dados da NF-e continuam disponíveis mesmo
-            // quando o frontend não envia produtoId.
             codigo: item.codigo || produtoNfe.codigo || '',
             ean: item.ean || produtoNfe.ean || '',
             descricao: item.descricao || produtoNfe.descricao || '',
@@ -533,7 +531,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         let criadoAutomaticamente = false;
 
         // -------------------------------------------------
-        // 1. Produto já informado pelo frontend
+        // 1. Produto informado pelo frontend
         // -------------------------------------------------
         if (produtoId) {
 
@@ -551,7 +549,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 2. Procura automaticamente por EAN, SKU ou vínculo
+        // 2. Procura automática por EAN, SKU ou vínculo
         // -------------------------------------------------
         if (!produtoEncontrado) {
 
@@ -568,7 +566,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 3. Se não encontrou, CRIA o produto automaticamente
+        // 3. Criação automática do produto
         // -------------------------------------------------
         if (!produtoEncontrado) {
 
@@ -625,7 +623,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
                 empresaId: entrada.empresaId,
                 codigoFornecedor: String(itemCompleto.codigo || '').trim(),
                 ean: String(itemCompleto.ean || '').replace(/\D/g, ''),
-                produtoId: produtoId,
+                produtoId,
                 sku: produtoEncontrado.sku
             });
         } catch (erroVinculo) {
@@ -657,12 +655,14 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
     if (!itensVinculados.length) {
         throw new Error('Nenhum item informado para entrada.');
     }
+
     // ---------------------------------------------
     // 2. SNAPSHOT DO ESTOQUE ATUAL
     // ---------------------------------------------
     const snapshot = new Map();
 
     for (const item of itensVinculados) {
+
         const { data, error } = await supabase()
             .from('products')
             .select('id,name,sku,current_stock,estoque_atual')
@@ -679,21 +679,36 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
             name: data.name,
             sku: data.sku,
             current_stock: Number(data.current_stock ?? 0),
-            estoque_atual: Number(data.estoque_atual ?? data.current_stock ?? 0)
+            estoque_atual: Number(
+                data.estoque_atual ??
+                data.current_stock ??
+                0
+            )
         });
     }
 
     // ---------------------------------------------
-    // 3. APLICAR UPDATES (com rollback em erro)
+    // 3. APLICAÇÃO DO ESTOQUE
     // ---------------------------------------------
     const aplicados = [];
 
     try {
+
         for (const item of itensVinculados) {
 
             const antes = snapshot.get(String(item.produtoId));
-            const novoCurrent = antes.current_stock + item.quantidade;
-            const novoLegado = antes.estoque_atual + item.quantidade;
+
+            if (!antes) {
+                throw new Error(
+                    `Snapshot não encontrado para o produto ${item.produtoId}.`
+                );
+            }
+
+            const novoCurrent =
+                antes.current_stock + item.quantidade;
+
+            const novoLegado =
+                antes.estoque_atual + item.quantidade;
 
             const { error } = await supabase()
                 .from('products')
@@ -705,7 +720,8 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
 
             if (error) {
                 throw new Error(
-                    `Falha ao atualizar estoque do produto ${antes.name || item.produtoId}: ${error.message}`
+                    `Falha ao atualizar estoque do produto ` +
+                    `${antes.name || item.produtoId}: ${error.message}`
                 );
             }
 
@@ -714,109 +730,185 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
                 quantidade: item.quantidade,
                 anterior: antes.current_stock,
                 anteriorEstoqueAtual: antes.estoque_atual,
-                novo: novoCurrent
+                novo: novoCurrent,
+                novoEstoqueAtual: novoLegado
             });
+
+            console.log(
+                `[ENTRADA] ESTOQUE ATUALIZADO | ` +
+                `SKU ${antes.sku} | ` +
+                `${antes.current_stock} + ${item.quantidade} = ${novoCurrent}`
+            );
         }
-    } catch (erroUpdate) {
 
         // ---------------------------------------------
-        // 4. ROLLBACK: reverte o que já foi aplicado
+        // 4. REGISTRAR HISTÓRICO
         // ---------------------------------------------
-        console.error('[ENTRADA] Erro durante updates. Executando ROLLBACK...', erroUpdate.message);
+        const agora = new Date().toISOString();
 
-        for (const aplicado of aplicados) {
+        for (const item of itensVinculados) {
+
+            const antes = snapshot.get(String(item.produtoId));
+
+            const { error: erroHistorico } = await supabase()
+                .from('bipagem_history')
+                .insert({
+                    product_id: item.produtoId,
+                    product_name: antes.name,
+                    product_sku: antes.sku,
+                    tipo: 'entrada_nf',
+                    quantidade: item.quantidade,
+                    quantidade_anterior: antes.current_stock,
+                    quantidade_nova:
+                        antes.current_stock + item.quantidade,
+                    usuario_id: usuario?.id || null,
+                    usuario_nome: usuario?.nome || 'Entrada NF-e',
+                    created_at: agora
+                });
+
+            if (erroHistorico) {
+                throw new Error(
+                    `Falha ao registrar histórico do produto ` +
+                    `${antes.name || antes.sku}: ${erroHistorico.message}`
+                );
+            }
+
+            console.log(
+                `[ENTRADA] HISTÓRICO REGISTRADO | SKU ${antes.sku} | ` +
+                `quantidade ${item.quantidade}`
+            );
+        }
+
+        // ---------------------------------------------
+        // 5. MARCAR NF-e COMO CONFIRMADA
+        // ---------------------------------------------
+        entrada.status = 'CONFIRMADA';
+        entrada.itensVinculados = itensVinculados;
+        entrada.confirmadaEm = agora;
+        entrada.confirmadaPor =
+            usuario?.nome ||
+            usuario?.id ||
+            null;
+        entrada.updatedAt = agora;
+
+        entradas[index] = entrada;
+
+        saveEntradas(entradas);
+
+        console.log(
+            `[ENTRADA] NF-e ${entrada.numero || entrada.chave} ` +
+            `confirmada com sucesso.`
+        );
+
+        return {
+            entrada,
+            resumo: {
+                numero: entrada.numero,
+                fornecedor:
+                    entrada.fornecedor?.razaoSocial || '',
+                quantidadeItens:
+                    itensVinculados.length,
+                quantidadeTotal:
+                    itensVinculados.reduce(
+                        (s, i) => s + i.quantidade,
+                        0
+                    ),
+                dataHora: agora
+            }
+        };
+
+    } catch (erro) {
+
+        // ---------------------------------------------
+        // 6. ROLLBACK COMPLETO
+        // ---------------------------------------------
+        console.error(
+            '[ENTRADA] ERRO NA CONFIRMAÇÃO. ' +
+            'Executando ROLLBACK:',
+            erro.message
+        );
+
+        // Reverte os estoques já atualizados
+        for (const aplicado of [...aplicados].reverse()) {
+
             try {
-                await supabase()
-                    .from('products')
-                    .update({
-                        current_stock: aplicado.anterior,
-                        estoque_atual: aplicado.anteriorEstoqueAtual
-                    })
-                    .eq('id', aplicado.produtoId);
-                console.error(`[ENTRADA] ROLLBACK OK produto ${aplicado.produtoId} -> ${aplicado.anterior}`);
+
+                const { error: erroRollback } =
+                    await supabase()
+                        .from('products')
+                        .update({
+                            current_stock:
+                                aplicado.anterior,
+                            estoque_atual:
+                                aplicado.anteriorEstoqueAtual
+                        })
+                        .eq('id', aplicado.produtoId);
+
+                if (erroRollback) {
+                    console.error(
+                        `[ENTRADA] FALHA NO ROLLBACK ` +
+                        `DO ESTOQUE | produto ${aplicado.produtoId}:`,
+                        erroRollback.message
+                    );
+                } else {
+                    console.log(
+                        `[ENTRADA] ROLLBACK OK | ` +
+                        `produto ${aplicado.produtoId} | ` +
+                        `estoque restaurado para ${aplicado.anterior}`
+                    );
+                }
+
             } catch (erroRollback) {
+
                 console.error(
-                    `[ENTRADA] ❌ FALHA CRÍTICA NO ROLLBACK do produto ${aplicado.produtoId}:`,
+                    `[ENTRADA] EXCEÇÃO NO ROLLBACK ` +
+                    `DO ESTOQUE | produto ${aplicado.produtoId}:`,
                     erroRollback.message
                 );
             }
         }
 
-        // ---------------------------------------------
-        // 4.1 ROLLBACK DOS PRODUTOS CRIADOS AUTOMATICAMENTE
-        // ---------------------------------------------
+        // Remove produtos criados automaticamente
+        // somente se a operação falhou antes da confirmação.
         for (const produtoCriado of produtosCriados) {
+
             try {
-                const { error: erroDelete } = await supabase()
-                    .from('products')
-                    .delete()
-                    .eq('id', produtoCriado.id);
+
+                const { error: erroDelete } =
+                    await supabase()
+                        .from('products')
+                        .delete()
+                        .eq('id', produtoCriado.id);
 
                 if (erroDelete) {
-                    throw erroDelete;
+                    console.error(
+                        `[ENTRADA] FALHA AO REMOVER PRODUTO ` +
+                        `CRIADO NO ROLLBACK | ` +
+                        `${produtoCriado.id}:`,
+                        erroDelete.message
+                    );
+                } else {
+                    console.log(
+                        `[ENTRADA] PRODUTO CRIADO REMOVIDO NO ROLLBACK | ` +
+                        `${produtoCriado.sku || produtoCriado.id}`
+                    );
                 }
 
-                console.error(
-                    `[ENTRADA] PRODUTO CRIADO REMOVIDO NO ROLLBACK: ${produtoCriado.codigo || produtoCriado.id || "sem código"} | ID: ${produtoCriado.id}`
-                );
             } catch (erroDelete) {
+
                 console.error(
-                    `[ENTRADA] FALHA AO REMOVER PRODUTO CRIADO: ${produtoCriado.codigo || produtoCriado.id || "sem código"} | ID: ${produtoCriado.id}:`,
+                    `[ENTRADA] EXCEÇÃO AO REMOVER PRODUTO ` +
+                    `CRIADO NO ROLLBACK:`,
                     erroDelete.message
                 );
             }
         }
 
-        // Nada é marcado como confirmado
+        // A NF-e permanece no status anterior.
         throw new Error(
-            `Entrada cancelada e estoque revertido (rollback). Motivo: ${erroUpdate.message}`
+            `Entrada não confirmada. ` +
+            `Estoque revertido quando necessário. ` +
+            `Motivo: ${erro.message}`
         );
     }
-
-    // ---------------------------------------------
-    // 5. REGISTRAR MOVIMENTAÇÕES
-    // ---------------------------------------------
-    const agora = new Date().toISOString();
-
-    for (const item of itensVinculados) {
-        const antes = snapshot.get(String(item.produtoId));
-
-        await supabase()
-            .from('bipagem_history')
-            .insert({
-                product_id: item.produtoId,
-                product_name: antes.name,
-                product_sku: antes.sku,
-                tipo: 'entrada_nf',
-                quantidade: item.quantidade,
-                quantidade_anterior: antes.current_stock,
-                quantidade_nova: antes.current_stock + item.quantidade,
-                usuario_id: usuario?.id || null,
-                usuario_nome: usuario?.nome || 'Entrada NF-e',
-                created_at: agora
-            });
-    }
-
-    // ---------------------------------------------
-    // 6. MARCAR NF-e COMO CONFIRMADA
-    // ---------------------------------------------
-    entrada.status = 'CONFIRMADA';
-    entrada.itensVinculados = itensVinculados;
-    entrada.confirmadaEm = agora;
-    entrada.confirmadaPor = usuario?.nome || usuario?.id || null;
-    entrada.updatedAt = agora;
-
-    entradas[index] = entrada;
-    saveEntradas(entradas);
-
-    return {
-        entrada,
-        resumo: {
-            numero: entrada.numero,
-            fornecedor: entrada.fornecedor?.razaoSocial || '',
-            quantidadeItens: itensVinculados.length,
-            quantidadeTotal: itensVinculados.reduce((s, i) => s + i.quantidade, 0),
-            dataHora: agora
-        }
-    };
 }

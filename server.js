@@ -1,4 +1,4 @@
-Ôªø// ============================================
+// ============================================
 // ERP METAL RACING
 // SERVER PRINCIPAL
 // ============================================
@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 
 // Rotas
 import nfeEntradaRoutes from './src/backend/routes/nfeEntradaRoutes.js';
+import financeiroRoutes from './src/backend/routes/financeiroRoutes.js';
 import certificateRoutes from './src/backend/routes/certificateRoutes.js';
 import assinaturaRoutes from './src/backend/routes/assinatura.js';
 import nfeRoutes from './src/backend/routes/nfeRoutes.js';
@@ -20,7 +21,7 @@ import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js
 
 
 // ============================================
-// CONFIGURA√á√ÉO
+// CONFIGURA«√O
 // ============================================
 
 const __filename = fileURLToPath(import.meta.url);
@@ -48,7 +49,7 @@ app.use(express.urlencoded({
 
 
 // ============================================
-// LOG DE REQUISI√á√ïES
+// LOG DE REQUISI«’ES
 // ============================================
 
 app.use((req, res, next) => {
@@ -335,7 +336,7 @@ app.post('/api/empresas', (req, res) => {
                     success: false,
 
                     error:
-                        'CNPJ j√° cadastrado'
+                        'CNPJ j· cadastrado'
 
                 });
             }
@@ -436,7 +437,7 @@ app.put('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa n√£o encontrada'
+                    'Empresa n„o encontrada'
 
             });
         }
@@ -529,7 +530,7 @@ app.delete('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa n√£o encontrada'
+                    'Empresa n„o encontrada'
 
             });
         }
@@ -587,6 +588,14 @@ app.use(
 
 
 // ============================================
+// FINANCEIRO
+
+app.use(
+    '/api/financeiro',
+    financeiroRoutes
+);
+
+
 // CERTIFICADOS
 // ============================================
 
@@ -607,7 +616,7 @@ app.use(
 
 
 // ============================================
-// TRATAMENTO DE ROTA N√ÉO ENCONTRADA
+// TRATAMENTO DE ROTA N√O ENCONTRADA
 // ============================================
 
 app.use(
@@ -618,7 +627,7 @@ app.use(
             success: false,
 
             error:
-                'Rota n√£o encontrada.',
+                'Rota n„o encontrada.',
 
             method:
                 req.method,
@@ -676,32 +685,32 @@ app.listen(
             '============================================'
         );
         console.log(
-            ' üöÄ ERP METAL RACING - SERVIDOR'
+            ' ?? ERP METAL RACING - SERVIDOR'
         );
         console.log(
             '============================================'
         );
         console.log(
-            ` üì° Servidor: http://localhost:${PORT}`
+            ` ?? Servidor: http://localhost:${PORT}`
         );
         console.log(
-            ` üìÅ Dados: ${DATA_DIR}`
+            ` ?? Dados: ${DATA_DIR}`
         );
         console.log(
-            ` üìä Empresas: ${getCompanies().length}`
+            ` ?? Empresas: ${getCompanies().length}`
         );
         console.log(
-            ` üìÑ NF-e armazenadas: ${getNFe().length}`
+            ` ?? NF-e armazenadas: ${getNFe().length}`
         );
         console.log(
-            ` üîê CERT_SENHA: ${
+            ` ?? CERT_SENHA: ${
                 process.env.CERT_SENHA
                     ? 'CONFIGURADA'
-                    : 'N√ÉO CONFIGURADA'
+                    : 'N√O CONFIGURADA'
             }`
         );
         console.log(
-            ` üåé Ambiente padr√£o: ${
+            ` ?? Ambiente padr„o: ${
                 process.env.NFE_AMBIENTE ||
                 'homologacao'
             }`
@@ -713,3 +722,6 @@ app.listen(
 
     }
 );
+
+
+
