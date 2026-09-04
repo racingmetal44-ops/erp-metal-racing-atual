@@ -149,7 +149,27 @@ export function normalizarEmpresa(empresa = {}) {
     };
 }
 
+const numerosNFeVercel = new Map();
+
 export function reservarNumeroNFe(empresaId, serie = 1) {
+    if (process.env.VERCEL) {
+        const serieKey = somenteNumeros(serie) || '1';
+        const chave = `${empresaId}:${serieKey}`;
+
+        const ultimoNumero =
+            numerosNFeVercel.get(chave) ??
+            Number(
+                process.env.NFE_NUMERO_INICIAL ||
+                (serieKey === '1' ? 18144 : 0)
+            );
+
+        const proximoNumero = ultimoNumero + 1;
+
+        numerosNFeVercel.set(chave, proximoNumero);
+
+        return String(proximoNumero);
+    }
+
     const dados = lerJsonSemBom(EMPRESAS_PATH);
 
     const lista = Array.isArray(dados)
@@ -250,7 +270,70 @@ export function resolverCaminhoCertificado(empresa) {
 }
 
 export function buscarEmpresa(empresaId) {
+    if (process.env.VERCEL) {
+        const idSolicitado = String(empresaId);
+
+        const empresa = normalizarEmpresa({
+            id: process.env.NFE_EMPRESA_ID || idSolicitado,
+            razaoSocial:
+                process.env.NFE_RAZAO_SOCIAL ||
+                'ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA',
+            nomeFantasia:
+                process.env.NFE_NOME_FANTASIA ||
+                'METAL RACING ACESSÓRIOS AUTOMOTIVO',
+            cnpj: process.env.NFE_CNPJ || '',
+            ie: process.env.NFE_IE || '',
+            inscricaoEstadual: process.env.NFE_IE || '',
+            uf: process.env.NFE_UF || 'SC',
+            ufCodigo: process.env.NFE_CUF || '42',
+            codigoIbge:
+                process.env.NFE_CODIGO_IBGE ||
+                '4209102',
+            crt:
+                process.env.NFE_CRT ||
+                '1',
+            regimeTributario:
+                process.env.NFE_REGIME_TRIBUTARIO ||
+                'Simples Nacional',
+            endereco:
+                process.env.NFE_ENDERECO ||
+                'Rua Teresópolis',
+            numero:
+                process.env.NFE_NUMERO ||
+                '1180',
+            bairro:
+                process.env.NFE_BAIRRO ||
+                'Guanabara',
+            cidade:
+                process.env.NFE_CIDADE ||
+                'Joinville',
+            cep:
+                process.env.NFE_CEP ||
+                '89207500',
+            telefone:
+                process.env.NFE_TELEFONE ||
+                '4734336664',
+            email:
+                process.env.NFE_EMAIL ||
+                '',
+            nfe: {
+                versao: '4.00',
+                ambiente: 2,
+                series: {
+                    '1': {
+                        ultimoNumero: 18144
+                    }
+                }
+            }
+        });
+
+        return String(empresa.id) === idSolicitado
+            ? empresa
+            : null;
+    }
+
     const lista = carregarListaEmpresas();
+
     const empresa = lista.find(
         item => String(item.id) === String(empresaId)
     );
@@ -273,3 +356,5 @@ export default {
     normalizarEmpresa,
     resolverCaminhoCertificado
 };
+
+
