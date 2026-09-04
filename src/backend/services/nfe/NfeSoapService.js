@@ -19,14 +19,12 @@ class NfeSoapService {
 
         const intermediariaPath = path.join(
             process.cwd(),
-            'certificados',
-            'serpro-sslv1.pem'
+            'public-certs', 'serpro-sslv1.pem'
         );
 
         const raizPath = path.join(
             process.cwd(),
-            'certificados',
-            'ICP-Brasilv10.pem'
+            'public-certs', 'ICP-Brasilv10.pem'
         );
 
         if (!await fs.pathExists(intermediariaPath)) {
@@ -106,14 +104,12 @@ class NfeSoapService {
 
         const intermediariaPath = path.join(
             process.cwd(),
-            'certificados',
-            'serpro-sslv1.pem'
+            'public-certs', 'serpro-sslv1.pem'
         );
 
         const raizPath = path.join(
             process.cwd(),
-            'certificados',
-            'ICP-Brasilv10.pem'
+            'public-certs', 'ICP-Brasilv10.pem'
         );
 
         if (!fs.existsSync(intermediariaPath)) {
@@ -764,5 +760,6 @@ class NfeSoapService {
 }
 
 export default NfeSoapService;
+
 
 
