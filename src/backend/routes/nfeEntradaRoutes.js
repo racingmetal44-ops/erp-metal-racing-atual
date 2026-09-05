@@ -19,6 +19,7 @@ import {
     identificarProduto,
     confirmarEntrada as confirmarEntradaTransacional,
     getEntradas as getEntradasService,
+    getEntradasAsync,
     saveEntradas as saveEntradasService
 } from '../services/nfe/NfeEntradaService.js';
 
@@ -1832,7 +1833,7 @@ router.get('/', async (req, res) => {
 
     try {
 
-        const entradas = await getEntradasService();
+        const entradas = await getEntradasAsync();
 
         res.json({
 

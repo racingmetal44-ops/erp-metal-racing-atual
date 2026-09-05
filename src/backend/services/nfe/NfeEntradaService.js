@@ -33,7 +33,7 @@ const FORNECEDORES_FILE = path.join(DATA_DIR, 'fornecedores.json');
 // =========================================================
 
 const SUPABASE_URL = 'https://ddohqrwkripaeocnyynu.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_jzYTkJ6jAwHKBOkUsTEJnw_qfTOXtQc';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 let _supabase = null;
 function supabase() {
@@ -61,6 +61,208 @@ export function getEntradas() {
 export function saveEntradas(lista) {
     fs.ensureDirSync(DATA_DIR);
     fs.writeJsonSync(ENTRADAS_FILE, lista, { spaces: 2 });
+}
+
+
+/**
+ * Leitura assíncrona das entradas.
+ * Local: JSON.
+ * Vercel: Supabase.
+ */
+export async function getEntradasAsync() {
+    if (!process.env.VERCEL) {
+        return getEntradas();
+    }
+
+    if (!SUPABASE_KEY) {
+        throw new Error(
+            'SUPABASE_SERVICE_ROLE_KEY não configurada na Vercel.'
+        );
+    }
+
+    const { data, error } = await supabase()
+        .from('nfe_entradas')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        throw new Error(
+            `Falha ao carregar NF-e de entrada do Supabase: ${error.message}`
+        );
+    }
+
+    return (data || []).map((registro) => {
+        const original =
+            registro?.dados &&
+            typeof registro.dados === 'object' &&
+            !Array.isArray(registro.dados)
+                ? registro.dados
+                : {};
+
+        return {
+            ...original,
+            id: registro.id ?? original.id,
+            empresaId: registro.empresa_id ?? original.empresaId,
+            chave: registro.chave ?? original.chave,
+            numero: registro.numero ?? original.numero,
+            serie: registro.serie ?? original.serie,
+            modelo: registro.modelo ?? original.modelo,
+            status: registro.status ?? original.status,
+            fornecedor: registro.fornecedor ?? original.fornecedor,
+            produtos: Array.isArray(registro.produtos)
+                ? registro.produtos
+                : (Array.isArray(original.produtos)
+                    ? original.produtos
+                    : []),
+            total:
+                registro.total !== null &&
+                registro.total !== undefined
+                    ? Number(registro.total)
+                    : Number(original.total || 0),
+            protocolo:
+                registro.protocolo ??
+                original.protocolo,
+            nProt:
+                registro.nprot ??
+                original.nProt,
+            cStat:
+                registro.cstat ??
+                original.cStat,
+            xMotivo:
+                registro.xmotivo ??
+                original.xMotivo,
+            manifestacao:
+                registro.manifestacao ??
+                original.manifestacao,
+            ambiente:
+                registro.ambiente ??
+                original.ambiente,
+            dataEmissao:
+                registro.data_emissao ??
+                original.dataEmissao,
+            dataEntrada:
+                registro.data_entrada ??
+                original.dataEntrada,
+            updatedAt:
+                registro.updated_at ??
+                original.updatedAt
+        };
+    });
+}
+
+/**
+ * Grava entradas no Supabase quando estiver na Vercel.
+ * Fora da Vercel mantém o JSON local.
+ */
+export async function saveEntradasAsync(lista) {
+    if (!process.env.VERCEL) {
+        saveEntradas(lista);
+        return;
+    }
+
+    if (!SUPABASE_KEY) {
+        throw new Error(
+            'SUPABASE_SERVICE_ROLE_KEY não configurada na Vercel.'
+        );
+    }
+
+    const linhas = (Array.isArray(lista) ? lista : []).map((entrada) => ({
+        id: Number(entrada.id),
+        empresa_id: String(
+            entrada.empresaId ??
+            entrada.empresa_id ??
+            '1'
+        ),
+        chave: entrada.chave || null,
+        numero:
+            entrada.numero !== undefined &&
+            entrada.numero !== null
+                ? String(entrada.numero)
+                : null,
+        serie:
+            entrada.serie !== undefined &&
+            entrada.serie !== null
+                ? String(entrada.serie)
+                : null,
+        modelo:
+            entrada.modelo
+                ? String(entrada.modelo)
+                : '55',
+        status:
+            entrada.status || null,
+        fornecedor:
+            entrada.fornecedor ?? null,
+        produtos:
+            Array.isArray(entrada.produtos)
+                ? entrada.produtos
+                : [],
+        total:
+            Number(
+                entrada.total ??
+                entrada.totais?.nota ??
+                0
+            ),
+        xml_original:
+            entrada.xmlOriginal ??
+            entrada.xml_original ??
+            null,
+        xml_assinado:
+            entrada.xmlAssinado ??
+            entrada.xml_assinado ??
+            null,
+        xml_autorizado:
+            entrada.xmlAutorizado ??
+            entrada.xml_autorizado ??
+            null,
+        protocolo:
+            entrada.protocolo ??
+            entrada.protocoloSefaz ??
+            null,
+        nprot:
+            entrada.nProt ??
+            entrada.nprot ??
+            null,
+        cstat:
+            entrada.cStat ??
+            entrada.cstat ??
+            null,
+        xmotivo:
+            entrada.xMotivo ??
+            entrada.xmotivo ??
+            null,
+        manifestacao:
+            entrada.manifestacao ??
+            null,
+        ambiente:
+            entrada.ambiente != null
+                ? String(entrada.ambiente)
+                : null,
+        data_emissao:
+            entrada.dataEmissao ||
+            entrada.data_emissao ||
+            null,
+        data_entrada:
+            entrada.dataEntrada ||
+            entrada.data_entrada ||
+            null,
+        dados: entrada,
+        updated_at:
+            new Date().toISOString()
+    }));
+
+    if (!linhas.length) {
+        return;
+    }
+
+    const { error } = await supabase()
+        .from('nfe_entradas')
+        .upsert(linhas, { onConflict: 'id' });
+
+    if (error) {
+        throw new Error(
+            `Falha ao salvar NF-e de entrada no Supabase: ${error.message}`
+        );
+    }
 }
 
 // =========================================================
