@@ -12,7 +12,7 @@
 //  - bloquear duplicidade por chave de acesso.
 //
 // O estoque vive no Supabase (products / bipagem_history).
-// Como o Supabase JS client não expée transações SQL
+// Como o Supabase JS client não expée transaçãoes SQL
 // diretamente, aplicamos o padrão "compensating actions":
 //  1. lé estoque atual de todos os itens ANTES;
 //  2. aplica updates;
@@ -51,7 +51,7 @@ function supabase() {
 }
 
 // =========================================================
-// PERSISTéNCIA LOCAL (JSON) - mesmo padrão das rotas atuais
+// PERSISTÊNCIA LOCAL (JSON) - mesmo padrão das rotas atuais
 // =========================================================
 
 export function getEntradas() {
@@ -779,7 +779,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 2. Procura automética por EAN, SKU ou vénculo
+        // 2. Procura automática por EAN, SKU ou vénculo
         // -------------------------------------------------
         if (!produtoEncontrado) {
 
@@ -796,7 +796,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 3. Criação automética do produto
+        // 3. Criação automática do produto
         // -------------------------------------------------
         if (!produtoEncontrado) {
 

@@ -395,7 +395,7 @@ export default function ContabilidadePage() {
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
             <h2 className="text-lg font-semibold">NF-e Autorizadas</h2>
-            <p className="mt-2 text-sm text-slate-400">Lista automética de notas fiscais válidas.</p>
+            <p className="mt-2 text-sm text-slate-400">Lista automática de notas fiscais válidas.</p>
             <div className="mt-4 space-y-3">
               {orders.slice(0, 4).map((order) => (
                 <div key={order.id} className="rounded-2xl border border-white/5 bg-slate-900/80 p-4">

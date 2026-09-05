@@ -662,7 +662,7 @@ export default function StockPage() {
 
           <div className="flex gap-2 md:col-span-2 xl:col-span-1">
             <button type="submit" disabled={uploading} className="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:cursor-not-allowed disabled:opacity-60">
-              {editingId ? (uploading ? 'Salvando...' : '?? Salvar') : (uploading ? 'Cadastrando...' : '? Cadastrar')}
+              {editingId ? (uploading ? 'Salvando...' : '💾 Salvar') : (uploading ? 'Cadastrando...' : '➕ Cadastrar')}
             </button>
             {editingId && <button type="button" onClick={resetForm} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300 hover:bg-slate-800 transition">Cancelar</button>}
           </div>

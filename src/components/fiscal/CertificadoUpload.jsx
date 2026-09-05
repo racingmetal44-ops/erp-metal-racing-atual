@@ -1,4 +1,4 @@
-﻿// src/components/fiscal/CertificadoUpload.jsx
+// src/components/fiscal/CertificadoUpload.jsx
 import React, { useState } from 'react';
 
 export function CertificadoUpload({ empresaId, onUploadSuccess }) {

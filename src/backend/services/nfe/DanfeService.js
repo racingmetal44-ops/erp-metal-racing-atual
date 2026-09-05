@@ -133,10 +133,10 @@ export class DanfeService {
     obterModalidadeFrete(modFrete) {
         const mapa = {
             '0': 'Contratação do frete por conta do remetente',
-            '1': 'Contratação do frete por conta do destinatério',
+            '1': 'Contratação do frete por conta do destinatário',
             '2': 'Contratação do frete por conta de terceiros',
             '3': 'Transporte préprio por conta do remetente',
-            '4': 'Transporte préprio por conta do destinatério',
+            '4': 'Transporte préprio por conta do destinatário',
             '9': 'Sem ocorrência de transporte'
         };
 

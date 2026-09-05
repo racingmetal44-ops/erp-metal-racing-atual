@@ -1,4 +1,4 @@
-﻿import fs from 'fs';
+import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import https from 'https';
@@ -20,7 +20,7 @@ class NfeDistribuicaoService {
     const empresa = buscarEmpresa(empresaId);
 
     if (!empresa) {
-      throw new Error(`Empresa ${empresaId} nÃ£o encontrada`);
+      throw new Error(`Empresa ${empresaId} não encontrada`);
     }
 
     const certPath = resolverCaminhoCertificado(empresa);
@@ -31,7 +31,7 @@ class NfeDistribuicaoService {
       '';
 
     if (!fs.existsSync(certPath)) {
-      throw new Error(`Arquivo de certificado nÃ£o encontrado: ${certPath}`);
+      throw new Error(`Arquivo de certificado não encontrado: ${certPath}`);
     }
 
     return {
@@ -81,9 +81,9 @@ class NfeDistribuicaoService {
 
     const { tpAmb, cUFAutor, cnpj, ultNSU, distNSU, chNFe } = params;
 
-    if (!tpAmb) throw new Error('tpAmb Ã© obrigatÃ³rio');
-    if (!cUFAutor) throw new Error('cUFAutor Ã© obrigatÃ³rio');
-    if (!cnpj) throw new Error('CNPJ Ã© obrigatÃ³rio');
+    if (!tpAmb) throw new Error('tpAmb é obrigatório');
+    if (!cUFAutor) throw new Error('cUFAutor é obrigatório');
+    if (!cnpj) throw new Error('CNPJ é obrigatório');
 
     const nsu = String(ultNSU || '000000000000000').padStart(15, '0');
 
@@ -183,7 +183,7 @@ class NfeDistribuicaoService {
       );
     } catch (erroDebug) {
       console.warn(
-        '[DF-e] NÃ£o foi possÃ­vel salvar resposta bruta:',
+        '[DF-e] Não foi possível salvar resposta bruta:',
         erroDebug.message
       );
     }
@@ -201,7 +201,7 @@ class NfeDistribuicaoService {
 
     if (!empresaId) {
       throw new Error(
-        'empresaId Ã© obrigatÃ³rio'
+        'empresaId é obrigatório'
       );
     }
 
@@ -219,12 +219,12 @@ class NfeDistribuicaoService {
     // CONTROLE CORRETO DO NSU
     // -------------------------------------------------
     //
-    // SÃ© avanÃ©a o NSU quando a SEFAZ devolver um valor
-    // vÃ¡lido superior ao atual.
+    // Sé avanéa o NSU quando a SEFAZ devolver um valor
+    // válido superior ao atual.
     //
-    // cStat 656 nunca deve avanÃ§ar o NSU.
-    // cStat 137 significa que nÃ£o hÃ© documentos novos
-    // no momento; nÃ£o devemos inventar um NSU.
+    // cStat 656 nunca deve avançar o NSU.
+    // cStat 137 significa que não hé documentos novos
+    // no momento; não devemos inventar um NSU.
     //
     const nsuRecebido =
       String(
@@ -275,7 +275,7 @@ class NfeDistribuicaoService {
     } else if (cStat === '656') {
 
       console.warn(
-        `[DF-e] cStat 656. NSU NÂºO serÃ© alterado.`
+        `[DF-e] cStat 656. NSU NºO seré alterado.`
       );
     }
 
@@ -375,7 +375,7 @@ class NfeDistribuicaoService {
       parsed?.['S:Envelope'];
 
     if (!envelope) {
-      throw new Error('Envelope SOAP nÃ£o encontrado.');
+      throw new Error('Envelope SOAP não encontrado.');
     }
 
     const body =
@@ -385,7 +385,7 @@ class NfeDistribuicaoService {
       envelope?.['S:Body'];
 
     if (!body) {
-      throw new Error('Body SOAP nÃ£o encontrado.');
+      throw new Error('Body SOAP não encontrado.');
     }
 
     const response =
@@ -397,7 +397,7 @@ class NfeDistribuicaoService {
         JSON.stringify(body, null, 2)
       );
       throw new Error(
-        'Resposta nfeDistDFeInteresseResponse nÃ£o encontrada.'
+        'Resposta nfeDistDFeInteresseResponse não encontrada.'
       );
     }
 
@@ -411,17 +411,17 @@ class NfeDistribuicaoService {
         JSON.stringify(response, null, 2)
       );
       throw new Error(
-        'nfeDistDFeInteresseResult nÃ£o encontrado.'
+        'nfeDistDFeInteresseResult não encontrado.'
       );
     }
 
-    // Na resposta real da SEFAZ, o conteÃºdo vem como
+    // Na resposta real da SEFAZ, o conteúdo vem como
     // retDistDFeInt diretamente dentro do Result.
     let ret =
       resultado?.retDistDFeInt ||
       resultado?.['retDistDFeInt'];
 
-    // Alguns parsers/versÃ©es podem devolver o XML interno
+    // Alguns parsers/versées podem devolver o XML interno
     // como texto em _ ou #text.
     if (!ret && typeof resultado === 'object') {
       const texto =
@@ -442,7 +442,7 @@ class NfeDistribuicaoService {
             interno?.retDistDFeInt ||
             interno?.['retDistDFeInt'];
         } catch {
-          // Segue para a extraÃ©Ã©o por regex.
+          // Segue para a extraééo por regex.
         }
       }
     }
@@ -471,7 +471,7 @@ class NfeDistribuicaoService {
 
     if (!ret) {
       throw new Error(
-        'retDistDFeInt nÃ£o encontrado na resposta da SEFAZ.'
+        'retDistDFeInt não encontrado na resposta da SEFAZ.'
       );
     }
 

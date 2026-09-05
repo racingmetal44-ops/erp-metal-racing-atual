@@ -34,13 +34,13 @@ export class NfePreValidationService {
         exigir(
             [11, 14].includes(this.numeros(cliente?.cnpj || cliente?.cpf).length),
             'cliente.documento',
-            'CPF ou CNPJ do destinatério é obrigatório.'
+            'CPF ou CNPJ do destinatário é obrigatório.'
         );
-        exigir(cliente?.nome, 'cliente.nome', 'Nome/razão social do destinatério é obrigatório.');
+        exigir(cliente?.nome, 'cliente.nome', 'Nome/razão social do destinatário é obrigatório.');
         exigir(
             cliente?.uf && (cliente?.codigoIbge || cliente?.codigo_ibge),
             'cliente.endereco',
-            'UF e código IBGE do destinatério são obrigatórios.'
+            'UF e código IBGE do destinatário são obrigatórios.'
         );
 
         if (String(cliente?.indIEDest) === '9') {

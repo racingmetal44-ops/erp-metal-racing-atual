@@ -498,29 +498,29 @@ const NfePage = () => {
                 style={styles.opcaoButton(operacao === 'entrada', 'entrada')}
                 onClick={() => setOperacao('entrada')}
               >
-                <span style={styles.entradaColor}>?? Entrada</span>
+                <span style={styles.entradaColor}>📥 Entrada</span>
                 {operacao === 'entrada' && <span style={styles.checkmark}>?</span>}
               </div>
               <div 
                 style={styles.opcaoButton(operacao === 'saida', 'saida')}
                 onClick={() => setOperacao('saida')}
               >
-                <span style={styles.saidaColor}>?? Saída</span>
+                <span style={styles.saidaColor}>📤 Saída</span>
                 {operacao === 'saida' && <span style={styles.checkmark}>?</span>}
               </div>
             </div>
             <div style={{ marginTop: '8px', fontSize: '13px', color: '#6b7a8a' }}>
               {operacao === 'entrada' ? (
-                <span style={{ color: '#28a745', fontWeight: '600' }}>?? Entrada selecionada</span>
+                <span style={{ color: '#28a745', fontWeight: '600' }}>📥 Entrada selecionada</span>
               ) : (
-                <span style={{ color: '#dc3545', fontWeight: '600' }}>?? Saída selecionada</span>
+                <span style={{ color: '#dc3545', fontWeight: '600' }}>📤 Saída selecionada</span>
               )}
             </div>
           </div>
 
           {/* ASSINATURA DIGITAL */}
           <div style={styles.card}>
-            <h3 style={styles.cardTitle}>?? Assinatura Digital</h3>
+            <h3 style={styles.cardTitle}>🔐 Assinatura Digital</h3>
             <div style={styles.campo}>
               <span style={styles.label}>XML da NF-e:</span>
               <input 
@@ -530,7 +530,7 @@ const NfePage = () => {
                 style={styles.input}
               />
               <button onClick={handleBuscarXML} style={styles.btnSecondary}>
-                ?? Buscar XML
+                🔎 Buscar XML
               </button>
             </div>
             
@@ -541,13 +541,13 @@ const NfePage = () => {
                   style={styles.btnSuccess}
                   disabled={assinando}
                 >
-                  {assinando ? '? Assinando...' : '?? ASSINAR XML'}
+                  {assinando ? '? Assinando...' : '🔐 ASSINAR XML'}
                 </button>
                 <button 
                   onClick={handleAbrirAssinador} 
                   style={styles.btnOutline}
                 >
-                  ?? ABRIR ASSINADOR
+                  🔐 ABRIR ASSINADOR
                 </button>
               </div>
             )}
@@ -562,20 +562,20 @@ const NfePage = () => {
 
           {/* GERAR DANFE */}
           <div style={styles.card}>
-            <h3 style={styles.cardTitle}>?? Gerar DANFE</h3>
+            <h3 style={styles.cardTitle}>📄 Gerar DANFE</h3>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button onClick={handleGerarDanfe} style={styles.btnPrimary}>
-                ?? GERAR DANFE
+                📄 GERAR DANFE
               </button>
               <button onClick={handleVisualizarDanfe} style={styles.btnOutline}>
-                ??? VISUALIZAR DANFE
+                👁️ VISUALIZAR DANFE
               </button>
             </div>
           </div>
 
           {/* HISTéRICO */}
           <div style={styles.card}>
-            <h3 style={styles.cardTitle}>?? NF-e Emitidas</h3>
+            <h3 style={styles.cardTitle}>📋 NF-e Emitidas</h3>
             {emitidas.length === 0 ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: '40px', marginBottom: '8px' }}>??</div>

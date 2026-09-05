@@ -625,8 +625,8 @@ export default function StockPage() {
               className="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:cursor-not-allowed disabled:opacity-60"
             >
               {editingId
-                ? (uploading ? 'Salvando...' : '?? Salvar')
-                : (uploading ? 'Cadastrando...' : '? Cadastrar')}
+                ? (uploading ? 'Salvando...' : '💾 Salvar')
+                : (uploading ? 'Cadastrando...' : '➕ Cadastrar')}
             </button>
             {editingId ? (
               <button

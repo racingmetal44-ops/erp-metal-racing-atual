@@ -700,7 +700,7 @@ export class NfeXmlService {
 
         if (!ufCliente) {
             erros.push(
-                'UF do destinatério não informada.'
+                'UF do destinatário não informada.'
             );
         }
 
@@ -858,7 +858,7 @@ export class NfeXmlService {
                             cfopInterestadual !== '6107'
                         ) {
                             erros.push(
-                                `${identificacao}: para destinatério não contribuinte fora de SC, o CFOP esperado é 6107.`
+                                `${identificacao}: para destinatário não contribuinte fora de SC, o CFOP esperado é 6107.`
                             );
                         }
 
@@ -868,7 +868,7 @@ export class NfeXmlService {
                             cfopInterestadual !== '6101'
                         ) {
                             erros.push(
-                                `${identificacao}: para destinatério contribuinte fora de SC, o CFOP esperado é 6101.`
+                                `${identificacao}: para destinatário contribuinte fora de SC, o CFOP esperado é 6101.`
                             );
                         }
                     }
@@ -945,7 +945,7 @@ export class NfeXmlService {
             documentoDestinatario.length !== 14
         ) {
             throw new Error(
-                'CPF/CNPJ do destinatério inválido.'
+                'CPF/CNPJ do destinatário inválido.'
             );
         }
 

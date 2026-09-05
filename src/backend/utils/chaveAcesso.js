@@ -1,4 +1,4 @@
-﻿// src/backend/utils/chaveAcesso.js
+// src/backend/utils/chaveAcesso.js
 
 export function calcularDigitoVerificador(chave) {
   const numeros = chave.replace(/[^\\d]/g, '').split('').map(Number);

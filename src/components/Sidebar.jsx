@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Package, QrCode, Users, Bell, Trophy } from 'lucide-react';
 
 export default function Sidebar() {

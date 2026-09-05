@@ -42,7 +42,7 @@ export default function NfeFiscalPage() {
   const validarLocal = () => {
     const e = [];
     if (!form.nome || !form.documento) e.push('Preencha nome e CPF/CNPJ do destinatário.');
-    if (!form.ibge) e.push('Informe o código IBGE do destinatério.');
+    if (!form.ibge) e.push('Informe o código IBGE do destinatário.');
     if (!form.descricao || !form.ncm || !form.cfop || !form.csosn) {
       e.push('Complete descrição, NCM, CFOP e CSOSN/CST do item.');
     }
@@ -473,7 +473,7 @@ export default function NfeFiscalPage() {
               <div className="nf-fields">
                 {input('Número reservado *', 'numero', 'Ex.: 18128')}
                 {input('Série *', 'serie')}
-                {input('Código IBGE destinatério *', 'ibge', '4209102')}
+                {input('Código IBGE destinatário *', 'ibge', '4209102')}
                 {input('Nome / razão social *', 'nome', 'Destinatério')}
                 {input('CPF ou CNPJ *', 'documento', '11144477735')}
                 {input('Descrição do item *', 'descricao', 'Produto ou serviço')}

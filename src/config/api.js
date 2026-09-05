@@ -1,4 +1,4 @@
-﻿// Configurações das chaves de API
+// Configurações das chaves de API
 // Substitua os valores abaixo pelas suas chaves reais
 
 export const API_CONFIG = {

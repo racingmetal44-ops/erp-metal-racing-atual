@@ -670,7 +670,7 @@ export default function ProductionBoardPage() {
                   disabled={uploading}
                   className="flex-1 bg-orange-500 px-6 py-3 rounded-xl text-white font-semibold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploading ? '?? Enviando imagem...' : editing ? '?? Atualizar' : '? Cadastrar'}
+                  {uploading ? '?? Enviando imagem...' : editing ? '?? Atualizar' : '➕ Cadastrar'}
                 </button>
                 <button
                   type="button"

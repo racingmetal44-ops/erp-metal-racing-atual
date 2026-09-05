@@ -33,7 +33,7 @@ export const DESCRICOES_EVENTO = {
 };
 
 const X_COND_USO =
-    'O autor deste evento declara ter ciéncia de que a utilização indevida do evento poderé sujeité-lo és sanéées previstas na legislaééo tributária.';
+    'O autor deste evento declara ter ciência de que a utilização indevida do evento poderé sujeité-lo és sanéées previstas na legislaééo tributária.';
 
 function lerEventos() {
     try {
@@ -109,7 +109,7 @@ function validarCnpj(cnpj) {
 
     if (!/^\d{14}$/.test(valor)) {
         throw new Error(
-            'CNPJ do destinatério inválido.'
+            'CNPJ do destinatário inválido.'
         );
     }
 

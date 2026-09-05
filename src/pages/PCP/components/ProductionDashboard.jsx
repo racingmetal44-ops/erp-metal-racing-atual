@@ -511,7 +511,7 @@ export default function ProductionDashboard() {
                   type="submit"
                   className="flex-1 bg-orange-500 px-6 py-3 rounded-xl text-white font-semibold hover:bg-orange-600 transition"
                 >
-                  {editing ? '?? Atualizar' : '? Cadastrar'}
+                  {editing ? '?? Atualizar' : '➕ Cadastrar'}
                 </button>
                 <button
                   type="button"
