@@ -124,3 +124,12 @@ webservices.cjs
 xml-teste-*.txt
 resultado-*.json
 diff-*.txt
+
+# ===== Certificados e segredos =====
+.env
+.env.*
+*.pfx
+*.p12
+certificado-base64.txt
+*.key
+
