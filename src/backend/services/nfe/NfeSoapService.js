@@ -5,10 +5,45 @@ import path from 'path';
 import { XMLParser } from 'fast-xml-parser';
 import CertificateLoader from './CertificateLoader.js';
 import { getEmpresaConfig } from '../../config/sefaz.js';
-import { createRequire } from 'module';
+const webservices = {
+    "42": {
+        "2": {
+            "NfeAutorizacao4": {
+                url: "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+                method: "nfeAutorizacaoLote",
+                version: "4.00"
+            },
+            "NfeRetAutorizacao4": {
+                url: "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+                method: "nfeRetAutorizacaoLote",
+                version: "4.00"
+            },
+            "NfeStatusServico4": {
+                url: "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NFeStatusServico4.asmx",
+                method: "nfeStatusServicoNF",
+                version: "4.00"
+            }
+        },
+        "1": {
+            "NfeAutorizacao4": {
+                url: "https://nfe.fazenda.gov.br/NFeAutorizacao4",
+                method: "nfeAutorizacaoLote",
+                version: "4.00"
+            },
+            "NfeRetAutorizacao4": {
+                url: "https://nfe.fazenda.gov.br/NFeRetAutorizacao4",
+                method: "nfeRetAutorizacaoLote",
+                version: "4.00"
+            },
+            "NfeStatusServico4": {
+                url: "https://nfe.fazenda.gov.br/NFeStatusServico4",
+                method: "nfeStatusServicoNF",
+                version: "4.00"
+            }
+        }
+    }
+};
 
-const require = createRequire(import.meta.url);
-const webservices = require('../../../../webservices.cjs');
 
 class NfeSoapService {
 
@@ -760,6 +795,9 @@ class NfeSoapService {
 }
 
 export default NfeSoapService;
+
+
+
 
 
 
