@@ -1,10 +1,10 @@
-Ôªøimport express from 'express';
+import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
 import { XMLParser } from 'fast-xml-parser';
 
-// Servi√ßos da integra√ß√£o SEFAZ / entrada
+// ServiÁos da integraÁ„o SEFAZ / entrada
 import NfeDistribuicaoService, {
     lerNsu
 } from '../services/nfe/NfeDistribuicaoService.js';
@@ -40,7 +40,7 @@ if (!process.env.VERCEL) {
 }
 
 // =====================================================
-// UTILIT√ÅRIOS
+// UTILIT¡RIOS
 // =====================================================
 
 function getEntradas() {
@@ -87,7 +87,7 @@ const upload = multer({
         } else {
             cb(
                 new Error(
-                    'Somente arquivos XML de NF-e s√£o permitidos.'
+                    'Somente arquivos XML de NF-e s„o permitidos.'
                 )
             );
         }
@@ -131,7 +131,7 @@ function validarChaveNFe(chave) {
 
     if (!/^\d{44}$/.test(chave)) {
         throw new Error(
-            `Chave de acesso inv√°lida. A NF-e deve possuir 44 d√≠gitos. Chave recebida: ${chave}`
+            `Chave de acesso inv·lida. A NF-e deve possuir 44 dÌgitos. Chave recebida: ${chave}`
         );
     }
 
@@ -166,7 +166,7 @@ function validarChaveNFe(chave) {
 
     if (calculado !== informado) {
         throw new Error(
-            `D√≠gito verificador da chave inv√°lido. Informado: ${informado}; calculado: ${calculado}.`
+            `DÌgito verificador da chave inv·lido. Informado: ${informado}; calculado: ${calculado}.`
         );
     }
 
@@ -174,7 +174,7 @@ function validarChaveNFe(chave) {
 }
 
 // =====================================================
-// VALIDA√á√ïES XML
+// VALIDA«’ES XML
 // =====================================================
 
 function validarTextoXml(valor, campo) {
@@ -182,8 +182,8 @@ function validarTextoXml(valor, campo) {
     const textoValor = texto(valor);
 
     if (
-        textoValor.includes('ÔøΩ') ||
-        textoValor.includes('√Ø¬ø¬Ω')
+        textoValor.includes('?') ||
+        textoValor.includes('ÔøΩ')
     ) {
         throw new Error(
             `Texto corrompido no XML no campo ${campo}: "${textoValor}"`
@@ -233,7 +233,7 @@ function validarProdutoXml(produto) {
 }
 
 // =====================================================
-// EMPRESA / CONFIGURA√á√ÉO FISCAL
+// EMPRESA / CONFIGURA«√O FISCAL
 // =====================================================
 
 function obterEmpresa(empresaId) {
@@ -247,7 +247,7 @@ function obterEmpresa(empresaId) {
 
     if (!fs.existsSync(arquivoEmpresas)) {
         throw new Error(
-            'Arquivo de empresas n√£o encontrado.'
+            'Arquivo de empresas n„o encontrado.'
         );
     }
 
@@ -275,7 +275,7 @@ function obterEmpresa(empresaId) {
 
     if (!empresa) {
         throw new Error(
-            `Empresa ${empresaId} n√£o encontrada.`
+            `Empresa ${empresaId} n„o encontrada.`
         );
     }
 
@@ -314,7 +314,7 @@ function obterConfigEmpresa(empresaId) {
 }
 
 // =====================================================
-// VALIDA√á√ÉO DA NF-e
+// VALIDA«√O DA NF-e
 // =====================================================
 
 function validarEntradaNFe(
@@ -343,7 +343,7 @@ function validarEntradaNFe(
 
     if (!cnpjDestinatario) {
         throw new Error(
-            'O XML n√£o possui CNPJ do destinat√°rio.'
+            'O XML n„o possui CNPJ do destinat·rio.'
         );
     }
 
@@ -417,7 +417,7 @@ function extrairXmlNfe(xml) {
 
     if (!nfe) {
         throw new Error(
-            'XML n√£o cont√©m uma NF-e v√°lida.'
+            'XML n„o contÈm uma NF-e v·lida.'
         );
     }
 
@@ -426,7 +426,7 @@ function extrairXmlNfe(xml) {
 
     if (!infNFe) {
         throw new Error(
-            'Elemento infNFe n√£o encontrado no XML.'
+            'Elemento infNFe n„o encontrado no XML.'
         );
     }
 
@@ -1261,7 +1261,7 @@ function extrairXmlNfe(xml) {
         },
 
         // =================================================
-        // DESTINAT√ÅRIO
+        // DESTINAT¡RIO
         // =================================================
 
         destinatario: {
@@ -1702,7 +1702,7 @@ function extrairXmlNfe(xml) {
         },
 
         // =================================================
-        // INFORMA√á√ïES ADICIONAIS
+        // INFORMA«’ES ADICIONAIS
         // =================================================
 
         informacoesAdicionais: {
@@ -1795,7 +1795,7 @@ function extrairXmlNfe(xml) {
         },
 
         // =================================================
-        // EXPORTA√á√ÉO
+        // EXPORTA«√O
         // =================================================
 
         exportacao: {
@@ -1828,12 +1828,11 @@ function extrairXmlNfe(xml) {
 // GET /
 // =====================================================
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
 
     try {
 
-        const entradas =
-            getEntradas();
+        const entradas = await getEntradasService();
 
         res.json({
 
@@ -1883,7 +1882,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Arquivo XML n√£o enviado.'
+                        'Arquivo XML n„o enviado.'
                 });
             }
 
@@ -1907,12 +1906,11 @@ router.post(
             if (!nfe.chave) {
 
                 throw new Error(
-                    'N√£o foi poss√≠vel identificar a chave de acesso da NF-e.'
+                    'N„o foi possÌvel identificar a chave de acesso da NF-e.'
                 );
             }
 
-            const entradas =
-                getEntradas();
+            const entradas = getEntradas();
 
             const duplicada =
                 entradas.find(
@@ -1928,7 +1926,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Esta NF-e j√° foi importada.',
+                        'Esta NF-e j· foi importada.',
 
                     entrada:
                         duplicada
@@ -2139,7 +2137,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Empresa n√£o informada.'
+                        'Empresa n„o informada.'
                 });
             }
 
@@ -2150,7 +2148,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Fornecedor n√£o informado.'
+                        'Fornecedor n„o informado.'
                 });
             }
 
@@ -2161,7 +2159,7 @@ router.post(
                     success: false,
 
                     error:
-                        'N√∫mero da NF-e n√£o informado.'
+                        'N˙mero da NF-e n„o informado.'
                 });
             }
 
@@ -2180,8 +2178,7 @@ router.post(
                 });
             }
 
-            const entradas =
-                getEntradas();
+            const entradas = getEntradas();
 
             if (chave) {
 
@@ -2199,7 +2196,7 @@ router.post(
                         success: false,
 
                         error:
-                            'Esta chave de NF-e j√° est√° cadastrada.',
+                            'Esta chave de NF-e j· est· cadastrada.',
 
                         entrada:
                             duplicada
@@ -2413,7 +2410,7 @@ router.post(
                 success: true,
 
                 message:
-                    'Entrada manual cadastrada para confer√™ncia.',
+                    'Entrada manual cadastrada para conferÍncia.',
 
                 entrada
             });
@@ -2460,7 +2457,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Empresa n√£o informada.'
+                        'Empresa n„o informada.'
                 });
             }
 
@@ -2479,7 +2476,7 @@ router.post(
                     success: false,
 
                     error:
-                        `Empresa sem CNPJ v√°lido configurado (${config.cnpj || 'vazio'}).`
+                        `Empresa sem CNPJ v·lido configurado (${config.cnpj || 'vazio'}).`
                 });
             }
 
@@ -2566,8 +2563,7 @@ router.post(
                 resultado.documentos?.length
             ) {
 
-                const entradas =
-                    getEntradas();
+                const entradas = getEntradas();
 
                 for (
                     const doc
@@ -2610,7 +2606,7 @@ router.post(
                         }
 
                         // =================================
-                        // VALIDAR DESTINAT√ÅRIO
+                        // VALIDAR DESTINAT¡RIO
                         // =================================
 
                         try {
@@ -2777,7 +2773,7 @@ router.post(
 
                                 ? `${resultado.documentos.length} documento(s) recebido(s); ${novasEntradas} nova(s) NF-e importada(s).`
 
-                                : 'Nenhum documento novo destinado √† empresa.'
+                                : 'Nenhum documento novo destinado ‡ empresa.'
                         )
 
                         : (
@@ -2805,7 +2801,7 @@ router.post(
 );
 
 // =====================================================
-// STATUS DA DISTRIBUI√á√ÉO
+// STATUS DA DISTRIBUI«√O
 // GET /distribuicao?empresaId=1
 // =====================================================
 
@@ -2826,7 +2822,7 @@ router.get(
                     success: false,
 
                     error:
-                        'empresaId √© obrigat√≥rio.'
+                        'empresaId È obrigatÛrio.'
                 });
             }
 
@@ -2879,7 +2875,7 @@ router.get(
 );
 
 // =====================================================
-// NF-e PENDENTES DE CONFER√äNCIA
+// NF-e PENDENTES DE CONFER NCIA
 // GET /pendentes?empresaId=1
 // =====================================================
 
@@ -2974,7 +2970,7 @@ router.get(
                     success: false,
 
                     error:
-                        'Entrada n√£o encontrada.'
+                        'Entrada n„o encontrada.'
                 });
             }
 
@@ -2999,7 +2995,7 @@ router.get(
 );
 
 // =====================================================
-// MANIFESTA√á√ÉO DO DESTINAT√ÅRIO
+// MANIFESTA«√O DO DESTINAT¡RIO
 // POST /:id/manifestar
 // =====================================================
 
@@ -3034,7 +3030,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Entrada n√£o encontrada.'
+                        'Entrada n„o encontrada.'
                 });
             }
 
@@ -3045,7 +3041,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Esta entrada n√£o possui chave de acesso (entrada manual sem chave).'
+                        'Esta entrada n„o possui chave de acesso (entrada manual sem chave).'
                 });
             }
 
@@ -3060,7 +3056,7 @@ router.post(
                     success: false,
 
                     error:
-                        `tipoEvento inv√°lido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} (210200=Confirma√ß√£o, 210210=Ci√™ncia, 210220=Desconhecimento, 210240=N√£o Realizada).`
+                        `tipoEvento inv·lido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} (210200=ConfirmaÁ„o, 210210=CiÍncia, 210220=Desconhecimento, 210240=N„o Realizada).`
                 });
             }
 
@@ -3095,8 +3091,7 @@ router.post(
                     justificativa
                 });
 
-            const entradas =
-                getEntradas();
+            const entradas = getEntradas();
 
             const index =
                 entradas.findIndex(
@@ -3161,11 +3156,11 @@ router.post(
                 message:
                     resultado.success
 
-                        ? `Manifesta√ß√£o enviada: ${DESCRICOES_EVENTO[tipoEvento]}.`
+                        ? `ManifestaÁ„o enviada: ${DESCRICOES_EVENTO[tipoEvento]}.`
 
                         : (
                             resultado.xMotivo ||
-                            'SEFAZ n√£o vinculou o evento.'
+                            'SEFAZ n„o vinculou o evento.'
                         )
             });
 
@@ -3217,7 +3212,7 @@ router.get(
                     success: false,
 
                     error:
-                        'Entrada n√£o encontrada.'
+                        'Entrada n„o encontrada.'
                 });
             }
 
@@ -3270,7 +3265,7 @@ router.get(
                 success: false,
 
                 error:
-                    'XML n√£o dispon√≠vel para esta entrada.'
+                    'XML n„o disponÌvel para esta entrada.'
             });
 
         } catch (error) {
@@ -3288,7 +3283,7 @@ router.get(
 
 // =====================================================
 // CONFIRMAR ENTRADA
-// Estoque + manifesta√ß√£o 210200
+// Estoque + manifestaÁ„o 210200
 // =====================================================
 
 router.post(
@@ -3302,8 +3297,7 @@ router.post(
                     req.params.id
                 );
 
-            const entradas =
-                getEntradas();
+            const entradas = getEntradas();
 
             const index =
                 entradas.findIndex(
@@ -3319,7 +3313,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Entrada n√£o encontrada.'
+                        'Entrada n„o encontrada.'
                 });
             }
 
@@ -3336,7 +3330,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Esta NF-e j√° possui entrada de estoque.'
+                        'Esta NF-e j· possui entrada de estoque.'
                 });
             }
 
@@ -3358,7 +3352,7 @@ router.post(
                     success: false,
 
                     error:
-                        'A quantidade de itens enviados n√£o corresponde √† quantidade de itens da NF-e.'
+                        'A quantidade de itens enviados n„o corresponde ‡ quantidade de itens da NF-e.'
                 });
             }
 
@@ -3395,7 +3389,7 @@ router.post(
             );
 
             // =============================================
-            // CONFIRMA√á√ÉO SEFAZ
+            // CONFIRMA«√O SEFAZ
             // 210200
             // =============================================
 
@@ -3484,7 +3478,7 @@ router.post(
                             '210200',
 
                         descricao:
-                            'Confirma√ß√£o da Opera√ß√£o',
+                            'ConfirmaÁ„o da OperaÁ„o',
 
                         success:
                             Boolean(
@@ -3517,7 +3511,7 @@ router.post(
                 } catch (error) {
 
                     console.error(
-                        '[ENTRADA] Erro ao enviar confirma√ß√£o para SEFAZ:',
+                        '[ENTRADA] Erro ao enviar confirmaÁ„o para SEFAZ:',
                         error
                     );
 
@@ -3544,7 +3538,7 @@ router.post(
                             '210200',
 
                         descricao:
-                            'Confirma√ß√£o da Opera√ß√£o',
+                            'ConfirmaÁ„o da OperaÁ„o',
 
                         success: false,
 
@@ -3578,7 +3572,7 @@ router.post(
                     cStat: null,
 
                     xMotivo:
-                        'Entrada sem chave de acesso. A confirma√ß√£o n√£o foi enviada √† SEFAZ.',
+                        'Entrada sem chave de acesso. A confirmaÁ„o n„o foi enviada ‡ SEFAZ.',
 
                     protocolo: null,
 
@@ -3593,14 +3587,14 @@ router.post(
             const mensagem =
                 sefaz.success
 
-                    ? 'Entrada realizada com sucesso. Estoque atualizado. Confirma√ß√£o da Opera√ß√£o aceita pela SEFAZ.'
+                    ? 'Entrada realizada com sucesso. Estoque atualizado. ConfirmaÁ„o da OperaÁ„o aceita pela SEFAZ.'
 
                     : (
                         sefaz.enviada
 
-                            ? 'Entrada realizada com sucesso. Estoque atualizado, mas a Confirma√ß√£o da Opera√ß√£o n√£o foi aceita pela SEFAZ.'
+                            ? 'Entrada realizada com sucesso. Estoque atualizado, mas a ConfirmaÁ„o da OperaÁ„o n„o foi aceita pela SEFAZ.'
 
-                            : 'Entrada realizada com sucesso. Estoque atualizado. N√£o foi enviada manifesta√ß√£o √† SEFAZ porque esta entrada n√£o possui chave de acesso.'
+                            : 'Entrada realizada com sucesso. Estoque atualizado. N„o foi enviada manifestaÁ„o ‡ SEFAZ porque esta entrada n„o possui chave de acesso.'
                     );
 
             res.json({
@@ -3641,3 +3635,5 @@ router.post(
 // =====================================================
 
 export default router;
+
+
