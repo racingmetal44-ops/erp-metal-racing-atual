@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 
 const regimeOptions = [
   { value: '1', label: 'Simples Nacional' },
-  { value: '2', label: 'Simples Nacional  excesso de sublimite' },
+  { value: '2', label: 'Simples Nacional - excesso de sublimite' },
   { value: '3', label: 'Regime Normal' },
 ];
 
@@ -124,16 +124,16 @@ function getStatusLabel(value) {
   if (!value) return 'No informado';
   const labels = {
     '1': 'Simples Nacional',
-    '2': 'Simples Nacional  excesso de sublimite',
+    '2': 'Simples Nacional - excesso de sublimite',
     '3': 'Regime Normal',
-    homologacao: 'Homologao',
-    producao: 'Produo',
+    homologacao: 'Homologação',
+    producao: 'Produção',
     normal: 'Normal',
     complementar: 'Complementar',
     ajuste: 'Ajuste',
-    devolucao: 'Devoluo',
+    devolucao: 'Devolução',
     tipo_emissao_normal: 'Normal',
-    tipo_emissao_contingencia: 'Contingncia',
+    tipo_emissao_contingencia: 'Contingência',
   };
   return labels[value] || value;
 }
@@ -141,19 +141,19 @@ function getStatusLabel(value) {
 function getCompanyChecklist(company) {
   return [
     { label: 'Dados da empresa', ok: Boolean(company.name && company.razao_social) },
-    { label: 'CNPJ vlido', ok: !company.cnpj || isValidCNPJ(company.cnpj) },
-    { label: 'Inscrio estadual', ok: Boolean(company.inscricao_estadual) },
-    { label: 'Regime tributrio', ok: Boolean(company.regime_tributario) },
-    { label: 'Cdigo IBGE', ok: Boolean(company.codigo_ibge) },
+    { label: 'CNPJ válido', ok: !company.cnpj || isValidCNPJ(company.cnpj) },
+    { label: 'Inscrição estadual', ok: Boolean(company.inscricao_estadual) },
+    { label: 'Regime tributário', ok: Boolean(company.regime_tributario) },
+    { label: 'Código IBGE', ok: Boolean(company.codigo_ibge) },
     { label: 'Certificado digital', ok: Boolean(company.certificado_disponivel) },
     { label: 'Certificado dentro da validade', ok: Boolean(company.certificado_valido) },
-    { label: 'Senha vlida', ok: Boolean(company.senha_valida) },
+    { label: 'Senha válida', ok: Boolean(company.senha_valida) },
     { label: 'Ambiente configurado', ok: Boolean(company.ambiente_nf) },
-    { label: 'Srie configurada', ok: Boolean(company.serie_nfe) },
-    { label: 'Numerao configurada', ok: Boolean(company.proximo_numero_nf) },
+    { label: 'Série configurada', ok: Boolean(company.serie_nfe) },
+    { label: 'Numeração configurada', ok: Boolean(company.proximo_numero_nf) },
     { label: 'UF da SEFAZ', ok: Boolean(company.uf_sefaz || company.sefaz_uf) },
-    { label: 'Configurao fiscal', ok: Boolean(company.cfop || company.ncm || company.icms) },
-    { label: 'Comunicao com SEFAZ', ok: Boolean(company.sefaz_configurada) },
+    { label: 'Configuração fiscal', ok: Boolean(company.cfop || company.ncm || company.icms) },
+    { label: 'Comunicação com SEFAZ', ok: Boolean(company.sefaz_configurada) },
   ];
 }
 
@@ -304,7 +304,7 @@ export default function CompaniesPage() {
         }
       } catch (backendError) {
         console.warn(
-          'Backend de empresas no disponvel:',
+          'Backend de empresas não disponível:',
           backendError
         );
       }
@@ -384,14 +384,14 @@ export default function CompaniesPage() {
     setMessage('');
 
     if (!form.name || !form.name.trim()) {
-      setMessage('a Preencha o nome da empresa.');
+      setMessage('Preencha o nome da empresa.');
       return;
     }
 
     const cnpjValue = onlyDigits(form.cnpj || '');
     if (form.cnpj && form.cnpj.trim()) {
       if (!isValidCNPJ(form.cnpj)) {
-        setMessage('a CNPJ invlido. Verifique o nmero digitado.');
+        setMessage('CNPJ inválido. Verifique o número digitado.');
         return;
       }
     }
@@ -399,7 +399,7 @@ export default function CompaniesPage() {
     if (form.cep && form.cep.trim()) {
       const cepDigits = onlyDigits(form.cep || '');
       if (cepDigits.length !== 8) {
-        setMessage('a CEP invlido. Deve conter 8 dgitos.');
+        setMessage('CEP inválido. Deve conter 8 dígitos.');
         return;
       }
     }
@@ -412,18 +412,18 @@ export default function CompaniesPage() {
         const { error } = await supabase.from('companies').update(payload).eq('id', editingId);
         if (error) {
           console.error('Erro ao atualizar empresa:', error);
-          setMessage('No foi possvel salvar a empresa. Verifique os dados e tente novamente.');
+          setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('S& Empresa atualizada com sucesso.');
+        setMessage('Empresa atualizada com sucesso.');
       } else {
         const { error } = await supabase.from('companies').insert(payload);
         if (error) {
           console.error('Erro ao criar empresa:', error);
-          setMessage('No foi possvel salvar a empresa. Verifique os dados e tente novamente.');
+          setMessage('Não foi possível salvar a empresa. Verifique os dados e tente novamente.');
           return;
         }
-        setMessage('S& Empresa criada com sucesso.');
+        setMessage('Empresa criada com sucesso.');
       }
 
       setTimeout(() => {
@@ -570,14 +570,14 @@ export default function CompaniesPage() {
       const json = await response.json().catch(() => null);
       if (!response.ok) {
         console.error('Erro no upload do certificado:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel enviar o certificado digital.');
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível enviar o certificado digital.');
         return;
       }
       setMessage('Certificado digital enviado com sucesso.');
       await loadCertificateMeta(editingId);
     } catch (error) {
       console.error('Erro ao enviar certificado:', error);
-      setMessage('No foi possvel enviar o certificado. Verifique o arquivo e tente novamente.');
+      setMessage('Não foi possível enviar o certificado. Verifique o arquivo e tente novamente.');
     }
   }
 
@@ -596,13 +596,13 @@ export default function CompaniesPage() {
       const json = await response.json().catch(() => null);
       if (!response.ok) {
         console.error('Erro ao testar certificado:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel testar o certificado digital.');
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível testar o certificado digital.');
         return;
       }
-      setMessage(json && json.valido ? 'xx CERTIFICADO VLIDO' : 'x CERTIFICADO INVLIDO');
+      setMessage(json && json.valido ? 'CERTIFICADO VÁLIDO' : 'CERTIFICADO INVÁLIDO');
     } catch (error) {
       console.error('Erro ao testar certificado:', error);
-      setMessage('No foi possvel testar o certificado. Verifique o arquivo e tente novamente.');
+      setMessage('Não foi possível testar o certificado. Verifique o arquivo e tente novamente.');
     }
   }
 
@@ -621,14 +621,14 @@ export default function CompaniesPage() {
       });
       const json = await response.json().catch(() => null);
       if (!response.ok) {
-        console.error('Erro ao testar conexo com a SEFAZ:', json);
-        setMessage((json && (json.mensagem || json.error || json.message)) || 'No foi possvel conectar  SEFAZ.');
+        console.error('Erro ao testar conexão com a SEFAZ:', json);
+        setMessage((json && (json.mensagem || json.error || json.message)) || 'Não foi possível conectar à SEFAZ.');
         return;
       }
-      setMessage(json?.mensagem || 'xx Comunicao com a SEFAZ realizada com sucesso.');
+      setMessage(json?.mensagem || 'Comunicação com a SEFAZ realizada com sucesso.');
     } catch (error) {
-      console.error('Erro ao testar conexo com a SEFAZ:', error);
-      setMessage('No foi possvel conectar  SEFAZ. Verifique a configurao e tente novamente.');
+      console.error('Erro ao testar conexão com a SEFAZ:', error);
+      setMessage('Não foi possível conectar à SEFAZ. Verifique a configuração e tente novamente.');
     }
   }
 
@@ -637,32 +637,32 @@ export default function CompaniesPage() {
     return [company.name, company.document, company.razao_social, company.cnpj].join(' ').toLowerCase().includes(term);
   });
 
-  const cnpjState = form.cnpj ? (isValidCNPJ(form.cnpj) ? 'S CNPJ vlido.' : 'a CNPJ invlido.') : '';
-  const cepState = form.cep ? (onlyDigits(form.cep).length === 8 ? 'S CEP vlido.' : 'a CEP invlido.') : '';
+  const cnpjState = form.cnpj ? (isValidCNPJ(form.cnpj) ? 'CNPJ válido.' : 'CNPJ inválido.') : '';
+  const cepState = form.cep ? (onlyDigits(form.cep).length === 8 ? 'CEP válido.' : 'CEP inválido.') : '';
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Empresas</p>
         <h1 className="mt-2 text-3xl font-semibold">Empresas</h1>
-        <p className="mt-2 text-sm text-slate-400">Central de cadastro, certificado digital e configurao fiscal.</p>
+        <p className="mt-2 text-sm text-slate-400">Central de cadastro, certificado digital e configuração fiscal.</p>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Status</p>
-            <p className="mt-2 font-semibold text-white">{companySummary >= 10 ? 'xx Cadastro completo' : 'xx Configurao incompleta'}</p>
+            <p className="mt-2 font-semibold text-white">{companySummary >= 10 ? 'Cadastro completo' : 'Configuração incompleta'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Certificado</p>
-            <p className="mt-2 font-semibold text-white">{certificateMeta ? 'xx Vlido' : 'a No enviado'}</p>
+            <p className="mt-2 font-semibold text-white">{certificateMeta ? 'Válido' : 'Não enviado'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">NF-e</p>
-            <p className="mt-2 font-semibold text-white">{form.serie_nfe ? 'x Configurada' : 'a Pendente'}</p>
+            <p className="mt-2 font-semibold text-white">{form.serie_nfe ? 'Configurada' : 'Pendente'}</p>
           </div>
           <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs uppercase tracking-wide text-slate-400">Ambiente</p>
-            <p className="mt-2 font-semibold text-white">{form.ambiente_nf === 'producao' ? 'x Produo' : 'xx Homologao'}</p>
+            <p className="mt-2 font-semibold text-white">{form.ambiente_nf === 'producao' ? 'Produção' : 'Homologação'}</p>
           </div>
         </div>
       </div>
@@ -670,7 +670,7 @@ export default function CompaniesPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{editingId ? 'Editar empresa' : 'Nova empresa'}</h2>
-          {editingId ? <span className="text-xs text-orange-300">Empresa em edio</span> : null}
+          {editingId ? <span className="text-xs text-orange-300">Empresa em edição</span> : null}
         </div>
         {message ? <p className="mt-3 text-sm text-slate-300">{message}</p> : null}
 
@@ -801,7 +801,7 @@ export default function CompaniesPage() {
               </div>
               <div className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3">
                 <p className="text-xs text-slate-400">Status</p>
-                <p className="mt-1 text-sm text-emerald-300">{certificateMeta ? 'xx Certificado vlido' : 'a No enviado'}</p>
+                <p className="mt-1 text-sm text-emerald-300">{certificateMeta ? 'Certificado válido' : 'Não enviado'}</p>
               </div>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -845,17 +845,17 @@ export default function CompaniesPage() {
               {companyChecklist.map((item, index) => (
                 <div key={item.label} className="flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/40 px-3 py-2 text-sm">
                   <span className="text-slate-300">{index + 1}. {item.label}</span>
-                  <span className={item.ok ? 'text-emerald-300' : 'text-amber-300'}>{item.ok ? 'S' : '"'}</span>
+                  <span className={item.ok ? 'text-emerald-300' : 'text-amber-300'}>{item.ok ? 'OK' : 'Pendente'}</span>
                 </div>
               ))}
             </div>
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-sm">
-              {companySummary >= 10 ? 'xx EMPRESA PRONTA PARA HOMOLOGA!O' : companySummary >= 6 ? 'xx CONFIGURA!O INCOMPLETA' : 'x EMPRESA NO EST PRONTA PARA FATURAR'}
+              {companySummary >= 10 ? 'EMPRESA PRONTA PARA HOMOLOGAÇÃO' : companySummary >= 6 ? 'CONFIGURAÇÃO INCOMPLETA' : 'EMPRESA NÃO ESTÁ PRONTA PARA FATURAR'}
             </div>
           </section>
 
           <div className="flex flex-wrap gap-3 pt-2">
-            <button type="submit" className="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white">{editingId ? 'Salvar alteraes' : 'Cadastrar empresa'}</button>
+            <button type="submit" className="rounded-xl bg-orange-500 px-5 py-3 font-semibold text-white">{editingId ? 'Salvar alterações' : 'Cadastrar empresa'}</button>
             {editingId ? <button type="button" onClick={() => { setEditingId(null); setForm(emptyForm); setCertificateMeta(null); }} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300">Cancelar</button> : null}
           </div>
         </form>
@@ -873,15 +873,15 @@ export default function CompaniesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-lg font-semibold text-white">{company.name}</h3>
-                    <p className="mt-2 text-sm text-slate-400">{company.cnpj ? formatCNPJ(company.cnpj) : company.document || 'CNPJ no informado'}</p>
+                    <p className="mt-2 text-sm text-slate-400">{company.cnpj ? formatCNPJ(company.cnpj) : company.document || 'CNPJ não informado'}</p>
                   </div>
                   <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${company.status === 'inativo' ? 'bg-slate-700 text-slate-300' : 'bg-emerald-500/15 text-emerald-300'}`}>
                     {company.status === 'inativo' ? 'Inativo' : 'Ativo'}
                   </span>
                 </div>
                 <div className="mt-3 space-y-2 text-xs text-slate-300">
-                  <p>Ambiente: {company.ambiente_nf === 'producao' ? 'Produo' : 'Homologao'}</p>
-                  <p>Certificado: {company.cnpj ? 'xx Vlido' : 'a Pendente'}</p>
+                  <p>Ambiente: {company.ambiente_nf === 'producao' ? 'Produção' : 'Homologação'}</p>
+                  <p>Certificado: {company.cnpj ? 'Válido' : 'Pendente'}</p>
                   <p>Status: {company.status === 'inativo' ? 'Inativo' : 'Pronto'}</p>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">

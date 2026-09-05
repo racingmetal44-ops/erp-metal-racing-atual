@@ -1,4 +1,4 @@
-﻿// src/components/fiscal/NFEmitir.jsx
+// src/components/fiscal/NFEmitir.jsx
 import React, { useState } from 'react';
 
 export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
@@ -53,13 +53,13 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
 
             {erro && (
                 <div className="p-3 bg-red-900/50 text-red-300 rounded">
-                    ❌ {erro}
+                    {erro}
                 </div>
             )}
 
             {resultado && (
                 <div className="p-3 bg-green-900/50 text-green-300 rounded">
-                    <h4 className="font-semibold">✅ NF-e emitida!</h4>
+                    <h4 className="font-semibold">NF-e emitida!</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm mt-2">
                         <span className="text-gray-400">Número:</span>
                         <span className="text-white">{resultado.numero}</span>
@@ -85,7 +85,7 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
                             }}
                             className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm"
                         >
-                            📥 Baixar XML
+                            Baixar XML
                         </button>
                         <button
                             onClick={() => {
@@ -93,7 +93,7 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
                             }}
                             className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-white text-sm"
                         >
-                            🖨️ Imprimir DANFE
+                            Imprimir DANFE
                         </button>
                     </div>
                 </div>
@@ -105,7 +105,7 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
                 className={'w-full py-3 rounded text-white font-semibold transition ' +
                     (loading ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700')}
             >
-                {loading ? '⏳ Emitindo...' : '📄 Emitir NF-e'}
+                {loading ? 'Emitindo...' : 'Emitir NF-e'}
             </button>
         </div>
     );

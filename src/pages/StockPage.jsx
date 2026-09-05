@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Image as ImageIcon,
   Trash2,
@@ -57,7 +57,7 @@ export default function StockPage() {
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
   // =============================================
-  // VALIDAÇÃO DE DUPLICIDADE (FUNCIONANDO)
+  // VALIDAééO DE DUPLICIDADE (FUNCIONANDO)
   // =============================================
   async function verificarDuplicado() {
     const nome = form.name?.trim();
@@ -71,7 +71,7 @@ export default function StockPage() {
         .select('id, name, sku')
         .or(`name.ilike.${nome},sku.ilike.${sku}`);
 
-      // Se estiver editando, excluir o próprio produto
+      // Se estiver editando, excluir o préprio produto
       if (editingId) {
         query = query.neq('id', editingId);
       }
@@ -104,7 +104,7 @@ export default function StockPage() {
         if (encontrados.length > 0) {
           return {
             duplicado: true,
-            mensagem: `❌ Já existe: ${encontrados.join(', ')}`
+            mensagem: `Já existe: ${encontrados.join(', ')}`
           };
         }
       }
@@ -274,22 +274,22 @@ export default function StockPage() {
   }
 
   // =============================================
-  // HANDLE SUBMIT COM VALIDAÇÃO
+  // HANDLE SUBMIT COM VALIDAééO
   // =============================================
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage('');
     setUploading(true);
 
-    // VALIDAÇÃO BÁSICA
+    // VALIDAééO BéSICA
     if (!form.name?.trim()) {
-      setMessage('❌ Nome do produto é obrigatório!');
+      setMessage('? Nome do produto é obrigatório!');
       setUploading(false);
       return;
     }
 
     if (!form.sku?.trim()) {
-      setMessage('❌ SKU é obrigatório!');
+      setMessage('? SKU é obrigatório!');
       setUploading(false);
       return;
     }
@@ -306,7 +306,7 @@ export default function StockPage() {
     }
 
     if (validacao.erro) {
-      setMessage(`⚠️ Erro na validação: ${validacao.erro}`);
+      setMessage(`Erro na validação: ${validacao.erro}`);
       setUploading(false);
       return;
     }
@@ -334,7 +334,7 @@ export default function StockPage() {
 
         if (error) throw error;
         if (pendingFiles.length) await uploadProductFiles(editingId);
-        setMessage('✅ Produto atualizado com sucesso.');
+        setMessage('? Produto atualizado com sucesso.');
       } else {
         const { data: insertedProduct, error } = await supabase
           .from('products')
@@ -346,14 +346,14 @@ export default function StockPage() {
         if (pendingFiles.length && insertedProduct) {
           await uploadProductFiles(insertedProduct.id);
         }
-        setMessage('✅ Produto criado com sucesso.');
+        setMessage('? Produto criado com sucesso.');
       }
 
       resetForm();
       setSearch('');
       await loadProducts();
     } catch (error) {
-      setMessage(`❌ ${error.message || 'Falha ao salvar o produto.'}`);
+      setMessage(`? ${error.message || 'Falha ao salvar o produto.'}`);
     } finally {
       setUploading(false);
     }
@@ -383,10 +383,10 @@ export default function StockPage() {
       await supabase.from('product_files').delete().eq('product_id', id);
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) throw error;
-      setMessage('🗑️ Produto removido com sucesso.');
+      setMessage('??? Produto removido com sucesso.');
       await loadProducts();
     } catch (error) {
-      setMessage(`❌ ${error.message || 'Falha ao remover o produto.'}`);
+      setMessage(`? ${error.message || 'Falha ao remover o produto.'}`);
     }
   }
 
@@ -462,7 +462,7 @@ export default function StockPage() {
       if (error || !data) {
         setBipeProduct(null);
         setBipeStatus('nao-encontrado');
-        setMessage('🔵 Produto não encontrado!');
+        setMessage('Produto não encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
       }
@@ -482,7 +482,7 @@ export default function StockPage() {
     } catch (error) {
       setBipeLoading(false);
       setBipeStatus('nao-encontrado');
-      setMessage(`❌ Erro: ${error.message}`);
+      setMessage(`? Erro: ${error.message}`);
     }
   }
 
@@ -503,10 +503,10 @@ export default function StockPage() {
 
       if (operacao === 'adicionar') {
         setBipeStatus('entrada');
-        setMessage(`🟢 ENTRADA: ${bipeProduct.name} +1 (Total: ${novaQuantidade})`);
+        setMessage(`?? ENTRADA: ${bipeProduct.name} +1 (Total: ${novaQuantidade})`);
       } else {
         setBipeStatus('saida');
-        setMessage(`🔴 SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`);
+        setMessage(`?? SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`);
       }
 
       setTimeout(() => {
@@ -520,7 +520,7 @@ export default function StockPage() {
       
       await loadProducts();
     } catch (error) {
-      setMessage(`❌ Erro ao atualizar: ${error.message}`);
+      setMessage(`? Erro ao atualizar: ${error.message}`);
     }
   }
 
@@ -570,7 +570,7 @@ export default function StockPage() {
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">📡 Estoque</h1>
+        <h1 className="mt-2 text-3xl font-semibold">?? Estoque</h1>
         <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com integração real ao Supabase.</p>
       </div>
 
@@ -581,11 +581,11 @@ export default function StockPage() {
           <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do Mínimo</span></div>
+          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do Ménimo</span></div>
           <p className="mt-1 text-2xl font-bold text-rose-400">{stats.baixo}</p>
         </div>
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do Máximo</span></div>
+          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do Méximo</span></div>
           <p className="mt-1 text-2xl font-bold text-amber-400">{stats.alto}</p>
         </div>
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
@@ -594,10 +594,10 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* FORMULÁRIO */}
+      {/* FORMULéRIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{editingId ? '✏️ Editar produto' : '📦 Novo produto'}</h2>
+          <h2 className="text-lg font-semibold">{editingId ? '?? Editar produto' : '?? Novo produto'}</h2>
           {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar edição</button>}
         </div>
 
@@ -608,17 +608,17 @@ export default function StockPage() {
 
           <div className="md:col-span-2 xl:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border border-slate-700 bg-slate-950/50">
-              <p className="col-span-full text-sm font-semibold text-slate-300 mb-1">📊 Controle de Estoque</p>
+              <p className="col-span-full text-sm font-semibold text-slate-300 mb-1">?? Controle de Estoque</p>
               <div>
                 <label className="text-xs text-slate-400">Quantidade atual</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="0" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque mínimo</label>
+                <label className="text-xs text-slate-400">Estoque ménimo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="5" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque máximo</label>
+                <label className="text-xs text-slate-400">Estoque méximo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="20" value={form.max_stock} onChange={(e) => setForm({ ...form, max_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
             </div>
@@ -632,7 +632,7 @@ export default function StockPage() {
           </select>
 
           <div className="md:col-span-2 xl:col-span-3">
-            <label className="mb-2 block text-sm text-slate-400">📸 Fotos do produto</label>
+            <label className="mb-2 block text-sm text-slate-400">?? Fotos do produto</label>
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 hover:border-orange-500 transition">
               <Upload size={16} /> Selecionar imagens
               <input type="file" accept="image/*" multiple className="hidden" onChange={handleFilesChange} />
@@ -662,7 +662,7 @@ export default function StockPage() {
 
           <div className="flex gap-2 md:col-span-2 xl:col-span-1">
             <button type="submit" disabled={uploading} className="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:cursor-not-allowed disabled:opacity-60">
-              {editingId ? (uploading ? 'Salvando...' : '💾 Salvar') : (uploading ? 'Cadastrando...' : '✅ Cadastrar')}
+              {editingId ? (uploading ? 'Salvando...' : '?? Salvar') : (uploading ? 'Cadastrando...' : '? Cadastrar')}
             </button>
             {editingId && <button type="button" onClick={resetForm} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300 hover:bg-slate-800 transition">Cancelar</button>}
           </div>
@@ -673,7 +673,7 @@ export default function StockPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">📋 Produtos cadastrados</h2>
+            <h2 className="text-lg font-semibold">?? Produtos cadastrados</h2>
             <span className="text-sm text-slate-400">({filtered.length})</span>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
@@ -734,11 +734,11 @@ export default function StockPage() {
                         <p className={`font-bold ${(product.current_stock ?? 0) < (product.min_stock ?? 0) ? 'text-rose-400' : (product.current_stock ?? 0) > (product.max_stock ?? 99999) ? 'text-amber-400' : 'text-emerald-400'}`}>{product.current_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Mínimo</p>
+                        <p className="text-xs text-slate-500">Ménimo</p>
                         <p className="font-bold text-slate-200">{product.min_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Máximo</p>
+                        <p className="text-xs text-slate-500">Méximo</p>
                         <p className="font-bold text-slate-200">{product.max_stock ?? 0}</p>
                       </div>
                     </div>
@@ -746,8 +746,8 @@ export default function StockPage() {
                     {product.category && <p className="text-sm text-slate-400"><span className="text-slate-500">Categoria:</span> {product.category}</p>}
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">✏️ Editar</button>
-                      <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semiboldtext-rose-300 transition hover:bg-rose-500/10">🗑️ Excluir</button>
+                      <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">?? Editar</button>
+                      <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10">Excluir</button>
                       <button onClick={async () => { const novaQtd = (product.current_stock ?? 0) + 1; await supabase.from('products').update({ current_stock: novaQtd }).eq('id', product.id); loadProducts(); }} className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"><Plus size={14} className="inline mr-1" />+1</button>
                     </div>
                   </div>
@@ -768,9 +768,9 @@ export default function StockPage() {
               <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-3 transition-all duration-300 ${bipeStatus === 'entrada' ? 'bg-emerald-500/30 text-emerald-400' : bipeStatus === 'saida' ? 'bg-rose-500/30 text-rose-400' : bipeStatus === 'nao-encontrado' ? 'bg-blue-500/30 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
                 <QrCode size={32} />
               </div>
-              <h2 className="text-xl font-bold text-white">📡 Bipar Produto</h2>
+              <h2 className="text-xl font-bold text-white">Bipar produto</h2>
               <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
-              <p className="text-xs text-emerald-400 mt-1">🔄 Leitura automática - não precisa de ENTER</p>
+              <p className="text-xs text-emerald-400 mt-1">Leitura automática - não precisa de Enter</p>
             </div>
 
             <input
@@ -810,14 +810,14 @@ export default function StockPage() {
                     onClick={() => confirmarBipe('adicionar')}
                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-semibold text-white hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/30"
                   >
-                    <Plus size={18} /> 🟢 Adicionar (+1)
+                    <Plus size={18} /> Adicionar (+1)
                   </button>
                   <button
                     onClick={() => confirmarBipe('remover')}
                     disabled={(bipeProduct.current_stock ?? 0) <= 0}
                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 py-3 font-semibold text-white hover:bg-rose-600 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-rose-500/30"
                   >
-                    <Minus size={18} /> 🔴 Remover (-1)
+                    <Minus size={18} /> Remover (-1)
                   </button>
                 </div>
               </div>
@@ -826,12 +826,12 @@ export default function StockPage() {
             {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
               <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
                 <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
-                <span className="text-blue-400 font-bold">🔵 Produto não encontrado!</span>
+                <span className="text-blue-400 font-bold">Produto não encontrado!</span>
                 <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
               </div>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">🔄 A busca é feita automaticamente após digitar o código</p>
+            <p className="mt-4 text-center text-xs text-slate-500">A busca é feita automaticamente após digitar o código</p>
           </div>
         </div>
       )}
@@ -861,8 +861,8 @@ export default function StockPage() {
       )}
 
       {/* TOAST */}
-      {message && (message.includes('✅') || message.includes('❌') || message.includes('🗑️') || message.includes('🟢') || message.includes('🔴') || message.includes('🔵')) && (
-        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' : message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' : message.includes('✅') || message.includes('🗑️') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
+      {message && (message.includes('?') || message.includes('?') || message.includes('???') || message.includes('??') || message.includes('??') || message.includes('??')) && (
+        <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${message.includes('??') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : message.includes('??') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' : message.includes('??') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' : message.includes('?') || message.includes('???') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-400'}`}>
           {message}
         </div>
       )}

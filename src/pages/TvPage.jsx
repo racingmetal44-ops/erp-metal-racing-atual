@@ -1,11 +1,11 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { ShoppingCart, Package, CheckCircle2, Truck, TrendingUp, Clock, Target, Trophy, AlertTriangle, RefreshCw, Search, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 // ---------------------------------------------------------------------------
 // AJUSTES RÁPIDOS
 // Meta diária de produção (não existe tabela de "meta" no banco ainda,
-// então fica fixa aqui — troque o número quando quiser).
+// então fica fixa aqui - troque o número quando quiser).
 // ---------------------------------------------------------------------------
 const DAILY_PRODUCTION_GOAL = 500;
 
@@ -13,8 +13,8 @@ const DAILY_PRODUCTION_GOAL = 500;
 const LATE_ORDER_HOURS = 48;
 
 // ---------------------------------------------------------------------------
-// Valores de "status" esperados (texto, em minúsculas).
-// Cadastre os pedidos/produções usando esses valores para os cards baterem certinho.
+// Valores de "status" esperados (texto, em minésculas).
+// Cadastre os pedidos/produéées usando esses valores para os cards baterem certinho.
 // ---------------------------------------------------------------------------
 const ORDER_STATUS = {
   novo: ['novo', 'pendente', 'aguardando'],
@@ -124,7 +124,7 @@ export default function TvPage() {
     .sort((a, b) => b.qty - a.qty)
     .slice(0, 5);
 
-  // ---- Estoque crítico ----
+  // ---- Estoque crético ----
   const estoqueCritico = products
     .filter((p) => Number(p.current_stock ?? 0) <= Number(p.min_stock ?? 0))
     .filter((p) => !search.trim() || (p.name || '').toLowerCase().includes(search.trim().toLowerCase()))
@@ -235,7 +235,7 @@ export default function TvPage() {
           </div>
           <div className="mt-4 space-y-2">
             {pedidosAtrasados.length === 0 ? (
-              <p className="text-sm text-slate-500">Sem atrasos ✓</p>
+              <p className="text-sm text-slate-500">Sem atrasos ?</p>
             ) : (
               pedidosAtrasados.slice(0, 4).map((o) => (
                 <div key={o.id} className="rounded-xl bg-rose-500/10 px-4 py-2 text-sm">
@@ -285,7 +285,7 @@ export default function TvPage() {
             ) : (
               ranking.map((r, i) => (
                 <div key={r.name} className="flex items-center justify-between rounded-xl bg-violet-500/10 px-4 py-2 text-sm">
-                  <span className="font-semibold text-slate-100">{i + 1}º {r.name}</span>
+                  <span className="font-semibold text-slate-100">{i + 1}é {r.name}</span>
                   <span className="font-semibold text-violet-300">{r.qty} peças</span>
                 </div>
               ))
@@ -294,15 +294,15 @@ export default function TvPage() {
         </div>
       </div>
 
-      {/* Estoque crítico */}
+      {/* Estoque crético */}
       <div className="rounded-2xl border border-amber-500/40 bg-slate-950/60 p-5">
         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-amber-300">
           <AlertTriangle size={16} />
-          Estoque crítico — produzir com urgência
+          Estoque crético - produzir com urgéncia
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {estoqueCritico.length === 0 ? (
-            <p className="col-span-full text-sm text-slate-500">Nenhum item em estoque crítico.</p>
+            <p className="col-span-full text-sm text-slate-500">Nenhum item em estoque crético.</p>
           ) : (
             estoqueCritico.map((p) => (
               <div key={p.id} className="rounded-xl border border-amber-500/20 bg-slate-900/80 p-4 text-center">
@@ -331,7 +331,7 @@ export default function TvPage() {
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-center">
           <p className="text-2xl font-bold text-rose-300">{alertasCriticos.length}</p>
-          <p className="text-sm text-slate-400">Alertas Críticos</p>
+          <p className="text-sm text-slate-400">Alertas Créticos</p>
         </div>
       </div>
 

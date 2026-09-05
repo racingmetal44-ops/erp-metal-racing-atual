@@ -1,0 +1,1453 @@
+[
+  {
+    "id": 1788269995109,
+    "tipo": "XML",
+    "status": "CONFIRMADA",
+    "empresaId": "1",
+    "chave": "42260803086292000115550010009279691990720309",
+    "numero": "927969",
+    "serie": "1",
+    "modelo": "55",
+    "naturezaOperacao": "5102 - VENDA DE MERCADORIA",
+    "tipoOperacao": "1",
+    "finalidade": "1",
+    "indicadorPresenca": "0",
+    "indicadorIntermediador": "",
+    "indicadorConsumidorFinal": "1",
+    "tipoEmissao": "1",
+    "codigoMunicipio": "4209102",
+    "dataEmissao": "2026-08-27T15:32:45-03:00",
+    "dataEntrada": "2026-08-27T15:32:45-03:00",
+    "ambiente": "producao",
+    "statusSefaz": "",
+    "motivoSefaz": "",
+    "protocoloSefaz": "",
+    "fornecedor": {
+      "cnpj": "3086292000115",
+      "cpf": "",
+      "razaoSocial": "MENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA",
+      "nomeFantasia": "MENEGOTO",
+      "ie": "253878586",
+      "ieST": "",
+      "im": "61721",
+      "suframa": "",
+      "regimeTributario": "3",
+      "email": "",
+      "telefone": "4730284200",
+      "endereco": {
+        "logradouro": "Rua Doutor João Colin",
+        "numero": "2559",
+        "complemento": "",
+        "bairro": "América",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89204005",
+        "pais": "",
+        "codigoPais": "1058"
+      }
+    },
+    "destinatario": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***",
+      "ie": "256444935",
+      "email": "",
+      "telefone": "4734336664",
+      "tipoPessoa": "JURIDICA",
+      "indicadorIE": "1",
+      "endereco": {
+        "logradouro": "Rua Teresópolis",
+        "numero": "1180",
+        "complemento": "",
+        "bairro": "Guanabara",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89207500",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "documentoReferenciado": [],
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "1112911",
+        "descricao": "BOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "82079000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 2,
+        "quantidadeTributada": 2,
+        "valorUnitario": 8.95,
+        "valorUnitarioTributado": 8.95,
+        "valorTotal": 17.9,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 2,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 17.9,
+              "pICMS": 17,
+              "vICMS": 3.04
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 14.86,
+              "pPIS": 0.65,
+              "vPIS": 0.1
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 14.86,
+              "pCOFINS": 3,
+              "vCOFINS": 0.45
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 17.9,
+            "icmsAliquota": 17,
+            "icmsValor": 3.04,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.1,
+            "cofinsCst": "1",
+            "cofinsValor": 0.45
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 2,
+        "codigo": "1012128",
+        "descricao": "ESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "96035000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 30.75,
+        "valorUnitarioTributado": 30.75,
+        "valorTotal": 30.75,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 2,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 30.75,
+              "pICMS": 17,
+              "vICMS": 5.23
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.52,
+              "pPIS": 0.65,
+              "vPIS": 0.17
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.52,
+              "pCOFINS": 3,
+              "vCOFINS": 0.77
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 30.75,
+            "icmsAliquota": 17,
+            "icmsValor": 5.23,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.17,
+            "cofinsCst": "1",
+            "cofinsValor": 0.77
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 3,
+        "codigo": "611678",
+        "descricao": "FOLHA LIXA CHAMPAGNE A275 GR1200 NORTON",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "68052000",
+        "cest": "800300",
+        "cfop": "5102",
+        "unidade": "FL",
+        "unidadeTributada": "FL",
+        "quantidade": 50,
+        "quantidadeTributada": 50,
+        "valorUnitario": 3.9,
+        "valorUnitarioTributado": 3.9,
+        "valorTotal": 195,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 195,
+              "pICMS": 17,
+              "vICMS": 33.15
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 161.85,
+              "pPIS": 0.65,
+              "vPIS": 1.05
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 161.85,
+              "pCOFINS": 3,
+              "vCOFINS": 4.86
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 195,
+            "icmsAliquota": 17,
+            "icmsValor": 33.15,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 1.05,
+            "cofinsCst": "1",
+            "cofinsValor": 4.86
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 4,
+        "codigo": "112123",
+        "descricao": "THINNER 0454  5LTS PARA PU e BP S.WILLIAMS",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "38140090",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 213.75,
+        "valorUnitarioTributado": 213.75,
+        "valorTotal": 213.75,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 213.75,
+              "pICMS": 17,
+              "vICMS": 36.34
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 177.41,
+              "pPIS": 0.65,
+              "vPIS": 1.15
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 177.41,
+              "pCOFINS": 3,
+              "vCOFINS": 5.32
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 213.75,
+            "icmsAliquota": 17,
+            "icmsValor": 36.34,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 1.15,
+            "cofinsCst": "1",
+            "cofinsValor": 5.32
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      }
+    ],
+    "totais": {
+      "produtos": 457.4,
+      "frete": 0,
+      "seguro": 0,
+      "desconto": 0,
+      "outrasDespesas": 0,
+      "icmsBase": 457.4,
+      "icms": 77.76,
+      "icmsDesonerado": 0,
+      "icmsSTBase": 0,
+      "icmsST": 0,
+      "fcp": 0,
+      "fcpST": 0,
+      "fcpSTRet": 0,
+      "ipi": 0,
+      "ipiDevolvido": 0,
+      "pis": 2.47,
+      "cofins": 11.4,
+      "ii": 0,
+      "iss": 0,
+      "retPIS": 0,
+      "retCOFINS": 0,
+      "retCSLL": 0,
+      "retIRRF": 0,
+      "nota": 457.4
+    },
+    "transporte": {
+      "modalidadeFrete": "9",
+      "transportador": {
+        "cnpj": "",
+        "cpf": "",
+        "nome": "",
+        "ie": "",
+        "uf": "",
+        "municipio": "",
+        "endereco": ""
+      },
+      "veiculo": {
+        "placa": "",
+        "uf": "",
+        "rntc": ""
+      },
+      "volumes": []
+    },
+    "entrega": {
+      "logradouro": "",
+      "numero": "",
+      "complemento": "",
+      "bairro": "",
+      "codigoMunicipio": "",
+      "cidade": "",
+      "uf": "",
+      "cep": "",
+      "cnpj": "",
+      "cpf": ""
+    },
+    "retirada": {
+      "logradouro": "",
+      "numero": "",
+      "bairro": "",
+      "cidade": "",
+      "uf": "",
+      "cep": ""
+    },
+    "pagamento": {
+      "indicador": "",
+      "pagamentos": [
+        {
+          "indicadorPagamento": "1",
+          "forma": "15",
+          "descricaoForma": "",
+          "valor": 457.4,
+          "troco": 0,
+          "bandeira": "",
+          "cnpjCredenciadora": "",
+          "autorizacao": ""
+        }
+      ],
+      "duplicatas": [
+        {
+          "numero": "1",
+          "vencimento": "2026-09-24",
+          "valor": 457.4
+        }
+      ],
+      "valorTroco": 0
+    },
+    "intermediador": {
+      "cnpj": "",
+      "id": "",
+      "presente": false
+    },
+    "informacoesAdicionais": {
+      "complementares": "ENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-&#xD;NOVA BRASILIA&#xD;Pedido Nº: 730753&#xD;&#xD;Portador: BRADESCO BOLETO POR E-MAIL&#xD;Representante: JAIRO&#xD;&#xD;Digitador: PAULO Emitente: MARCIA&#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br&#xD;",
+      "fisco": "&#xD;",
+      "observacoes": [],
+      "observacoesFisco": [],
+      "processosReferenciados": []
+    },
+    "compra": {
+      "notaEmpenho": "",
+      "pedido": "",
+      "contrato": ""
+    },
+    "exportacao": {
+      "registro": []
+    },
+    "xmlOriginal": "<nfeProc versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><NFe xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infNFe Id=\"NFe42260803086292000115550010009279691990720309\" versao=\"4.00\"><ide><cUF>42</cUF><cNF>99072030</cNF><natOp>5102 - VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>927969</nNF><dhEmi>2026-08-27T15:32:45-03:00</dhEmi><dhSaiEnt>2026-08-27T15:32:45-03:00</dhSaiEnt><tpNF>1</tpNF><idDest>1</idDest><cMunFG>4209102</cMunFG><tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>9</cDV><tpAmb>1</tpAmb><finNFe>1</finNFe><indFinal>1</indFinal><indPres>0</indPres><procEmi>0</procEmi><verProc>4.00</verProc></ide><emit><CNPJ>03086292000115</CNPJ><xNome>MENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA</xNome><xFant>MENEGOTO</xFant><enderEmit><xLgr>Rua Doutor João Colin</xLgr><nro>2559</nro><xBairro>América</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89204005</CEP><cPais>1058</cPais><fone>4730284200</fone></enderEmit><IE>253878586</IE><IM>61721</IM><CNAE>4741500</CNAE><CRT>3</CRT></emit><dest><CNPJ>13862162000180</CNPJ><xNome>6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***</xNome><enderDest><xLgr>Rua Teresópolis</xLgr><nro>1180</nro><xBairro>Guanabara</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89207500</CEP><cPais>1058</cPais><xPais>BRASIL</xPais><fone>4734336664</fone></enderDest><indIEDest>1</indIEDest><IE>256444935</IE></dest><det nItem=\"1\"><prod><cProd>1112911</cProd><cEAN>SEM GTIN</cEAN><xProd>BOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000</xProd><NCM>82079000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>8.9500000000</vUnCom><vProd>17.90</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>8.9500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>2</orig><CST>00</CST><modBC>3</modBC><vBC>17.90</vBC><pICMS>17.0000</pICMS><vICMS>3.04</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>14.86</vBC><pPIS>0.6500</pPIS><vPIS>0.10</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>14.86</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>0.45</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>14.31</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.01</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.01</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>0.13</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>17.90</vItem></det><det nItem=\"2\"><prod><cProd>1012128</cProd><cEAN>SEM GTIN</cEAN><xProd>ESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI</xProd><NCM>96035000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>30.7500000000</vUnCom><vProd>30.75</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>1.0000</qTrib><vUnTrib>30.7500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>2</orig><CST>00</CST><modBC>3</modBC><vBC>30.75</vBC><pICMS>17.0000</pICMS><vICMS>5.23</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>25.52</vBC><pPIS>0.6500</pPIS><vPIS>0.17</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>25.52</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>0.77</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>24.58</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.02</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.02</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>0.22</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>30.75</vItem></det><det nItem=\"3\"><prod><cProd>611678</cProd><cEAN>SEM GTIN</cEAN><xProd>FOLHA LIXA CHAMPAGNE A275 GR1200 NORTON</xProd><NCM>68052000</NCM><CEST>0800300</CEST><CFOP>5102</CFOP><uCom>FL</uCom><qCom>50.0000</qCom><vUnCom>3.9000000000</vUnCom><vProd>195.00</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>FL</uTrib><qTrib>50.0000</qTrib><vUnTrib>3.9000000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>195.00</vBC><pICMS>17.0000</pICMS><vICMS>33.15</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>161.85</vBC><pPIS>0.6500</pPIS><vPIS>1.05</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>161.85</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>4.86</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>155.94</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.16</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.16</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>1.40</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>195.00</vItem></det><det nItem=\"4\"><prod><cProd>112123</cProd><cEAN>SEM GTIN</cEAN><xProd>THINNER 0454  5LTS PARA PU e BP S.WILLIAMS</xProd><NCM>38140090</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>213.7500000000</vUnCom><vProd>213.75</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>1.0000</qTrib><vUnTrib>213.7500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>213.75</vBC><pICMS>17.0000</pICMS><vICMS>36.34</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>177.41</vBC><pPIS>0.6500</pPIS><vPIS>1.15</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>177.41</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>5.32</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>410</CST><cClassTrib>410999</cClassTrib></IBSCBS></imposto><vItem>213.75</vItem></det><total><ICMSTot><vBC>457.40</vBC><vICMS>77.76</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><qBCMono>0.00</qBCMono><vICMSMono>0.00</vICMSMono><qBCMonoReten>0.00</qBCMonoReten><vICMSMonoReten>0.00</vICMSMonoReten><qBCMonoRet>0.00</qBCMonoRet><vICMSMonoRet>0.00</vICMSMonoRet><vProd>457.40</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>2.47</vPIS><vCOFINS>11.40</vCOFINS><vOutro>0.00</vOutro><vNF>457.40</vNF></ICMSTot><IBSCBSTot><vBCIBSCBS>194.83</vBCIBSCBS><gIBS><gIBSUF><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSUF>0.19</vIBSUF></gIBSUF><gIBSMun><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.19</vIBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gIBS><gCBS><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vCBS>1.75</vCBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gCBS></IBSCBSTot><vNFTot>457.40</vNFTot></total><transp><modFrete>9</modFrete></transp><cobr><fat><nFat>927969</nFat><vOrig>457.40</vOrig><vDesc>0.00</vDesc><vLiq>457.40</vLiq></fat><dup><nDup>001</nDup><dVenc>2026-09-24</dVenc><vDup>457.40</vDup></dup></cobr><pag><detPag><indPag>1</indPag><tPag>15</tPag><vPag>457.40</vPag></detPag></pag><infAdic><infAdFisco>&amp;#xD;</infAdFisco><infCpl>ENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-&amp;#xD;NOVA BRASILIA&amp;#xD;Pedido Nº: 730753&amp;#xD;&amp;#xD;Portador: BRADESCO BOLETO POR E-MAIL&amp;#xD;Representante: JAIRO&amp;#xD;&amp;#xD;Digitador: PAULO Emitente: MARCIA&amp;#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br&amp;#xD;</infCpl></infAdic><infRespTec><CNPJ>07481340000120</CNPJ><xContato>ARTELIDES BORDIGNON</xContato><email>interfoc@interfoc.com.br</email><fone>04933302900</fone></infRespTec></infNFe><Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\" /><Reference URI=\"#NFe42260803086292000115550010009279691990720309\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" /><Transform Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\" /><DigestValue>DKwg68NCIYw8FB3odAR1qct7qJI=</DigestValue></Reference></SignedInfo><SignatureValue>g1eKUHT+HJawWkvWpfRoA9620FN3Q2V1uzRpgkuiFz6F9DSSjgMIerhamUCZ9T5r+Tk7BIeQGEhvwcdyXvdi+ljSqqc6sIwKFrxiIIZFbblDXrSTWjl/dWC2l3t9Vv+2eHNBnILukC0Zec0K/WHtgfL6a3C2f5C6dH2PZdYmN/Kqx2dPrdbsfhVwj18WXQOILkg2hRCzg1JCjyl4IgEQeycu7B/OZcsWAi6csTDtBp3OJnOrwjTbbweeU1f1S/VlcnTGjGOu+AgK1g9iSia9nd+LA8uKQstbjpP1nvAlgDigSfK4TM+ya24y8PwGlBhGBdT4W8oaoQgHzFIjKAX96A==</SignatureValue><KeyInfo><X509Data><X509Certificate>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</X509Certificate></X509Data></KeyInfo></Signature></NFe><protNFe versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infProt><tpAmb>1</tpAmb><verAplic>SVRS2608060405DR</verAplic><chNFe>42260803086292000115550010009279691990720309</chNFe><dhRecbto>2026-08-27T15:32:47-03:00</dhRecbto><nProt>242260403052750</nProt><digVal>DKwg68NCIYw8FB3odAR1qct7qJI=</digVal><cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt></protNFe></nfeProc>",
+    "arquivoOriginal": "42260803086292000115550010009279691990720309.xml",
+    "createdAt": "2026-09-01T13:39:55.109Z",
+    "updatedAt": "2026-09-02T18:28:34.793Z",
+    "manifestacao": {
+      "tipoEvento": "210200",
+      "descricao": "Confirmação da Operação",
+      "success": true,
+      "cStat": "135",
+      "xMotivo": "Evento registrado e vinculado a NF-e",
+      "protocolo": "591263176798812",
+      "dataHora": "2026-09-02T18:28:36.011Z"
+    },
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "68265991-2901-4567-98d9-d5ac1e989334",
+        "sku": "1112911",
+        "quantidade": 2,
+        "valorUnitario": 8.95,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 2,
+        "produtoId": "44cefb37-211c-4f65-b1cc-acf67a40f771",
+        "sku": "1012128",
+        "quantidade": 1,
+        "valorUnitario": 30.75,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 3,
+        "produtoId": "d379daab-2800-4647-abd2-53a5b8117e5e",
+        "sku": "611678",
+        "quantidade": 50,
+        "valorUnitario": 3.9,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 4,
+        "produtoId": "676814a6-3914-449d-ab7a-92ae2227296e",
+        "sku": "112123",
+        "quantidade": 1,
+        "valorUnitario": 213.75,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      }
+    ],
+    "confirmadaEm": "2026-09-02T18:28:34.793Z",
+    "confirmadaPor": null
+  },
+  {
+    "id": 1788466984485,
+    "tipo": "XML",
+    "status": "CONFIRMADA",
+    "empresaId": "1",
+    "chave": "42260813862162000180550010000181431197518023",
+    "numero": "18143",
+    "serie": "1",
+    "modelo": "55",
+    "naturezaOperacao": "VENDA DE MERCADORIA",
+    "tipoOperacao": "1",
+    "finalidade": "1",
+    "indicadorPresenca": "1",
+    "indicadorIntermediador": "",
+    "indicadorConsumidorFinal": "1",
+    "tipoEmissao": "1",
+    "codigoMunicipio": "4209102",
+    "dataEmissao": "2026-08-28T17:55:11-03:00",
+    "dataEntrada": "",
+    "ambiente": "2",
+    "statusSefaz": "",
+    "motivoSefaz": "",
+    "protocoloSefaz": "",
+    "fornecedor": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA",
+      "nomeFantasia": "METAL RACING ACESSÓRIOS AUTOMOTIVO",
+      "ie": "256444935",
+      "ieST": "",
+      "im": "",
+      "suframa": "",
+      "regimeTributario": "1",
+      "email": "",
+      "telefone": "4734336664",
+      "endereco": {
+        "logradouro": "Rua Teresópolis",
+        "numero": "1180",
+        "complemento": "",
+        "bairro": "Guanabara",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89207500",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "destinatario": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL",
+      "ie": "",
+      "email": "",
+      "telefone": "",
+      "tipoPessoa": "JURIDICA",
+      "indicadorIE": "9",
+      "endereco": {
+        "logradouro": "Rua Teste",
+        "numero": "100",
+        "complemento": "",
+        "bairro": "Centro",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89207500",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "documentoReferenciado": [],
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "ITEM001",
+        "descricao": "PRODUTO TESTE HOMOLOGACAO",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "83023000",
+        "cest": "",
+        "cfop": "5101",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 10,
+        "valorUnitarioTributado": 10,
+        "valorTotal": 10,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMSSN102",
+            "dados": {
+              "orig": 0,
+              "CSOSN": 102
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISOutr",
+            "dados": {
+              "CST": 49,
+              "vBC": 10,
+              "pPIS": 0,
+              "vPIS": 0
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSOutr",
+            "dados": {
+              "CST": 49,
+              "vBC": 10,
+              "pCOFINS": 0,
+              "vCOFINS": 0
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "102",
+            "icmsBase": 0,
+            "icmsAliquota": 0,
+            "icmsValor": 0,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "49",
+            "pisValor": 0,
+            "cofinsCst": "49",
+            "cofinsValor": 0
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      }
+    ],
+    "totais": {
+      "produtos": 10,
+      "frete": 0,
+      "seguro": 0,
+      "desconto": 0,
+      "outrasDespesas": 0,
+      "icmsBase": 0,
+      "icms": 0,
+      "icmsDesonerado": 0,
+      "icmsSTBase": 0,
+      "icmsST": 0,
+      "fcp": 0,
+      "fcpST": 0,
+      "fcpSTRet": 0,
+      "ipi": 0,
+      "ipiDevolvido": 0,
+      "pis": 0,
+      "cofins": 0,
+      "ii": 0,
+      "iss": 0,
+      "retPIS": 0,
+      "retCOFINS": 0,
+      "retCSLL": 0,
+      "retIRRF": 0,
+      "nota": 10
+    },
+    "transporte": {
+      "modalidadeFrete": "9",
+      "transportador": {
+        "cnpj": "",
+        "cpf": "",
+        "nome": "",
+        "ie": "",
+        "uf": "",
+        "municipio": "",
+        "endereco": ""
+      },
+      "veiculo": {
+        "placa": "",
+        "uf": "",
+        "rntc": ""
+      },
+      "volumes": []
+    },
+    "entrega": {
+      "logradouro": "",
+      "numero": "",
+      "complemento": "",
+      "bairro": "",
+      "codigoMunicipio": "",
+      "cidade": "",
+      "uf": "",
+      "cep": "",
+      "cnpj": "",
+      "cpf": ""
+    },
+    "retirada": {
+      "logradouro": "",
+      "numero": "",
+      "bairro": "",
+      "cidade": "",
+      "uf": "",
+      "cep": ""
+    },
+    "pagamento": {
+      "indicador": "",
+      "pagamentos": [
+        {
+          "indicadorPagamento": "",
+          "forma": "1",
+          "descricaoForma": "",
+          "valor": 10,
+          "troco": 0,
+          "bandeira": "",
+          "cnpjCredenciadora": "",
+          "autorizacao": ""
+        }
+      ],
+      "duplicatas": [],
+      "valorTroco": 0
+    },
+    "intermediador": {
+      "cnpj": "",
+      "id": "",
+      "presente": false
+    },
+    "informacoesAdicionais": {
+      "complementares": "NF-e emitida pelo ERP Metal Racing",
+      "fisco": "",
+      "observacoes": [],
+      "observacoesFisco": [],
+      "processosReferenciados": []
+    },
+    "compra": {
+      "notaEmpenho": "",
+      "pedido": "",
+      "contrato": ""
+    },
+    "exportacao": {
+      "registro": []
+    },
+    "xmlOriginal": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><nfeProc versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><NFe xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infNFe versao=\"4.00\" Id=\"NFe42260813862162000180550010000181431197518023\"><ide><cUF>42</cUF><cNF>19751802</cNF><natOp>VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>18143</nNF><dhEmi>2026-08-28T17:55:11-03:00</dhEmi><tpNF>1</tpNF><idDest>1</idDest><cMunFG>4209102</cMunFG><tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>3</cDV><tpAmb>2</tpAmb><finNFe>1</finNFe><indFinal>1</indFinal><indPres>1</indPres><procEmi>0</procEmi><verProc>ERP Metal Racing</verProc></ide><emit><CNPJ>13862162000180</CNPJ><xNome>ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA</xNome><xFant>METAL RACING ACESSÓRIOS AUTOMOTIVO</xFant><enderEmit><xLgr>Rua Teresópolis</xLgr><nro>1180</nro><xBairro>Guanabara</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89207500</CEP><cPais>1058</cPais><xPais>BRASIL</xPais><fone>4734336664</fone></enderEmit><IE>256444935</IE><CRT>1</CRT></emit><dest><CNPJ>13862162000180</CNPJ><xNome>NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL</xNome><enderDest><xLgr>Rua Teste</xLgr><nro>100</nro><xBairro>Centro</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89207500</CEP><cPais>1058</cPais><xPais>BRASIL</xPais></enderDest><indIEDest>9</indIEDest></dest><det nItem=\"1\"><prod><cProd>ITEM001</cProd><cEAN>SEM GTIN</cEAN><xProd>PRODUTO TESTE HOMOLOGACAO</xProd><NCM>83023000</NCM><CFOP>5101</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>10.0000000000</vUnCom><vProd>10.00</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>1.0000</qTrib><vUnTrib>10.0000000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMSSN102><orig>0</orig><CSOSN>102</CSOSN></ICMSSN102></ICMS><PIS><PISOutr><CST>49</CST><vBC>10.00</vBC><pPIS>0.00</pPIS><vPIS>0.00</vPIS></PISOutr></PIS><COFINS><COFINSOutr><CST>49</CST><vBC>10.00</vBC><pCOFINS>0.00</pCOFINS><vCOFINS>0.00</vCOFINS></COFINSOutr></COFINS></imposto></det><total><ICMSTot><vBC>0.00</vBC><vICMS>0.00</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><vProd>10.00</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>0.00</vPIS><vCOFINS>0.00</vCOFINS><vOutro>0.00</vOutro><vNF>10.00</vNF><vTotTrib>0.00</vTotTrib></ICMSTot></total><transp><modFrete>9</modFrete></transp><pag><detPag><tPag>01</tPag><vPag>10.00</vPag></detPag></pag><infAdic><infCpl>NF-e emitida pelo ERP Metal Racing</infCpl></infAdic><infRespTec><CNPJ>13862162000180</CNPJ><xContato>Suporte ERP Metal Racing</xContato><email>contato@metalracing.com</email><fone>4734336664</fone></infRespTec></infNFe><Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\"/><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\"/><Reference URI=\"#NFe42260813862162000180550010000181431197518023\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\"/><Transform Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\"/></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\"/><DigestValue>iK+ykxgpdUxDuRZMk/RkG2Nd2Is=</DigestValue></Reference></SignedInfo><SignatureValue>f4JiTidy+zeh8i8fczMzWDDYlpIQ7uBJv2WUelcawv91pK3h2XFksRhpfTZQgHKdCri6pjMUVKzwTlbDnmlcd9xy/98xWGXyL8plvHiLMzfsiFdKoFoM8mSjVfe0QRuxz0Xb/I3KrcJwNZmlhE1a4tZkx8WyMbsg3rFalml1TsEK1UHzGZnlaylesVKgEt8/1dFKK4vAet0NGaS92ppCPDKzJyCj/b0x8w8yGvgdZf2n/W0ezhoUDlm4qgorxGytcXSVsMBePLyI7jPEu5FsB2ZSyV0MISDtGDzauGCYI1LPSxYraInX/DqFwCOGHUrV4yc7O/aPKQ8Nardk0sulpQ==</SignatureValue><KeyInfo><X509Data><X509Certificate>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</X509Certificate></X509Data></KeyInfo></Signature></NFe><protNFe versao=\"4.00\"><infProt><tpAmb>2</tpAmb><verAplic>SVRS2608200920</verAplic><chNFe>42260813862162000180550010000181431197518023</chNFe><dhRecbto>2026-08-28T17:55:14-03:00</dhRecbto><nProt>342260000872712</nProt><digVal>iK+ykxgpdUxDuRZMk/RkG2Nd2Is=</digVal><cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt></protNFe></nfeProc>",
+    "arquivoOriginal": "teste-entrada-confirmacao.xml",
+    "createdAt": "2026-09-03T20:23:04.485Z",
+    "updatedAt": "2026-09-03T20:23:58.187Z",
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "7e20dc2c-ab0a-460d-9b3a-37816806a683",
+        "sku": "ITEM001",
+        "quantidade": 1,
+        "valorUnitario": 10,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      }
+    ],
+    "confirmadaEm": "2026-09-03T20:23:58.187Z",
+    "confirmadaPor": null,
+    "manifestacao": {
+      "tipoEvento": "210200",
+      "descricao": "Confirmação da Operação",
+      "success": false,
+      "cStat": null,
+      "xMotivo": null,
+      "protocolo": null,
+      "dataHora": "2026-09-03T20:23:58.724Z"
+    }
+  },
+  {
+    "id": 1788557857251,
+    "tipo": "XML",
+    "status": "CONFERENCIA",
+    "empresaId": "1",
+    "chave": "42260979909982000199550030000609951891072983",
+    "numero": "60995",
+    "serie": "3",
+    "modelo": "55",
+    "naturezaOperacao": "VENDA DE MERC. ADQUIRIDA OU RECEBIDA DE TERCEIROS",
+    "tipoOperacao": "1",
+    "finalidade": "1",
+    "indicadorPresenca": "3",
+    "indicadorIntermediador": "0",
+    "indicadorConsumidorFinal": "0",
+    "tipoEmissao": "1",
+    "codigoMunicipio": "4209102",
+    "dataEmissao": "2026-09-01T08:15:00-03:00",
+    "dataEntrada": "2026-09-01T08:15:00-03:00",
+    "ambiente": "1",
+    "statusSefaz": "",
+    "motivoSefaz": "",
+    "protocoloSefaz": "",
+    "fornecedor": {
+      "cnpj": "79909982000199",
+      "cpf": "",
+      "razaoSocial": "ACAPEL COMERCIO DE PAPEIS E EMBALAGENS",
+      "nomeFantasia": "ACAPEL STORE",
+      "ie": "251488535",
+      "ieST": "",
+      "im": "",
+      "suframa": "",
+      "regimeTributario": "3",
+      "email": "",
+      "telefone": "4734371037",
+      "endereco": {
+        "logradouro": "RUA IRIRIU",
+        "numero": "2340",
+        "complemento": "",
+        "bairro": "IRIRIU",
+        "cidade": "JOINVILLE",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89227008",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "destinatario": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "ART GRAV COMUNICACAO INDUSTRIAL LTDA",
+      "ie": "256444935",
+      "email": "ARTGRAV@ARTGRAV.COM.BR",
+      "telefone": "4734336664",
+      "tipoPessoa": "JURIDICA",
+      "indicadorIE": "1",
+      "endereco": {
+        "logradouro": "RUA UBIRAJARA PIAZERA DIPPOLD",
+        "numero": "226",
+        "complemento": "",
+        "bairro": "NOVA BRASILIA",
+        "cidade": "JOINVILLE",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89214607",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "documentoReferenciado": [],
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "63475",
+        "descricao": "COPO PLASTICO PP 180ML C/100 TRANSPARENT",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "39241000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 12,
+        "quantidadeTributada": 12,
+        "valorUnitario": 7.15,
+        "valorUnitarioTributado": 7.15,
+        "valorTotal": 85.8,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "47038465",
+        "itemPedidoCompra": "0",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 85.8,
+              "pICMS": 17,
+              "vICMS": 14.59
+            }
+          },
+          "ipi": {
+            "grupo": "IPITrib",
+            "dados": {
+              "CST": 99,
+              "vBC": 0,
+              "pIPI": 0,
+              "vIPI": 0
+            }
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 71.21,
+              "pPIS": 1.65,
+              "vPIS": 1.17
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 71.21,
+              "pCOFINS": 7.6,
+              "vCOFINS": 5.41
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 85.8,
+            "icmsAliquota": 17,
+            "icmsValor": 14.59,
+            "ipiCst": "99",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 1.17,
+            "cofinsCst": "1",
+            "cofinsValor": 5.41
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 2,
+        "codigo": "52141",
+        "descricao": "PRATO PLAST PS RASO C/10 N18 BRANCO",
+        "ean": "17898939720362",
+        "eanTrib": "17898939720362",
+        "ncm": "39241000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "PT",
+        "unidadeTributada": "PT",
+        "quantidade": 5,
+        "quantidadeTributada": 5,
+        "valorUnitario": 3.99,
+        "valorUnitarioTributado": 3.99,
+        "valorTotal": 19.95,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "47038465",
+        "itemPedidoCompra": "0",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 19.95,
+              "pICMS": 17,
+              "vICMS": 3.39
+            }
+          },
+          "ipi": {
+            "grupo": "IPITrib",
+            "dados": {
+              "CST": 99,
+              "vBC": 0,
+              "pIPI": 0,
+              "vIPI": 0
+            }
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 16.56,
+              "pPIS": 1.65,
+              "vPIS": 0.27
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 16.56,
+              "pCOFINS": 7.6,
+              "vCOFINS": 1.26
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 19.95,
+            "icmsAliquota": 17,
+            "icmsValor": 3.39,
+            "ipiCst": "99",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.27,
+            "cofinsCst": "1",
+            "cofinsValor": 1.26
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 3,
+        "codigo": "66383",
+        "descricao": "VASSOURA C/CABO VARRESEMPRE BOMPACK",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "96039000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 2,
+        "quantidadeTributada": 2,
+        "valorUnitario": 15.25,
+        "valorUnitarioTributado": 15.25,
+        "valorTotal": 30.5,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "47038465",
+        "itemPedidoCompra": "0",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 30.5,
+              "pICMS": 17,
+              "vICMS": 5.19
+            }
+          },
+          "ipi": {
+            "grupo": "IPITrib",
+            "dados": {
+              "CST": 99,
+              "vBC": 0,
+              "pIPI": 0,
+              "vIPI": 0
+            }
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.31,
+              "pPIS": 1.65,
+              "vPIS": 0.42
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.31,
+              "pCOFINS": 7.6,
+              "vCOFINS": 1.92
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 30.5,
+            "icmsAliquota": 17,
+            "icmsValor": 5.19,
+            "ipiCst": "99",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.42,
+            "cofinsCst": "1",
+            "cofinsValor": 1.92
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 4,
+        "codigo": "2279",
+        "descricao": "LAPIS PRETO HB SEXTAVADO C/BORRACHA ECO",
+        "ean": "7891360491293",
+        "eanTrib": "7891360491293",
+        "ncm": "96091000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "PC",
+        "unidadeTributada": "PC",
+        "quantidade": 2,
+        "quantidadeTributada": 2,
+        "valorUnitario": 1.5,
+        "valorUnitarioTributado": 1.5,
+        "valorTotal": 3,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "47038465",
+        "itemPedidoCompra": "0",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 3,
+              "pICMS": 17,
+              "vICMS": 0.51
+            }
+          },
+          "ipi": {
+            "grupo": "IPITrib",
+            "dados": {
+              "CST": 99,
+              "vBC": 0,
+              "pIPI": 0,
+              "vIPI": 0
+            }
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 2.49,
+              "pPIS": 1.65,
+              "vPIS": 0.04
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 2.49,
+              "pCOFINS": 7.6,
+              "vCOFINS": 0.19
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 3,
+            "icmsAliquota": 17,
+            "icmsValor": 0.51,
+            "ipiCst": "99",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.04,
+            "cofinsCst": "1",
+            "cofinsValor": 0.19
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 5,
+        "codigo": "52586",
+        "descricao": "GARFO PLASTICO REFEICAO FORTE C/50 BRANC",
+        "ean": "97896343088777",
+        "eanTrib": "97896343088777",
+        "ncm": "39241000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "PC",
+        "unidadeTributada": "PC",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 11.25,
+        "valorUnitarioTributado": 11.25,
+        "valorTotal": 11.25,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "47038465",
+        "itemPedidoCompra": "0",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 11.25,
+              "pICMS": 17,
+              "vICMS": 1.91
+            }
+          },
+          "ipi": {
+            "grupo": "IPITrib",
+            "dados": {
+              "CST": 99,
+              "vBC": 0,
+              "pIPI": 0,
+              "vIPI": 0
+            }
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 9.34,
+              "pPIS": 1.65,
+              "vPIS": 0.15
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 9.34,
+              "pCOFINS": 7.6,
+              "vCOFINS": 0.71
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 11.25,
+            "icmsAliquota": 17,
+            "icmsValor": 1.91,
+            "ipiCst": "99",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.15,
+            "cofinsCst": "1",
+            "cofinsValor": 0.71
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      }
+    ],
+    "totais": {
+      "produtos": 150.5,
+      "frete": 0,
+      "seguro": 0,
+      "desconto": 0,
+      "outrasDespesas": 0,
+      "icmsBase": 150.5,
+      "icms": 25.59,
+      "icmsDesonerado": 0,
+      "icmsSTBase": 0,
+      "icmsST": 0,
+      "fcp": 0,
+      "fcpST": 0,
+      "fcpSTRet": 0,
+      "ipi": 0,
+      "ipiDevolvido": 0,
+      "pis": 2.05,
+      "cofins": 9.49,
+      "ii": 0,
+      "iss": 0,
+      "retPIS": 0,
+      "retCOFINS": 0,
+      "retCSLL": 0,
+      "retIRRF": 0,
+      "nota": 150.5
+    },
+    "transporte": {
+      "modalidadeFrete": "0",
+      "transportador": {
+        "cnpj": "79909982000199",
+        "cpf": "",
+        "nome": "TRANSPORTE ACAPEL",
+        "ie": "",
+        "uf": "SC",
+        "municipio": "JOINVILLE",
+        "endereco": "R IRIRIU, 2340 - IRIRIU"
+      },
+      "veiculo": {
+        "placa": "",
+        "uf": "",
+        "rntc": ""
+      },
+      "volumes": [
+        {
+          "quantidade": 2,
+          "especie": "",
+          "marca": "",
+          "numeracao": "2",
+          "pesoLiquido": 3.8,
+          "pesoBruto": 3.8,
+          "lacres": []
+        }
+      ]
+    },
+    "entrega": {
+      "logradouro": "",
+      "numero": "",
+      "complemento": "",
+      "bairro": "",
+      "codigoMunicipio": "",
+      "cidade": "",
+      "uf": "",
+      "cep": "",
+      "cnpj": "",
+      "cpf": ""
+    },
+    "retirada": {
+      "logradouro": "",
+      "numero": "",
+      "bairro": "",
+      "cidade": "",
+      "uf": "",
+      "cep": ""
+    },
+    "pagamento": {
+      "indicador": "",
+      "pagamentos": [
+        {
+          "indicadorPagamento": "1",
+          "forma": "15",
+          "descricaoForma": "",
+          "valor": 150.5,
+          "troco": 0,
+          "bandeira": "",
+          "cnpjCredenciadora": "",
+          "autorizacao": ""
+        }
+      ],
+      "duplicatas": [
+        {
+          "numero": "1",
+          "vencimento": "2026-09-29",
+          "valor": 150.5
+        }
+      ],
+      "valorTroco": 0
+    },
+    "intermediador": {
+      "cnpj": "",
+      "id": "",
+      "presente": false
+    },
+    "informacoesAdicionais": {
+      "complementares": "PV : 47038465//PAGAMENTO: 748 - P/ 28 DIAS//ORDEM DE COMPRA://OBS. COMPL.://OBS. ENTREGA://EXCLUSAO DO ICMS NA BASE DE CALCULO DO PIS E COFINS CONFORME PROCESSO/MAND.SEGU N.50043445620164047201 DE 01/09/2021 VALOR EXCLUIDO DA BASE DE CALCULO R$ 25.59",
+      "fisco": "",
+      "observacoes": [],
+      "observacoesFisco": [],
+      "processosReferenciados": []
+    },
+    "compra": {
+      "notaEmpenho": "",
+      "pedido": "",
+      "contrato": ""
+    },
+    "exportacao": {
+      "registro": []
+    },
+    "xmlOriginal": "<nfeProc versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><NFe xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infNFe Id=\"NFe42260979909982000199550030000609951891072983\" versao=\"4.00\"><ide><cUF>42</cUF><cNF>89107298</cNF><natOp>VENDA DE MERC. ADQUIRIDA OU RECEBIDA DE TERCEIROS</natOp><mod>55</mod><serie>3</serie><nNF>60995</nNF><dhEmi>2026-09-01T08:15:00-03:00</dhEmi><dhSaiEnt>2026-09-01T08:15:00-03:00</dhSaiEnt><dPrevEntrega>2026-09-01</dPrevEntrega><tpNF>1</tpNF><idDest>1</idDest><cMunFG>4209102</cMunFG><tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>3</cDV><tpAmb>1</tpAmb><finNFe>1</finNFe><indFinal>0</indFinal><indPres>3</indPres><indIntermed>0</indIntermed><procEmi>0</procEmi><verProc>2.8.11.19</verProc></ide><emit><CNPJ>79909982000199</CNPJ><xNome>ACAPEL COMERCIO DE PAPEIS E EMBALAGENS</xNome><xFant>ACAPEL STORE</xFant><enderEmit><xLgr>RUA IRIRIU</xLgr><nro>2340</nro><xBairro>IRIRIU</xBairro><cMun>4209102</cMun><xMun>JOINVILLE</xMun><UF>SC</UF><CEP>89227008</CEP><cPais>1058</cPais><xPais>BRASIL</xPais><fone>4734371037</fone></enderEmit><IE>251488535</IE><CRT>3</CRT></emit><dest><CNPJ>13862162000180</CNPJ><xNome>ART GRAV COMUNICACAO INDUSTRIAL LTDA</xNome><enderDest><xLgr>RUA UBIRAJARA PIAZERA DIPPOLD</xLgr><nro>226</nro><xBairro>NOVA BRASILIA</xBairro><cMun>4209102</cMun><xMun>JOINVILLE</xMun><UF>SC</UF><CEP>89214607</CEP><cPais>1058</cPais><xPais>BRASIL</xPais><fone>4734336664</fone></enderDest><indIEDest>1</indIEDest><IE>256444935</IE><email>ARTGRAV@ARTGRAV.COM.BR</email></dest><det nItem=\"1\"><prod><cProd>63475</cProd><cEAN>SEM GTIN</cEAN><xProd>COPO PLASTICO PP 180ML C/100 TRANSPARENT</xProd><NCM>39241000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>12.0000</qCom><vUnCom>7.1500000000</vUnCom><vProd>85.80</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>12.0000</qTrib><vUnTrib>7.1500000000</vUnTrib><indTot>1</indTot><xPed>47038465</xPed><nItemPed>0</nItemPed></prod><imposto><vTotTrib>25.99</vTotTrib><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>85.80</vBC><pICMS>17.0000</pICMS><vICMS>14.59</vICMS></ICMS00></ICMS><IPI><cEnq>999</cEnq><IPITrib><CST>99</CST><vBC>0.00</vBC><pIPI>0.0000</pIPI><vIPI>0.00</vIPI></IPITrib></IPI><PIS><PISAliq><CST>01</CST><vBC>71.21</vBC><pPIS>1.6500</pPIS><vPIS>1.17</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>71.21</vBC><pCOFINS>7.6000</pCOFINS><vCOFINS>5.41</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>64.62</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>0.06</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.06</vIBS><gCBS><pCBS>0.9000</pCBS><vCBS>0.58</vCBS></gCBS></gIBSCBS></IBSCBS></imposto></det><det nItem=\"2\"><prod><cProd>52141</cProd><cEAN>17898939720362</cEAN><xProd>PRATO PLAST PS RASO C/10 N18 BRANCO</xProd><NCM>39241000</NCM><CFOP>5102</CFOP><uCom>PT</uCom><qCom>5.0000</qCom><vUnCom>3.9900000000</vUnCom><vProd>19.95</vProd><cEANTrib>17898939720362</cEANTrib><uTrib>PT</uTrib><qTrib>5.0000</qTrib><vUnTrib>3.9900000000</vUnTrib><indTot>1</indTot><xPed>47038465</xPed><nItemPed>0</nItemPed></prod><imposto><vTotTrib>6.04</vTotTrib><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>19.95</vBC><pICMS>17.0000</pICMS><vICMS>3.39</vICMS></ICMS00></ICMS><IPI><cEnq>999</cEnq><IPITrib><CST>99</CST><vBC>0.00</vBC><pIPI>0.0000</pIPI><vIPI>0.00</vIPI></IPITrib></IPI><PIS><PISAliq><CST>01</CST><vBC>16.56</vBC><pPIS>1.6500</pPIS><vPIS>0.27</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>16.56</vBC><pCOFINS>7.6000</pCOFINS><vCOFINS>1.26</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>15.03</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>0.02</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.02</vIBS><gCBS><pCBS>0.9000</pCBS><vCBS>0.14</vCBS></gCBS></gIBSCBS></IBSCBS></imposto></det><det nItem=\"3\"><prod><cProd>66383</cProd><cEAN>SEM GTIN</cEAN><xProd>VASSOURA C/CABO VARRESEMPRE BOMPACK</xProd><NCM>96039000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>15.2500000000</vUnCom><vProd>30.50</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>15.2500000000</vUnTrib><indTot>1</indTot><xPed>47038465</xPed><nItemPed>0</nItemPed></prod><imposto><vTotTrib>6.47</vTotTrib><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>30.50</vBC><pICMS>17.0000</pICMS><vICMS>5.19</vICMS></ICMS00></ICMS><IPI><cEnq>999</cEnq><IPITrib><CST>99</CST><vBC>0.00</vBC><pIPI>0.0000</pIPI><vIPI>0.00</vIPI></IPITrib></IPI><PIS><PISAliq><CST>01</CST><vBC>25.31</vBC><pPIS>1.6500</pPIS><vPIS>0.42</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>25.31</vBC><pCOFINS>7.6000</pCOFINS><vCOFINS>1.92</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>22.97</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>0.02</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.02</vIBS><gCBS><pCBS>0.9000</pCBS><vCBS>0.21</vCBS></gCBS></gIBSCBS></IBSCBS></imposto></det><det nItem=\"4\"><prod><cProd>2279</cProd><cEAN>7891360491293</cEAN><xProd>LAPIS PRETO HB SEXTAVADO C/BORRACHA ECO</xProd><NCM>96091000</NCM><CFOP>5102</CFOP><uCom>PC</uCom><qCom>2.0000</qCom><vUnCom>1.5000000000</vUnCom><vProd>3.00</vProd><cEANTrib>7891360491293</cEANTrib><uTrib>PC</uTrib><qTrib>2.0000</qTrib><vUnTrib>1.5000000000</vUnTrib><indTot>1</indTot><xPed>47038465</xPed><nItemPed>0</nItemPed></prod><imposto><vTotTrib>0.64</vTotTrib><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>3.00</vBC><pICMS>17.0000</pICMS><vICMS>0.51</vICMS></ICMS00></ICMS><IPI><cEnq>999</cEnq><IPITrib><CST>99</CST><vBC>0.00</vBC><pIPI>0.0000</pIPI><vIPI>0.00</vIPI></IPITrib></IPI><PIS><PISAliq><CST>01</CST><vBC>2.49</vBC><pPIS>1.6500</pPIS><vPIS>0.04</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>2.49</vBC><pCOFINS>7.6000</pCOFINS><vCOFINS>0.19</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>2.26</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>0.00</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.00</vIBS><gCBS><pCBS>0.9000</pCBS><vCBS>0.02</vCBS></gCBS></gIBSCBS></IBSCBS></imposto></det><det nItem=\"5\"><prod><cProd>52586</cProd><cEAN>97896343088777</cEAN><xProd>GARFO PLASTICO REFEICAO FORTE C/50 BRANC</xProd><NCM>39241000</NCM><CFOP>5102</CFOP><uCom>PC</uCom><qCom>1.0000</qCom><vUnCom>11.2500000000</vUnCom><vProd>11.25</vProd><cEANTrib>97896343088777</cEANTrib><uTrib>PC</uTrib><qTrib>1.0000</qTrib><vUnTrib>11.2500000000</vUnTrib><indTot>1</indTot><xPed>47038465</xPed><nItemPed>0</nItemPed></prod><imposto><vTotTrib>3.41</vTotTrib><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>11.25</vBC><pICMS>17.0000</pICMS><vICMS>1.91</vICMS></ICMS00></ICMS><IPI><cEnq>999</cEnq><IPITrib><CST>99</CST><vBC>0.00</vBC><pIPI>0.0000</pIPI><vIPI>0.00</vIPI></IPITrib></IPI><PIS><PISAliq><CST>01</CST><vBC>9.34</vBC><pPIS>1.6500</pPIS><vPIS>0.15</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>9.34</vBC><pCOFINS>7.6000</pCOFINS><vCOFINS>0.71</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>8.48</vBC><gIBSUF><pIBSUF>0.1000</pIBSUF><vIBSUF>0.01</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.01</vIBS><gCBS><pCBS>0.9000</pCBS><vCBS>0.08</vCBS></gCBS></gIBSCBS></IBSCBS></imposto></det><total><ICMSTot><vBC>150.50</vBC><vICMS>25.59</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><qBCMono>0.00</qBCMono><vICMSMono>0.00</vICMSMono><qBCMonoReten>0.00</qBCMonoReten><vICMSMonoReten>0.00</vICMSMonoReten><qBCMonoRet>0.00</qBCMonoRet><vICMSMonoRet>0.00</vICMSMonoRet><vProd>150.50</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>2.05</vPIS><vCOFINS>9.49</vCOFINS><vOutro>0.00</vOutro><vNF>150.50</vNF><vTotTrib>42.55</vTotTrib></ICMSTot><IBSCBSTot><vBCIBSCBS>113.36</vBCIBSCBS><gIBS><gIBSUF><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSUF>0.11</vIBSUF></gIBSUF><gIBSMun><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.11</vIBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gIBS><gCBS><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vCBS>1.03</vCBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gCBS></IBSCBSTot></total><transp><modFrete>0</modFrete><transporta><CNPJ>79909982000199</CNPJ><xNome>TRANSPORTE ACAPEL</xNome><xEnder>R IRIRIU, 2340 - IRIRIU</xEnder><xMun>JOINVILLE</xMun><UF>SC</UF></transporta><vol><qVol>2</qVol><nVol>2</nVol><pesoL>3.800</pesoL><pesoB>3.800</pesoB></vol></transp><cobr><fat><nFat>60995</nFat><vOrig>150.50</vOrig><vDesc>0</vDesc><vLiq>150.50</vLiq></fat><dup><nDup>001</nDup><dVenc>2026-09-29</dVenc><vDup>150.50</vDup></dup></cobr><pag><detPag><indPag>1</indPag><tPag>15</tPag><vPag>150.50</vPag></detPag></pag><infAdic><infCpl>PV : 47038465//PAGAMENTO: 748 - P/ 28 DIAS//ORDEM DE COMPRA://OBS. COMPL.://OBS. ENTREGA://EXCLUSAO DO ICMS NA BASE DE CALCULO DO PIS E COFINS CONFORME PROCESSO/MAND.SEGU N.50043445620164047201 DE 01/09/2021 VALOR EXCLUIDO DA BASE DE CALCULO R$ 25.59</infCpl></infAdic><infRespTec><CNPJ>53113791003571</CNPJ><xContato>TOTVS S.A.</xContato><email>fiscal@totvs.com.br</email><fone>1140040015</fone></infRespTec></infNFe><Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\" /><Reference URI=\"#NFe42260979909982000199550030000609951891072983\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" /><Transform Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\" /><DigestValue>8QltUHvP38RcFwcBSN3XyhYkKpA=</DigestValue></Reference></SignedInfo><SignatureValue>UCYO/S6lOMPSkx5ypacw0Ig1bWBtcFK70lIm6RDqvnQPgCYnAB4yg30iU9fvza2VSe2z4MWkjRj4VYSyleMnZvRUdI7bVASrijTUwzn9Uo5NDQWiZjQVBQZvkCl0c+mdI5wr+Kca41jhEaZ3fzWXLy2vjTEQdJvs7ISVoLw5NgUxNdMCaFFdatkHA7LULk3TiIF4aUkuX9jL7WkUXhFIukH246E/I6xKyxA9aNxeXzOdtvTC1YMXvtkqqgQHoHsTY4r+RRVOTOtbVh5Zc+vEJdpwARWZ1vkuh4nlKKOmaPZAfXpgzCMzmnxf8Omu4ChXJCoGky2Rj8eMlRFdt+4dIg==</SignatureValue><KeyInfo><X509Data><X509Certificate>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</X509Certificate></X509Data></KeyInfo></Signature></NFe><protNFe versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infProt><tpAmb>1</tpAmb><verAplic>SVRS2608060405DR</verAplic><chNFe>42260979909982000199550030000609951891072983</chNFe><dhRecbto>2026-09-01T08:15:14-03:00</dhRecbto><nProt>242260410507124</nProt><digVal>8QltUHvP38RcFwcBSN3XyhYkKpA=</digVal><cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt></protNFe></nfeProc>",
+    "arquivoOriginal": "42260979909982000199550030000609951891072983.xml",
+    "createdAt": "2026-09-04T21:37:37.251Z",
+    "updatedAt": "2026-09-04T21:37:37.251Z"
+  }
+]

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Trophy,
   Medal,
@@ -53,9 +53,10 @@ export default function RankingPage() {
 
       if (error) throw error;
 
+      const bipagensValidas = (data || []).filter(item => ['entrada', 'saida'].includes(item.tipo));
       const usuariosMap = new Map();
       
-      data.forEach(item => {
+      bipagensValidas.forEach(item => {
         const nome = item.usuario_nome || 'Sistema';
         if (!usuariosMap.has(nome)) {
           usuariosMap.set(nome, { nome, total: 0, entradas: 0, saidas: 0 });
@@ -73,7 +74,7 @@ export default function RankingPage() {
       setFilteredRanking(rankingArray);
       setStats({
         total_usuarios: rankingArray.length,
-        total_bipagens: data.length
+        total_bipagens: bipagensValidas.length
       });
 
     } catch (error) {
@@ -95,12 +96,7 @@ export default function RankingPage() {
   }, [busca, ranking]);
 
   function getMedal(position) {
-    switch (position) {
-      case 0: return '🥇';
-      case 1: return '🥈';
-      case 2: return '🥉';
-      default: return `${position + 1}º`;
-    }
+    return `${position + 1}º`;
   }
 
   function getMedalColor(position) {
@@ -127,7 +123,7 @@ export default function RankingPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
         <h1 className="mt-2 text-3xl font-semibold flex items-center gap-3">
-          🏆 Ranking de Bipagens
+          Ranking de Bipagens
         </h1>
         <p className="mt-2 text-sm text-slate-400">Os colaboradores mais ativos</p>
       </div>
@@ -259,13 +255,13 @@ export default function RankingPage() {
                         isSecond ? 'bg-slate-400/20 text-slate-300' :
                         'bg-amber-600/20 text-amber-500'
                       }`}>
-                        {isFirst ? '🏆 1º LUGAR' : 
-                         isSecond ? '🥈 2º LUGAR' : 
-                         '🥉 3º LUGAR'}
+                        {isFirst ? '1º LUGAR' :
+                         isSecond ? '2º LUGAR' :
+                         '3º LUGAR'}
                       </div>
                       <div className="flex justify-center gap-4 mt-3 text-xs text-slate-400">
-                        <span>🟢 +{item.entradas}</span>
-                        <span>🔴 -{item.saidas}</span>
+                        <span>Entradas: +{item.entradas}</span>
+                        <span>Saídas: -{item.saidas}</span>
                       </div>
                     </div>
                   );
@@ -273,14 +269,14 @@ export default function RankingPage() {
               </div>
             )}
 
-            {/* LISTA COMPLETA */}
+            {/* POSIÇÕES 4 E 5 */}
             <div className="mt-6">
               <h3 className="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
                 <BarChart3 size={16} />
-                Classificação Geral
+                Classificação geral - posições 4 e 5
               </h3>
               <div className="space-y-2">
-                {filteredRanking.slice(3).map((item, index) => {
+                {filteredRanking.slice(3, 5).map((item, index) => {
                   const position = index + 3;
                   return (
                     <div

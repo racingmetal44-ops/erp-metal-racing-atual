@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { 
   Clock, AlertTriangle, CheckCircle, Package, 
@@ -32,7 +32,7 @@ export default function ProductionBoardPage() {
     levou_coleta: ''
   });
 
-  const plataformas = ['Shopee', 'Mercado Livre', 'Bling', 'Loja Física', 'WhatsApp'];
+  const plataformas = ['Shopee', 'Mercado Livre', 'Bling', 'Loja Fésica', 'WhatsApp'];
 
   useEffect(() => {
     loadPedidos();
@@ -49,19 +49,19 @@ export default function ProductionBoardPage() {
 
       if (error) {
         console.error('Erro:', error);
-        setMessage('❌ Erro ao carregar pedidos: ' + error.message);
+        setMessage('Erro ao carregar pedidos: ' + error.message);
         setMessageType('error');
         setPedidos([]);
       } else {
         setPedidos(data || []);
         if (data?.length === 0) {
-          setMessage('📋 Nenhum pedido cadastrado');
+          setMessage('Nenhum pedido cadastrado');
           setMessageType('info');
         }
       }
     } catch (error) {
       console.error('Erro:', error);
-      setMessage('❌ Erro ao carregar pedidos');
+      setMessage('Erro ao carregar pedidos');
       setMessageType('error');
       setPedidos([]);
     } finally {
@@ -91,11 +91,11 @@ export default function ProductionBoardPage() {
           valor: horarioCorte
         });
       if (error) throw error;
-      setMessage('✅ Horário de corte salvo!');
+      setMessage('Horário de corte salvo!');
       setMessageType('success');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`❌ Erro: ${error.message}`);
+      setMessage(`? Erro: ${error.message}`);
       setMessageType('error');
     }
   }
@@ -109,7 +109,7 @@ export default function ProductionBoardPage() {
     
     setUploading(true);
     try {
-      // Gerar nome único para o arquivo
+      // Gerar nome énico para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       const filePath = `produtos/${fileName}`;
@@ -126,12 +126,12 @@ export default function ProductionBoardPage() {
         .from('product-files')
         .getPublicUrl(filePath);
 
-      setMessage('✅ Imagem enviada com sucesso!');
+      setMessage('Imagem enviada com sucesso!');
       setMessageType('success');
       return urlData.publicUrl;
     } catch (error) {
       console.error('Erro no upload:', error);
-      setMessage('❌ Erro ao enviar imagem: ' + error.message);
+      setMessage('Erro ao enviar imagem: ' + error.message);
       setMessageType('error');
       return null;
     } finally {
@@ -179,7 +179,7 @@ export default function ProductionBoardPage() {
         setForm({ ...form, foto_url: url });
       }
     } else {
-      setMessage('⚠️ Por favor, arraste apenas arquivos de imagem.');
+      setMessage('?? Por favor, arraste apenas arquivos de imagem.');
       setMessageType('error');
     }
   }
@@ -195,13 +195,13 @@ export default function ProductionBoardPage() {
           .update(form)
           .eq('id', editing);
         if (error) throw error;
-        setMessage('✅ Pedido atualizado!');
+        setMessage('? Pedido atualizado!');
       } else {
         const { error } = await supabase
           .from('quadro_producao')
           .insert(form);
         if (error) throw error;
-        setMessage('✅ Pedido criado!');
+        setMessage('? Pedido criado!');
       }
 
       setMessageType('success');
@@ -210,7 +210,7 @@ export default function ProductionBoardPage() {
       loadPedidos();
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`❌ Erro: ${error.message}`);
+      setMessage(`? Erro: ${error.message}`);
       setMessageType('error');
     }
   }
@@ -223,11 +223,11 @@ export default function ProductionBoardPage() {
         .delete()
         .eq('id', id);
       if (error) throw error;
-      setMessage('🗑️ Pedido removido!');
+      setMessage('??? Pedido removido!');
       loadPedidos();
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      setMessage(`❌ Erro: ${error.message}`);
+      setMessage(`? Erro: ${error.message}`);
     }
   }
 
@@ -264,9 +264,9 @@ export default function ProductionBoardPage() {
 
   function getStatusConfig(status) {
     const configs = {
-      pendente: { label: '⏳ Pendente', cor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
-      produzido: { label: '✅ Produzido', cor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-      atrasado: { label: '🔴 Atrasado', cor: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
+      pendente: { label: '? Pendente', cor: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' },
+      produzido: { label: '? Produzido', cor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+      atrasado: { label: '?? Atrasado', cor: 'bg-rose-500/20 text-rose-400 border-rose-500/30' }
     };
     return configs[status] || configs.pendente;
   }
@@ -285,7 +285,7 @@ export default function ProductionBoardPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-orange-400">Módulo</p>
-            <h1 className="mt-2 text-3xl font-semibold">🏭 Quadro de Produção</h1>
+            <h1 className="mt-2 text-3xl font-semibold">Quadro de Produção</h1>
             <p className="mt-2 text-sm text-slate-400">
               Pedidos novos de Shopee, Mercado Livre e Bling
             </p>
@@ -300,7 +300,7 @@ export default function ProductionBoardPage() {
         </div>
       </div>
 
-      {/* HORÁRIO DE CORTE */}
+      {/* HORéRIO DE CORTE */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center gap-2 text-amber-400 mb-2">
           <Clock size={18} />
@@ -338,7 +338,7 @@ export default function ProductionBoardPage() {
         </div>
       )}
 
-      {/* BOTÕES E FILTROS */}
+      {/* BOTéES E FILTROS */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative">
@@ -356,10 +356,10 @@ export default function ProductionBoardPage() {
             onChange={(e) => setFilter(e.target.value)}
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-white focus:border-orange-500 focus:outline-none"
           >
-            <option value="todos">📋 Todos</option>
-            <option value="pendente">⏳ Pendentes</option>
-            <option value="produzido">✅ Produzidos</option>
-            <option value="atrasado">🔴 Atrasados</option>
+            <option value="todos">?? Todos</option>
+            <option value="pendente">? Pendentes</option>
+            <option value="produzido">? Produzidos</option>
+            <option value="atrasado">?? Atrasados</option>
           </select>
         </div>
       </div>
@@ -374,7 +374,7 @@ export default function ProductionBoardPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-12 text-center">
           <Package size={48} className="mx-auto text-slate-600 mb-4" />
           <p className="text-slate-400">Nenhum pedido encontrado</p>
-          <p className="text-slate-500 text-sm">Clique em "Novo Pedido" para começar</p>
+          <p className="text-slate-500 text-sm">Clique em "Novo Pedido" para comeéar</p>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -418,7 +418,7 @@ export default function ProductionBoardPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white">{pedido.nome_produto || 'Sem nome'}</h3>
                   <p className="text-sm text-slate-400">SKU: {pedido.sku || '---'}</p>
-                  <p className="text-sm text-slate-400">📦 {pedido.plataforma}</p>
+                  <p className="text-sm text-slate-400">?? {pedido.plataforma}</p>
                   <p className="text-sm text-slate-400">Qtd: {pedido.quantidade}</p>
 
                   {/* CAMPOS DE RECEBIMENTO */}
@@ -448,7 +448,7 @@ export default function ProductionBoardPage() {
                     {new Date(pedido.created_at).toLocaleString('pt-BR')}
                   </p>
 
-                  {/* BOTÕES */}
+                  {/* BOTéES */}
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => handleEdit(pedido)}
@@ -473,7 +473,7 @@ export default function ProductionBoardPage() {
                         }}
                         className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-sm hover:bg-emerald-600 transition"
                       >
-                        ✅ Produzir
+                        ? Produzir
                       </button>
                     )}
                   </div>
@@ -484,7 +484,7 @@ export default function ProductionBoardPage() {
         </div>
       )}
 
-      {/* MODAL DE CRIAÇÃO/EDIÇÃO COM DRAG & DROP */}
+      {/* MODAL DE CRIAééO/EDIééO COM DRAG & DROP */}
       {showModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4">
           <div className="relative w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 p-6 max-h-[90vh] overflow-y-auto">
@@ -496,7 +496,7 @@ export default function ProductionBoardPage() {
             </button>
 
             <h2 className="text-xl font-bold text-white mb-6">
-              {editing ? '✏️ Editar Pedido' : '📦 Novo Pedido'}
+              {editing ? '?? Editar Pedido' : '?? Novo Pedido'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -556,9 +556,9 @@ export default function ProductionBoardPage() {
                   value={form.status}
                   onChange={(e) => setForm({...form, status: e.target.value})}
                 >
-                  <option value="pendente">⏳ Pendente</option>
-                  <option value="produzido">✅ Produzido</option>
-                  <option value="atrasado">🔴 Atrasado</option>
+                  <option value="pendente">? Pendente</option>
+                  <option value="produzido">? Produzido</option>
+                  <option value="atrasado">?? Atrasado</option>
                 </select>
               </div>
 
@@ -606,7 +606,7 @@ export default function ProductionBoardPage() {
                   <div className="flex flex-col items-center gap-2">
                     <Upload size={40} className="text-slate-500" />
                     <p className="text-slate-400">
-                      {dragActive ? '📥 Solte a imagem aqui' : '📤 Arraste uma imagem ou clique para selecionar'}
+                      {dragActive ? '?? Solte a imagem aqui' : '?? Arraste uma imagem ou clique para selecionar'}
                     </p>
                     <p className="text-xs text-slate-500">
                       PNG, JPG, WEBP até 5MB
@@ -622,14 +622,14 @@ export default function ProductionBoardPage() {
                 
                 {form.foto_url && (
                   <p className="mt-1 text-xs text-emerald-400 truncate">
-                    ✅ Imagem: {form.foto_url.substring(0, 50)}...
+                    ? Imagem: {form.foto_url.substring(0, 50)}...
                   </p>
                 )}
               </div>
 
               {/* CONTROLE DE RECEBIMENTO */}
               <div className="border-t border-slate-700 pt-4">
-                <p className="text-sm font-semibold text-slate-300 mb-3">📋 Controle de Recebimento</p>
+                <p className="text-sm font-semibold text-slate-300 mb-3">?? Controle de Recebimento</p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm text-slate-400 mb-1">Recebido por</label>
@@ -670,7 +670,7 @@ export default function ProductionBoardPage() {
                   disabled={uploading}
                   className="flex-1 bg-orange-500 px-6 py-3 rounded-xl text-white font-semibold hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {uploading ? '📤 Enviando imagem...' : editing ? '💾 Atualizar' : '✅ Cadastrar'}
+                  {uploading ? '?? Enviando imagem...' : editing ? '?? Atualizar' : '? Cadastrar'}
                 </button>
                 <button
                   type="button"

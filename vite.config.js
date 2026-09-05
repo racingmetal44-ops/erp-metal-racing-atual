@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Metal Racing ERP',
         short_name: 'MetalERP',
-        description: 'ERP para gestão comercial e operacional',
+        description: 'ERP para gestáo comercial e operacional',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
@@ -31,7 +31,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
       }
     })
   ],

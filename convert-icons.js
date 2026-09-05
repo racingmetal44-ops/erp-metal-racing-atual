@@ -1,4 +1,4 @@
-﻿import sharp from 'sharp';
+import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,10 +8,10 @@ const __dirname = path.dirname(__filename);
 
 const svgPath = path.join(__dirname, 'public', 'icon.svg');
 
-console.log('🔄 Convertendo SVG para PNG...');
+console.log('?? Convertendo SVG para PNG...');
 
 if (!fs.existsSync(svgPath)) {
-  console.error('❌ SVG não encontrado:', svgPath);
+  console.error('? SVG não encontrado:', svgPath);
   process.exit(1);
 }
 
@@ -26,6 +26,6 @@ sizes.forEach((size) => {
     .resize(size, size)
     .png()
     .toFile(outputPath)
-    .then(() => console.log(✅  criado))
-    .catch((err) => console.error(❌ Erro ao criar :, err));
+    .then(() => console.log(?  criado))
+    .catch((err) => console.error(? Erro ao criar :, err));
 });

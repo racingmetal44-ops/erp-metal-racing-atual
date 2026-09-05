@@ -33,7 +33,7 @@ export const DESCRICOES_EVENTO = {
 };
 
 const X_COND_USO =
-    'O autor deste evento declara ter ciência de que a utilização indevida do evento poderá sujeitá-lo às sanções previstas na legislação tributária.';
+    'O autor deste evento declara ter ciéncia de que a utilização indevida do evento poderé sujeité-lo és sanéées previstas na legislaééo tributária.';
 
 function lerEventos() {
     try {
@@ -109,7 +109,7 @@ function validarCnpj(cnpj) {
 
     if (!/^\d{14}$/.test(valor)) {
         throw new Error(
-            'CNPJ do destinatário inválido.'
+            'CNPJ do destinatério inválido.'
         );
     }
 
@@ -138,7 +138,7 @@ function validarCnpj(cnpj) {
  *       descEvento
  *       xCondUso
  *
- * A assinatura fica como irmã de infEvento
+ * A assinatura fica como irmé de infEvento
  * dentro de evento.
  */
 function montarXmlEvento({ tpAmb, cnpj, chNFe, tipoEvento, sequencia, justificativa }) {
@@ -440,7 +440,7 @@ export class NfeManifestacaoService {
             '============================================'
         );
         console.log(
-            ' 📨 MANIFESTAÇÃO DO DESTINATÁRIO'
+            ' ?? MANIFESTAÇÃO DO DESTINATÁRIO'
         );
         console.log(
             '============================================'
@@ -507,7 +507,7 @@ export class NfeManifestacaoService {
             );
 
         /*
-         * Lote de um único evento.
+         * Lote de um énico evento.
          */
         const idLote =
             String(Date.now())
@@ -561,6 +561,7 @@ export class NfeManifestacaoService {
                 new https.Agent({
                     cert: certificado.cert,
                     key: certificado.key,
+                    ca: certificado.ca,
                     rejectUnauthorized: true,
                     minVersion: 'TLSv1.2',
                     keepAlive: false
@@ -604,7 +605,7 @@ export class NfeManifestacaoService {
                 Date.now() - inicio;
 
             console.error(
-                '[MANIFESTACAO] ❌ ERRO DE CONEXÃO:',
+                '[MANIFESTACAO] ? ERRO DE CONEXÃO:',
                 error.code || '',
                 error.message
             );
@@ -783,8 +784,8 @@ export class NfeManifestacaoService {
 
         console.log(
             resultado.sucesso
-                ? ' ✅ EVENTO VINCULADO'
-                : ' ❌ EVENTO NÃO VINCULADO'
+                ? ' ? EVENTO VINCULADO'
+                : ' ? EVENTO NºO VINCULADO'
         );
 
         console.log(

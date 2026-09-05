@@ -21,5 +21,5 @@ async function gerarPrimeiroToken(consumerKey, consumerSecret, codeTemporario) {
   }
 }
 
-// Chame a função passando seus dados reais quando tiver em mãos:
+// Chame a fun??o passando seus dados reais quando tiver em m?os:
 // gerarPrimeiroToken('sua_key', 'seu_secret', 'seu_code');

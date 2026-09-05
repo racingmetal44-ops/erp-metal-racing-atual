@@ -6,8 +6,27 @@ export default function AuditPage() {
 
   useEffect(() => {
     async function load() {
-      const { data } = await supabase.from('audit_logs').select('*').order('id', { ascending: false });
-      setLogs(data ?? []);
+      const [{ data: auditLogs }, { data: bipagens }, auditoriaLocal] = await Promise.all([
+        supabase.from('audit_logs').select('*').order('id', { ascending: false }),
+        supabase.from('bipagem_history').select('*').order('created_at', { ascending: false }).limit(500),
+        fetch('/api/nfe-entradas/auditoria-bipagens').then((response) => response.ok ? response.json() : { registros: [] }).catch(() => ({ registros: [] })),
+      ]);
+
+      const bipagemLogs = (bipagens ?? []).map((item) => ({
+        id: `bipagem-${item.id}`,
+        action: `Bipagem - ${String(item.tipo || 'evento').toUpperCase()}`,
+        created_at: item.created_at,
+        details: `${item.usuario_nome || 'Sistema'} bipou ${item.product_name || 'produto não encontrado'} | Código: ${item.product_sku || '-'} | Quantidade: ${item.quantidade ?? 0} | Estoque: ${item.quantidade_anterior ?? 0} -> ${item.quantidade_nova ?? 0}`,
+      }));
+
+      const registrosLocais = (auditoriaLocal?.registros ?? []).map((item, index) => ({
+        id: `auditoria-local-${index}-${item.created_at}`,
+        action: `Bipagem - ${String(item.tipo || 'evento').toUpperCase()}`,
+        created_at: item.created_at,
+        details: `${item.usuario_nome || 'Sistema'} bipou ${item.product_name || 'produto'} | Código: ${item.product_sku || '-'} | Quantidade: ${item.quantidade ?? 0} | Estoque: ${item.quantidade_anterior ?? 0} -> ${item.quantidade_nova ?? 0}`,
+      }));
+
+      setLogs([...((auditLogs ?? [])), ...bipagemLogs, ...registrosLocais].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)));
     }
     load();
   }, []);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-const API_BASE = 'http://localhost:3001/api/financeiro';
+const API_BASE = '/api/financeiro';
 
 const STATUS_LABELS = {
   PENDENTE: 'Pendente',
@@ -91,6 +91,9 @@ function SummaryCard({ title, value, subtitle }) {
 }
 
 export default function FinancePage() {
+  const [financeiroLiberado, setFinanceiroLiberado] = useState(false);
+  const [senhaFinanceiro, setSenhaFinanceiro] = useState('');
+  const [erroSenhaFinanceiro, setErroSenhaFinanceiro] = useState('');
   const [contas, setContas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sincronizando, setSincronizando] = useState(false);
@@ -259,13 +262,21 @@ export default function FinancePage() {
         item.status === 'PARCIAL'
     ).length;
 
+    const nfesVinculadas = new Set(
+      contas
+        .map(item => item.nfe_chave || `${item.nfe_numero}-${item.nfe_serie}`)
+        .filter(Boolean)
+    ).size;
+
     return {
       totalPagar,
       vencido,
       hoje,
       proximos,
       totalPago,
-      totalPendente
+      totalPendente,
+      totalTitulos: contas.length,
+      nfesVinculadas
     };
   }, [contas]);
 
@@ -455,6 +466,40 @@ export default function FinancePage() {
       )
     : 0;
 
+  function liberarFinanceiro(event) {
+    event.preventDefault();
+    if (senhaFinanceiro === '226') {
+      setFinanceiroLiberado(true);
+      setErroSenhaFinanceiro('');
+      return;
+    }
+    setErroSenhaFinanceiro('Senha incorreta.');
+    setSenhaFinanceiro('');
+  }
+
+  if (!financeiroLiberado) {
+    return (
+      <div className="mx-auto max-w-md rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+        <p className="text-sm text-orange-400">Área protegida</p>
+        <h1 className="mt-2 text-2xl font-semibold text-white">Financeiro</h1>
+        <p className="mt-2 text-sm text-slate-400">Informe a senha para acessar Contas a Pagar.</p>
+        <form onSubmit={liberarFinanceiro} className="mt-5 space-y-3">
+          <input
+            type="password"
+            inputMode="numeric"
+            autoFocus
+            value={senhaFinanceiro}
+            onChange={(event) => setSenhaFinanceiro(event.target.value)}
+            placeholder="Senha"
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white"
+          />
+          {erroSenhaFinanceiro && <p className="text-sm text-red-300">{erroSenhaFinanceiro}</p>}
+          <button type="submit" className="w-full rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600">Entrar no Financeiro</button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -482,7 +527,7 @@ export default function FinancePage() {
           >
             {sincronizando
               ? 'Sincronizando...'
-              : '↻ Sincronizar NF-e'}
+              : 'Sincronizar NF-e'}
           </button>
         </div>
       </div>
@@ -542,8 +587,14 @@ export default function FinancePage() {
 
         <SummaryCard
           title="Contas"
-          value={contas.length}
+          value={resumo.totalTitulos}
           subtitle="Total cadastrado"
+        />
+
+        <SummaryCard
+          title="NF-e vinculadas"
+          value={resumo.nfesVinculadas}
+          subtitle="Documentos de entrada"
         />
       </div>
 
@@ -566,7 +617,7 @@ export default function FinancePage() {
               onChange={event =>
                 setBusca(event.target.value)
               }
-              placeholder="🔎 Buscar fornecedor, NF-e ou título..."
+              placeholder="Buscar fornecedor, NF-e ou título..."
               className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-orange-500 md:w-80"
             />
 
@@ -788,7 +839,7 @@ export default function FinancePage() {
 
                     <p className="mt-1 text-sm text-slate-400">
                       NF-e #{contaSelecionada.nfe_numero}
-                      {' · '}
+                      {' é '}
                       Parcela{' '}
                       {contaSelecionada.numero_parcela}
                     </p>
@@ -799,7 +850,7 @@ export default function FinancePage() {
                     onClick={fecharBaixa}
                     className="text-2xl text-slate-500 hover:text-white"
                   >
-                    ×
+                    é
                   </button>
                 </div>
               </div>
@@ -1072,7 +1123,7 @@ export default function FinancePage() {
 
                   <p className="mt-1 text-sm text-slate-400">
                     NF-e #{contaSelecionada.nfe_numero}
-                    {' · '}
+                    {' é '}
                     Parcela{' '}
                     {contaSelecionada.numero_parcela}
                   </p>
@@ -1083,7 +1134,7 @@ export default function FinancePage() {
                   onClick={fecharHistorico}
                   className="text-2xl text-slate-500 hover:text-white"
                 >
-                  ×
+                  é
                 </button>
               </div>
 

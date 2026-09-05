@@ -24,9 +24,9 @@ const navItems = [
   { to: '/mapa-estoque', label: 'Mapa de Estoque', icon: Map },
   { to: '/empresas', label: 'Empresas', icon: Building2 },
   { to: '/devolucoes', label: 'Devoluções', icon: RotateCcw },
-  { to: '/sugestoes', label: 'Sugestões', icon: Lightbulb },
+  { to: '/sugestoes', label: 'Sugestáes', icon: Lightbulb },
   { to: '/auditoria', label: 'Auditoria', icon: ShieldCheck },
-  { to: '/importacao', label: 'Importação', icon: Upload },
+  { to: '/importacao', label: 'Importaééo', icon: Upload },
 ];
 
 export default function Layout({ session }) {
@@ -73,6 +73,7 @@ export default function Layout({ session }) {
             <div>
               <p className="text-sm text-slate-400">Sistema ERP</p>
               <h2 className="text-xl font-semibold">Metal Racing</h2>
+              <p className="mt-1 text-xs text-orange-300">Desenvolvido e criado por LD</p>
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-400">
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-300">{session?.user?.email || 'Usuário'}</span>

@@ -32,6 +32,7 @@
     "react-router-dom": "^6.20.0",
     "soap": "^1.10.0",
     "uuid": "^14.0.2",
+    "xlsx": "^0.18.5",
     "xml-crypto": "^6.1.2",
     "xml2js": "^0.6.2",
     "xmlbuilder2": "^4.0.3",

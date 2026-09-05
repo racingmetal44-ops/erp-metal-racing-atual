@@ -248,7 +248,7 @@ export default function ContabilidadePage() {
               <p className="mt-1 text-lg font-semibold text-white">{selectedCompany?.name || 'Empresa não selecionada'}</p>
             </div>
             <div className="rounded-3xl bg-slate-950/80 px-4 py-3 text-sm text-slate-300">
-              {period.from || 'Início'} → {period.to || 'Fim'}
+              {period.from || 'Início'} ? {period.to || 'Fim'}
             </div>
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function ContabilidadePage() {
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
               <h2 className="text-lg font-semibold">Entradas x Saídas</h2>
-              <p className="mt-3 text-sm text-slate-400">Comparativo de volumes fiscais de entrada e saída.</p>
+              <p className="mt-3 text-sm text-slate-400">Comparativo de volumes fiscais de entrada e saéda.</p>
               <div className="mt-6 h-40 rounded-3xl bg-slate-900/80" />
             </div>
             <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
@@ -395,7 +395,7 @@ export default function ContabilidadePage() {
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
             <h2 className="text-lg font-semibold">NF-e Autorizadas</h2>
-            <p className="mt-2 text-sm text-slate-400">Lista automática de notas fiscais válidas.</p>
+            <p className="mt-2 text-sm text-slate-400">Lista automética de notas fiscais válidas.</p>
             <div className="mt-4 space-y-3">
               {orders.slice(0, 4).map((order) => (
                 <div key={order.id} className="rounded-2xl border border-white/5 bg-slate-900/80 p-4">
@@ -437,7 +437,7 @@ export default function ContabilidadePage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold">Faturamento por período</h2>
-                <p className="mt-2 text-sm text-slate-400">Filtro por dia, semana, mês ou cliente.</p>
+                <p className="mt-2 text-sm text-slate-400">Filtro por dia, semana, més ou cliente.</p>
               </div>
               <button className="rounded-xl border border-orange-500 bg-orange-500/10 px-4 py-2 text-sm text-orange-300">Exportar Excel</button>
             </div>
@@ -508,8 +508,8 @@ export default function ContabilidadePage() {
       {activeTab === 'estoque' && (
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
-            <h2 className="text-lg font-semibold">Movimentação de Estoque</h2>
-            <p className="mt-2 text-sm text-slate-400">Relatório contábil de estoque baseado nas movimentações existentes.</p>
+            <h2 className="text-lg font-semibold">Movimentaééo de Estoque</h2>
+            <p className="mt-2 text-sm text-slate-400">Relatério contébil de estoque baseado nas movimentações existentes.</p>
           </div>
           <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950/70">
             <table className="min-w-full text-left text-sm text-slate-200">
@@ -551,12 +551,12 @@ export default function ContabilidadePage() {
               <div key={tax} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
                 <p className="text-sm text-slate-400">{tax}</p>
                 <p className="mt-4 text-3xl font-semibold text-white">0</p>
-                <p className="mt-2 text-sm text-slate-500">Base de cálculo e alíquota só aparecem quando carregadas nas NF-e.</p>
+                <p className="mt-2 text-sm text-slate-500">Base de cálculo e aléquota sé aparecem quando carregadas nas NF-e.</p>
               </div>
             ))}
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-slate-300">
-            Para o resumo tributário, a contabilidade utiliza somente os dados fiscais registrados nos documentos existentes. Cálculos estimados não são gerados neste módulo.
+            Para o resumo tributério, a contabilidade utiliza somente os dados fiscais registrados nos documentos existentes. Cálculos estimados não são gerados neste módulo.
           </div>
         </div>
       )}
@@ -564,7 +564,7 @@ export default function ContabilidadePage() {
       {activeTab === 'inconsistencias' && (
         <div className="space-y-4">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-            <h2 className="text-lg font-semibold">Inconsistências Fiscais</h2>
+            <h2 className="text-lg font-semibold">Inconsisténcias Fiscais</h2>
             <p className="mt-2 text-sm text-slate-400">Encontre e resolva problemas nos documentos fiscais e integrações.</p>
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
@@ -573,7 +573,7 @@ export default function ContabilidadePage() {
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="font-semibold text-white">{issue.label}</p>
-                    <p className="mt-2 text-sm text-slate-400">{issue.resolved ? 'Verificado' : 'Ação recomendada'}</p>
+                    <p className="mt-2 text-sm text-slate-400">{issue.resolved ? 'Verificado' : 'Aééo recomendada'}</p>
                   </div>
                   <span className={`rounded-full px-3 py-1 text-xs ${issue.resolved ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>
                     {issue.resolved ? 'Resolvido' : 'Pendente'}
@@ -593,8 +593,8 @@ export default function ContabilidadePage() {
       {activeTab === 'exportacao' && (
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-            <h2 className="text-lg font-semibold">Exportação Contábil</h2>
-            <p className="mt-2 text-sm text-slate-400">Selecione o conjunto de dados para gerar o pacote contábil.</p>
+            <h2 className="text-lg font-semibold">Exportação Contébil</h2>
+            <p className="mt-2 text-sm text-slate-400">Selecione o conjunto de dados para gerar o pacote contébil.</p>
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
             {Object.entries(exportOptions).map(([key, value]) => (
@@ -602,7 +602,7 @@ export default function ContabilidadePage() {
                 <input type="checkbox" checked={value} onChange={() => handleExportOptionToggle(key)} className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-orange-500" />
                 <span>{{
                   nfEntrada: 'NF-e de entrada',
-                  nfSaida: 'NF-e de saída',
+                  nfSaida: 'NF-e de saéda',
                   nfCanceladas: 'NF-e canceladas',
                   eventosFiscais: 'Eventos fiscais',
                   xmls: 'XMLs',
@@ -623,7 +623,7 @@ export default function ContabilidadePage() {
                 <p className="mt-1 text-base font-semibold text-white">METAL_RACING_{selectedCompany?.name?.replace(/\s+/g, '_') || 'EMPRESA'}_{period.from || 'INICIO'}-{period.to || 'FIM'}</p>
               </div>
               <button onClick={handleGeneratePackage} className="rounded-2xl border border-orange-500 bg-orange-500/10 px-5 py-3 text-sm text-orange-300 transition hover:bg-orange-500/20">
-                GERAR PACOTE CONTÁBIL
+                GERAR PACOTE CONTéBIL
               </button>
             </div>
           </div>
@@ -634,7 +634,7 @@ export default function ContabilidadePage() {
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
             <h2 className="text-lg font-semibold">Fechamento do Período</h2>
-            <p className="mt-2 text-sm text-slate-400">Confirme os itens antes de finalizar o período contábil.</p>
+            <p className="mt-2 text-sm text-slate-400">Confirme os itens antes de finalizar o período contébil.</p>
           </div>
           <div className="grid gap-4 xl:grid-cols-2">
             {[
@@ -647,7 +647,7 @@ export default function ContabilidadePage() {
               'Compras',
               'Estoque',
               'Impostos',
-              'Inconsistências'
+              'Inconsisténcias'
             ].map((item) => (
               <div key={item} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
                 <div className="flex items-center justify-between gap-4">
@@ -659,7 +659,7 @@ export default function ContabilidadePage() {
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
             <button onClick={handleClosePeriod} className="rounded-2xl border border-orange-500 bg-orange-500/10 px-5 py-3 text-sm text-orange-300 transition hover:bg-orange-500/20">
-              FECHAR PERÍODO CONTÁBIL
+              FECHAR PERéODO CONTéBIL
             </button>
           </div>
         </div>

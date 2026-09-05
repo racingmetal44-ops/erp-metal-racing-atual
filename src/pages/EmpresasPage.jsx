@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Empresas = () => {
   // Dados fixos com ART GRAV e Xcompetition
@@ -15,7 +15,7 @@ const Empresas = () => {
       uf: 'SC',
       status: 'ativo',
       ambiente: 'Homologação',
-      certificado: '✅ Válido',
+      certificado: '? Válido',
       pronto_para_faturar: false
     },
     {
@@ -30,7 +30,7 @@ const Empresas = () => {
       uf: 'SC',
       status: 'ativo',
       ambiente: 'Homologação',
-      certificado: '✅ Válido',
+      certificado: '? Válido',
       pronto_para_faturar: true
     }
   ]);
@@ -44,7 +44,7 @@ const Empresas = () => {
 
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a2a3a' }}>🏢 Empresas</h1>
+      <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1a2a3a' }}>Empresas</h1>
       <p style={{ color: '#6b7a8a', marginBottom: '24px' }}>
         Central de cadastro, certificado digital e configuração fiscal.
       </p>
@@ -53,19 +53,19 @@ const Empresas = () => {
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <div style={{ background: '#fff3cd', padding: '12px 20px', borderRadius: '8px', border: '1px solid #ffc107', flex: 1, minWidth: '150px' }}>
           <strong>STATUS</strong><br />
-          <span style={{ color: '#856404' }}>⚠️ Configuração incompleta</span>
+          <span style={{ color: '#856404' }}>Configuração incompleta</span>
         </div>
         <div style={{ background: '#f8d7da', padding: '12px 20px', borderRadius: '8px', border: '1px solid #dc3545', flex: 1, minWidth: '150px' }}>
           <strong>CERTIFICADO</strong><br />
-          <span style={{ color: '#721c24' }}>❌ Não enviado</span>
+          <span style={{ color: '#721c24' }}>Não enviado</span>
         </div>
         <div style={{ background: '#d4edda', padding: '12px 20px', borderRadius: '8px', border: '1px solid #28a745', flex: 1, minWidth: '150px' }}>
           <strong>NF-E</strong><br />
-          <span style={{ color: '#155724' }}>✅ Configurada</span>
+          <span style={{ color: '#155724' }}>Configurada</span>
         </div>
         <div style={{ background: '#cce5ff', padding: '12px 20px', borderRadius: '8px', border: '1px solid #007bff', flex: 1, minWidth: '150px' }}>
           <strong>Ambiente</strong><br />
-          <span style={{ color: '#004085' }}>🟡 Homologação</span>
+          <span style={{ color: '#004085' }}>Homologação</span>
         </div>
       </div>
 
@@ -123,7 +123,7 @@ const Empresas = () => {
                   color: empresa.status === 'ativo' ? '#28a745' : '#dc3545',
                   fontWeight: '600'
                 }}>
-                  {empresa.status === 'ativo' ? '✅ Ativo' : '❌ Inativo'}
+                  {empresa.status === 'ativo' ? 'Ativo' : 'Inativo'}
                 </span>
                 {empresa.pronto_para_faturar && (
                   <span style={{ 

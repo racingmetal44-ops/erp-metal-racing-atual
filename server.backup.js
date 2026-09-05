@@ -99,7 +99,7 @@ const server = http.createServer((req, res) => {
                         }
                     }));
                 } catch (error) {
-                    console.error('? Erro na emissão:', error.message);
+                    console.error('? Erro na emiss?o:', error.message);
                     res.writeHead(500, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({
                         success: false,

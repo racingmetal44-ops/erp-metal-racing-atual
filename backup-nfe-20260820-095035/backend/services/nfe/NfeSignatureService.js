@@ -1,4 +1,4 @@
-﻿// src/backend/services/nfe/NfeSignatureService.js
+// src/backend/services/nfe/NfeSignatureService.js
 import forge from 'node-forge';
 import { SignedXml } from 'xml-crypto';
 import fs from 'fs-extra';
@@ -28,7 +28,7 @@ class NfeSignatureService {
             const xmlAssinado = this._assinarComXmlCrypto(xml, cert, privateKey);
             return xmlAssinado;
         } catch (error) {
-            console.error('❌ Erro na assinatura:', error.message);
+            console.error('? Erro na assinatura:', error.message);
             throw new Error(`Falha ao assinar XML: ${error.message}`);
         }
     }
@@ -41,7 +41,7 @@ class NfeSignatureService {
         }
         const id = idMatch[1];
 
-        // Criar a assinatura com a configuração correta
+        // Criar a assinatura com a configuraééo correta
         const sig = new SignedXml({
             privateKey: privateKey,
             publicCert: cert,
@@ -50,7 +50,7 @@ class NfeSignatureService {
             signatureAlgorithm: 'http://www.w3.org/2000/09/xmldsig#rsa-sha1'
         });
 
-        // Configurar a referência
+        // Configurar a referéncia
         sig.addReference({
             xpath: `//*[@Id="${id}"]`,
             transforms: ['http://www.w3.org/TR/2001/REC-xml-c14n-20010315'],
@@ -58,7 +58,7 @@ class NfeSignatureService {
             uri: `#${id}`
         });
 
-        // Adicionar a chave pública
+        // Adicionar a chave péblica
         sig.signingKey = privateKey;
 
         // Assinar
@@ -81,9 +81,9 @@ class NfeSignatureService {
                 return { valido: false, mensagem: 'Assinatura mal formada' };
             }
 
-            return { valido: true, mensagem: 'Assinatura válida' };
+            return { valido: true, mensagem: 'Assinatura vélida' };
         } catch (error) {
-            return { valido: false, mensagem: `Erro na validação: ${error.message}` };
+            return { valido: false, mensagem: `Erro na validaééo: ${error.message}` };
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   QrCode,
   Plus,
@@ -99,7 +99,7 @@ export default function BipagemPage() {
 
   async function buscarProduto(codigo) {
     if (!codigo || codigo.trim() === '') {
-      setMessage('📷 Digite ou leia um código de barras');
+      setMessage('Digite ou leia um código de barras');
       setMessageType('info');
       return;
     }
@@ -121,7 +121,7 @@ export default function BipagemPage() {
       if (error || !data) {
         setBipeStatus('nao_encontrado');
         setProduct(null);
-        setMessage(`🔵 Produto "${codigo}" não encontrado!`);
+        setMessage(`Produto "${codigo}" não encontrado!`);
         setMessageType('info');
         
         await registrarBipagemNaoEncontrada(codigo);
@@ -143,21 +143,21 @@ export default function BipagemPage() {
 
       const produtoCompleto = { ...data, images: files || [] };
       setProduct(produtoCompleto);
-      setMessage(`✅ Produto encontrado: ${data.name}`);
+      setMessage(`Produto encontrado: ${data.name}`);
       setMessageType('success');
       setCodigo('');
 
     } catch (error) {
       setLoading(false);
       setBipeStatus('nao_encontrado');
-      setMessage(`❌ Erro: ${error.message}`);
+      setMessage(`Erro: ${error.message}`);
       setMessageType('error');
     }
   }
 
   async function registrarBipagemNaoEncontrada(codigo) {
     try {
-      await supabase
+      const { error: historyError } = await supabase
         .from('bipagem_history')
         .insert({
           product_id: null,
@@ -171,6 +171,7 @@ export default function BipagemPage() {
           usuario_nome: usuarioSelecionado?.nome_completo || 'Sistema',
           created_at: new Date().toISOString()
         });
+      if (historyError) throw historyError;
       await loadHistory();
     } catch (error) {
       console.error('Erro ao registrar:', error);
@@ -179,13 +180,13 @@ export default function BipagemPage() {
 
   async function confirmarBipe(tipo) {
     if (!product) {
-      setMessage('🔵 Nenhum produto bipado!');
+      setMessage('Nenhum produto bipado!');
       setMessageType('info');
       return;
     }
 
     if (!usuarioSelecionado) {
-      setMessage('⚠️ Selecione um usuário antes de bipar!');
+      setMessage('Selecione um usuário antes de bipar!');
       setMessageType('error');
       return;
     }
@@ -197,7 +198,7 @@ export default function BipagemPage() {
       novaQuantidade = quantidadeAtual + 1;
     } else {
       if (quantidadeAtual <= 0) {
-        setMessage('❌ Produto com quantidade zero! Não pode remover.');
+        setMessage('Produto com quantidade zero! Não pode remover.');
         setMessageType('error');
         return;
       }
@@ -215,7 +216,7 @@ export default function BipagemPage() {
 
       if (error) throw error;
 
-      await supabase
+      const { error: historyError } = await supabase
         .from('bipagem_history')
         .insert({
           product_id: product.id,
@@ -229,14 +230,15 @@ export default function BipagemPage() {
           usuario_nome: usuarioSelecionado.nome_completo,
           created_at: new Date().toISOString()
         });
+      if (historyError) throw historyError;
 
       if (tipo === 'entrada') {
         setBipeStatus('entrada');
-        setMessage(`🟢 ${usuarioSelecionado.nome_completo} - ENTRADA: ${product.name} +1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessage(`?? ${usuarioSelecionado.nome_completo} - ENTRADA: ${product.name} +1 (${quantidadeAtual} ? ${novaQuantidade})`);
         setMessageType('success');
       } else {
         setBipeStatus('saida');
-        setMessage(`🔴 ${usuarioSelecionado.nome_completo} - SAÍDA: ${product.name} -1 (${quantidadeAtual} → ${novaQuantidade})`);
+        setMessage(`?? ${usuarioSelecionado.nome_completo} - SAÍDA: ${product.name} -1 (${quantidadeAtual} ? ${novaQuantidade})`);
         setMessageType('error');
       }
 
@@ -252,7 +254,7 @@ export default function BipagemPage() {
       }, 2500);
 
     } catch (error) {
-      setMessage(`❌ Erro ao atualizar: ${error.message}`);
+      setMessage(`? Erro ao atualizar: ${error.message}`);
       setMessageType('error');
     }
   }
@@ -291,11 +293,11 @@ export default function BipagemPage() {
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">📡 Bipagem</h1>
-        <p className="mt-2 text-sm text-slate-400">Leitura de código de barras para entrada e saída de produtos.</p>
+        <h1 className="mt-2 text-3xl font-semibold">?? Bipagem</h1>
+        <p className="mt-2 text-sm text-slate-400">Leitura de código de barras para entrada e saéda de produtos.</p>
       </div>
 
-      {/* USUÁRIO ATIVO */}
+      {/* USUéRIO ATIVO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -318,7 +320,7 @@ export default function BipagemPage() {
           </button>
         </div>
 
-        {/* LISTA DE USUÁRIOS */}
+        {/* LISTA DE USUéRIOS */}
         {showUsuarios && (
           <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-2">
             {usuarios.map((usuario) => (
@@ -369,10 +371,10 @@ export default function BipagemPage() {
       <div className={`rounded-2xl border-2 p-6 transition-all duration-300 ${getBipeBgColor()}`}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">
-            {bipeStatus === 'entrada' ? '🟢 ENTRADA' :
-             bipeStatus === 'saida' ? '🔴 SAÍDA' :
-             bipeStatus === 'nao_encontrado' ? '🔵 NÃO ENCONTRADO' :
-             '📡 Leitor de Código'}
+            {bipeStatus === 'entrada' ? '?? ENTRADA' :
+             bipeStatus === 'saida' ? '?? SAÍDA' :
+             bipeStatus === 'nao_encontrado' ? '?? NºO ENCONTRADO' :
+             '?? Leitor de Código'}
           </h2>
           <button onClick={limparBusca} className="text-slate-400 hover:text-white transition"><X size={20} /></button>
         </div>
@@ -400,7 +402,7 @@ export default function BipagemPage() {
           </button>
         </div>
 
-        <p className="mt-2 text-xs text-slate-500">🔄 A busca é feita automaticamente após digitar o código</p>
+        <p className="mt-2 text-xs text-slate-500">?? A busca é feita automaticamente apés digitar o código</p>
 
         {/* PRODUTO ENCONTRADO */}
         {product && (
@@ -427,7 +429,7 @@ export default function BipagemPage() {
                   }`}>
                     {product.estoque_atual ?? 0}
                   </span>
-                  <span className="text-xs text-slate-500">(Mín: {product.estoque_minimo ?? 0} | Máx: {product.estoque_maximo ?? 0})</span>
+                  <span className="text-xs text-slate-500">(Mén: {product.estoque_minimo ?? 0} | Méx: {product.estoque_maximo ?? 0})</span>
                 </div>
               </div>
             </div>
@@ -436,12 +438,12 @@ export default function BipagemPage() {
               <button onClick={() => confirmarBipe('entrada')} className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
                 bipeStatus === 'entrada' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' : 'bg-emerald-500/70 hover:bg-emerald-600 shadow-emerald-500/20'
               }`}>
-                <Plus size={18} /> 🟢 Adicionar (+1)
+                <Plus size={18} /> ?? Adicionar (+1)
               </button>
               <button onClick={() => confirmarBipe('saida')} disabled={(product.estoque_atual ?? 0) <= 0} className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 font-semibold text-white transition shadow-lg ${
                 bipeStatus === 'saida' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/30' : 'bg-rose-500/70 hover:bg-rose-600 shadow-rose-500/20'
               } disabled:opacity-50 disabled:cursor-not-allowed`}>
-                <Minus size={18} /> 🔴 Remover (-1)
+                <Minus size={18} /> ?? Remover (-1)
               </button>
             </div>
           </div>
@@ -450,13 +452,13 @@ export default function BipagemPage() {
         {bipeStatus === 'nao_encontrado' && !product && (
           <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
             <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
-            <span className="text-blue-400 font-bold">🔵 Produto não encontrado!</span>
+            <span className="text-blue-400 font-bold">?? Produto não encontrado!</span>
             <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
           </div>
         )}
       </div>
 
-      {/* HISTÓRICO */}
+      {/* HISTéRICO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2"><History size={20} /> Histórico de Bipagens</h2>
@@ -481,11 +483,11 @@ export default function BipagemPage() {
                     <div>
                       <p className="text-sm font-medium text-white">{item.product_name || 'Produto não encontrado'}</p>
                       <p className="text-xs text-slate-400">
-                        {item.tipo === 'entrada' ? '🟢 Entrada' : item.tipo === 'saida' ? '🔴 Saída' : '🔵 Não encontrado'}
-                        {item.quantidade_anterior !== undefined && ` | ${item.quantidade_anterior} → ${item.quantidade_nova}`}
+                        {item.tipo === 'entrada' ? '?? Entrada' : item.tipo === 'saida' ? '?? Saída' : '?? Não encontrado'}
+                        {item.quantidade_anterior !== undefined && ` | ${item.quantidade_anterior} ? ${item.quantidade_nova}`}
                       </p>
                       {item.usuario_nome && (
-                        <p className="text-xs text-orange-400">👤 {item.usuario_nome}</p>
+                        <p className="text-xs text-orange-400">?? {item.usuario_nome}</p>
                       )}
                     </div>
                   </div>
@@ -503,10 +505,10 @@ export default function BipagemPage() {
       {/* TOAST */}
       {message && (
         <div className={`fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border ${
-          message.includes('🟢') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
-          message.includes('🔴') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' :
-          message.includes('🔵') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
-          message.includes('✅') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          message.includes('??') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
+          message.includes('??') ? 'border-rose-500/30 bg-rose-500/10 text-rose-400' :
+          message.includes('??') ? 'border-blue-500/30 bg-blue-500/10 text-blue-400' :
+          message.includes('?') ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' :
           'border-rose-500/30 bg-rose-500/10 text-rose-400'
         }`}>
           {message}

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CertificadoUpload } from '../components/fiscal/CertificadoUpload';
 import { NFEmitir } from '../components/fiscal/NFEmitir';
 
@@ -38,7 +38,7 @@ const NfePage = () => {
         
         const justificativa = window.prompt('Informe a justificativa para o cancelamento:');
         if (!justificativa || justificativa.length < 15) {
-            alert('Justificativa deve ter no mínimo 15 caracteres');
+            alert('Justificativa deve ter no ménimo 15 caracteres');
             return;
         }
 
@@ -95,7 +95,7 @@ const NfePage = () => {
             {/* Resultado da Emissão */}
             {resultado && (
                 <div className="bg-green-900/30 border border-green-700 rounded-lg p-4">
-                    <h3 className="text-green-400 font-semibold">✅ NF-e Emitida com Sucesso!</h3>
+                    <h3 className="text-green-400 font-semibold">? NF-e Emitida com Sucesso!</h3>
                     <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                         <span className="text-gray-400">Número:</span>
                         <span className="text-white">{resultado.numero}</span>
@@ -113,13 +113,13 @@ const NfePage = () => {
                             onClick={() => handleDownloadXml(resultado)}
                             className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-white text-sm"
                         >
-                            📥 Baixar XML
+                            ?? Baixar XML
                         </button>
                         <button
                             onClick={() => window.open('/api/nfe/danfe', '_blank')}
                             className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 rounded text-white text-sm"
                         >
-                            🖨️ DANFE
+                            ??? DANFE
                         </button>
                     </div>
                 </div>
@@ -127,7 +127,7 @@ const NfePage = () => {
 
             {/* Lista de NF-e */}
             <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
-                <h3 className="text-lg font-semibold text-white mb-4">📋 NF-e Emitidas</h3>
+                <h3 className="text-lg font-semibold text-white mb-4">?? NF-e Emitidas</h3>
                 {nfeList.length === 0 ? (
                     <p className="text-gray-400">Nenhuma NF-e emitida ainda.</p>
                 ) : (
@@ -139,7 +139,7 @@ const NfePage = () => {
                                     <th className="text-left py-2 text-gray-400">Série</th>
                                     <th className="text-left py-2 text-gray-400">Chave</th>
                                     <th className="text-left py-2 text-gray-400">Status</th>
-                                    <th className="text-left py-2 text-gray-400">Ações</th>
+                                    <th className="text-left py-2 text-gray-400">Aéées</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -162,14 +162,14 @@ const NfePage = () => {
                                                 onClick={() => handleDownloadXml(nfe)}
                                                 className="text-blue-400 hover:text-blue-300 text-xs mr-2"
                                             >
-                                                📥 XML
+                                                ?? XML
                                             </button>
                                             {nfe.status === 'AUTORIZADA' && (
                                                 <button
                                                     onClick={() => handleCancelar(nfe.chave)}
                                                     className="text-red-400 hover:text-red-300 text-xs"
                                                 >
-                                                    ❌ Cancelar
+                                                    ? Cancelar
                                                 </button>
                                             )}
                                         </td>

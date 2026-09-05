@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // ERP METAL RACING
 // SERVER PRINCIPAL
 // ============================================
@@ -21,7 +21,7 @@ import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js
 
 
 // ============================================
-// CONFIGURA��O
+// CONFIGURA??O
 // ============================================
 
 const __filename = fileURLToPath(import.meta.url);
@@ -49,7 +49,7 @@ app.use(express.urlencoded({
 
 
 // ============================================
-// LOG DE REQUISI��ES
+// LOG DE REQUISI??ES
 // ============================================
 
 app.use((req, res, next) => {
@@ -340,7 +340,7 @@ app.post('/api/empresas', (req, res) => {
                     success: false,
 
                     error:
-                        'CNPJ j� cadastrado'
+                        'CNPJ j? cadastrado'
 
                 });
             }
@@ -441,7 +441,7 @@ app.put('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa n�o encontrada'
+                    'Empresa n?o encontrada'
 
             });
         }
@@ -534,7 +534,7 @@ app.delete('/api/empresas/:id', (req, res) => {
                 success: false,
 
                 error:
-                    'Empresa n�o encontrada'
+                    'Empresa n?o encontrada'
 
             });
         }
@@ -620,7 +620,7 @@ app.use(
 
 
 // ============================================
-// TRATAMENTO DE ROTA N�O ENCONTRADA
+// TRATAMENTO DE ROTA N?O ENCONTRADA
 // ============================================
 
 app.use(
@@ -631,7 +631,7 @@ app.use(
             success: false,
 
             error:
-                'Rota n�o encontrada.',
+                'Rota n?o encontrada.',
 
             method:
                 req.method,
@@ -692,32 +692,32 @@ app.listen(
             '============================================'
         );
         console.log(
-            ' ?? ERP METAL RACING - SERVIDOR'
+            '🚀 ERP METAL RACING - SERVIDOR'
         );
         console.log(
             '============================================'
         );
         console.log(
-            ` ?? Servidor: http://localhost:${PORT}`
+            `📡 Servidor: http://localhost:${PORT}`
         );
         console.log(
-            ` ?? Dados: ${DATA_DIR}`
+            `📁 Dados: ${DATA_DIR}`
         );
         console.log(
-            ` ?? Empresas: ${getCompanies().length}`
+            ` 🏢 Empresas: ${getCompanies().length}`
         );
         console.log(
-            ` ?? NF-e armazenadas: ${getNFe().length}`
+            ` 📄 NF-e armazenadas: ${getNFe().length}`
         );
         console.log(
-            ` ?? CERT_SENHA: ${
+            `🔐 CERT_SENHA: ${
                 process.env.CERT_SENHA
                     ? 'CONFIGURADA'
-                    : 'N�O CONFIGURADA'
+                    : 'N?O CONFIGURADA'
             }`
         );
         console.log(
-            ` ?? Ambiente padr�o: ${
+            `🌎 Ambiente padrão: ${
                 process.env.NFE_AMBIENTE ||
                 'homologacao'
             }`
@@ -730,3 +730,6 @@ app.listen(
     }
 );
 }
+
+
+

@@ -1,4 +1,4 @@
-import fs from 'fs';
+﻿import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import https from 'https';
@@ -20,7 +20,7 @@ class NfeDistribuicaoService {
     const empresa = buscarEmpresa(empresaId);
 
     if (!empresa) {
-      throw new Error(`Empresa ${empresaId} não encontrada`);
+      throw new Error(`Empresa ${empresaId} nÃ£o encontrada`);
     }
 
     const certPath = resolverCaminhoCertificado(empresa);
@@ -31,7 +31,7 @@ class NfeDistribuicaoService {
       '';
 
     if (!fs.existsSync(certPath)) {
-      throw new Error(`Arquivo de certificado não encontrado: ${certPath}`);
+      throw new Error(`Arquivo de certificado nÃ£o encontrado: ${certPath}`);
     }
 
     return {
@@ -49,9 +49,29 @@ class NfeDistribuicaoService {
   async initialize(empresaId) {
     this.empresaConfig = await this.getEmpresaConfig(empresaId);
 
-    this.certificate = CertificateLoader.loadCertificate(
-      this.empresaConfig.certPath,
-      this.empresaConfig.certPassword
+    // O Node/OpenSSL consegue carregar este PFX diretamente.
+    // Não usamos node-forge aqui para evitar:
+    // "Unsupported PKCS12 PFX data"
+    const pfx = fs.readFileSync(this.empresaConfig.certPath);
+
+    if (!pfx || pfx.length === 0) {
+      throw new Error(
+        `Certificado PFX vazio: ${this.empresaConfig.certPath}`
+      );
+    }
+
+    this.certificate = {
+      pfx,
+      passphrase: this.empresaConfig.certPassword,
+      certPath: this.empresaConfig.certPath
+    };
+
+    console.log(
+      `[DF-e] Certificado PFX carregado diretamente pelo Node: ${this.empresaConfig.certPath}`
+    );
+
+    console.log(
+      `[DF-e] Tamanho do PFX: ${pfx.length} bytes`
     );
 
     return true;
@@ -61,9 +81,9 @@ class NfeDistribuicaoService {
 
     const { tpAmb, cUFAutor, cnpj, ultNSU, distNSU, chNFe } = params;
 
-    if (!tpAmb) throw new Error('tpAmb é obrigatório');
-    if (!cUFAutor) throw new Error('cUFAutor é obrigatório');
-    if (!cnpj) throw new Error('CNPJ é obrigatório');
+    if (!tpAmb) throw new Error('tpAmb Ã© obrigatÃ³rio');
+    if (!cUFAutor) throw new Error('cUFAutor Ã© obrigatÃ³rio');
+    if (!cnpj) throw new Error('CNPJ Ã© obrigatÃ³rio');
 
     const nsu = String(ultNSU || '000000000000000').padStart(15, '0');
 
@@ -116,6 +136,11 @@ class NfeDistribuicaoService {
 
     const config = this.empresaConfig;
     const ambiente = config.ambiente || 'homologacao';
+    console.log('[DF-e] ===== DIAGNÓSTICO DE AMBIENTE =====');
+    console.log('[DF-e] config.ambiente:', config.ambiente);
+    console.log('[DF-e] ambiente normalizado:', ambiente);
+    console.log('[DF-e] tpAmb calculado:', getTpAmb(ambiente));
+    console.log('[DF-e] ====================================');
     const tpAmb = getTpAmb(ambiente);
     const endpoint = getSefazServiceUrl(config.uf, ambiente, 'NFeDistribuicaoDFe');
     const cUFAutor = getCodigoUF(config.uf);
@@ -158,7 +183,7 @@ class NfeDistribuicaoService {
       );
     } catch (erroDebug) {
       console.warn(
-        '[DF-e] Não foi possível salvar resposta bruta:',
+        '[DF-e] NÃ£o foi possÃ­vel salvar resposta bruta:',
         erroDebug.message
       );
     }
@@ -176,7 +201,7 @@ class NfeDistribuicaoService {
 
     if (!empresaId) {
       throw new Error(
-        'empresaId é obrigatório'
+        'empresaId Ã© obrigatÃ³rio'
       );
     }
 
@@ -194,12 +219,12 @@ class NfeDistribuicaoService {
     // CONTROLE CORRETO DO NSU
     // -------------------------------------------------
     //
-    // Só avança o NSU quando a SEFAZ devolver um valor
-    // válido superior ao atual.
+    // SÃ© avanÃ©a o NSU quando a SEFAZ devolver um valor
+    // vÃ¡lido superior ao atual.
     //
-    // cStat 656 nunca deve avançar o NSU.
-    // cStat 137 significa que não há documentos novos
-    // no momento; não devemos inventar um NSU.
+    // cStat 656 nunca deve avanÃ§ar o NSU.
+    // cStat 137 significa que nÃ£o hÃ© documentos novos
+    // no momento; nÃ£o devemos inventar um NSU.
     //
     const nsuRecebido =
       String(
@@ -250,7 +275,7 @@ class NfeDistribuicaoService {
     } else if (cStat === '656') {
 
       console.warn(
-        `[DF-e] cStat 656. NSU NÃO será alterado.`
+        `[DF-e] cStat 656. NSU NÂºO serÃ© alterado.`
       );
     }
 
@@ -350,7 +375,7 @@ class NfeDistribuicaoService {
       parsed?.['S:Envelope'];
 
     if (!envelope) {
-      throw new Error('Envelope SOAP não encontrado.');
+      throw new Error('Envelope SOAP nÃ£o encontrado.');
     }
 
     const body =
@@ -360,7 +385,7 @@ class NfeDistribuicaoService {
       envelope?.['S:Body'];
 
     if (!body) {
-      throw new Error('Body SOAP não encontrado.');
+      throw new Error('Body SOAP nÃ£o encontrado.');
     }
 
     const response =
@@ -372,7 +397,7 @@ class NfeDistribuicaoService {
         JSON.stringify(body, null, 2)
       );
       throw new Error(
-        'Resposta nfeDistDFeInteresseResponse não encontrada.'
+        'Resposta nfeDistDFeInteresseResponse nÃ£o encontrada.'
       );
     }
 
@@ -386,17 +411,17 @@ class NfeDistribuicaoService {
         JSON.stringify(response, null, 2)
       );
       throw new Error(
-        'nfeDistDFeInteresseResult não encontrado.'
+        'nfeDistDFeInteresseResult nÃ£o encontrado.'
       );
     }
 
-    // Na resposta real da SEFAZ, o conteúdo vem como
+    // Na resposta real da SEFAZ, o conteÃºdo vem como
     // retDistDFeInt diretamente dentro do Result.
     let ret =
       resultado?.retDistDFeInt ||
       resultado?.['retDistDFeInt'];
 
-    // Alguns parsers/versões podem devolver o XML interno
+    // Alguns parsers/versÃ©es podem devolver o XML interno
     // como texto em _ ou #text.
     if (!ret && typeof resultado === 'object') {
       const texto =
@@ -417,7 +442,7 @@ class NfeDistribuicaoService {
             interno?.retDistDFeInt ||
             interno?.['retDistDFeInt'];
         } catch {
-          // Segue para a extração por regex.
+          // Segue para a extraÃ©Ã©o por regex.
         }
       }
     }
@@ -446,7 +471,7 @@ class NfeDistribuicaoService {
 
     if (!ret) {
       throw new Error(
-        'retDistDFeInt não encontrado na resposta da SEFAZ.'
+        'retDistDFeInt nÃ£o encontrado na resposta da SEFAZ.'
       );
     }
 
@@ -491,107 +516,16 @@ class NfeDistribuicaoService {
   }
 
   getHttpsAgent() {
-    if (!this.certificate) {
-      throw new Error('Certificado não carregado');
+    if (!this.certificate || !this.certificate.pfx) {
+      throw new Error('Certificado PFX não carregado');
     }
 
     return new https.Agent({
-      cert: this.certificate.cert,
-      key: this.certificate.privateKey,
+      pfx: this.certificate.pfx,
+      passphrase: this.certificate.passphrase,
       rejectUnauthorized: true,
       minVersion: 'TLSv1.2'
     });
-  }
-
-  somenteNumeros(valor) {
-    if (!valor) return '';
-    return String(valor).replace(/\D/g, '');
-  }
-
-  decodificarDocZip(docZip) {
-    try {
-      if (!docZip) {
-        return null;
-      }
-
-      // ---------------------------------------------
-      // Caso o parser já tenha devolvido o conteúdo
-      // como objeto/string XML normal.
-      // ---------------------------------------------
-      if (typeof docZip !== 'string') {
-        return docZip;
-      }
-
-      const valor = docZip.trim();
-
-      if (!valor) {
-        return null;
-      }
-
-      // ---------------------------------------------
-      // Alguns retornos podem já ser XML.
-      // ---------------------------------------------
-      if (
-        valor.startsWith('<') ||
-        valor.startsWith('<?xml')
-      ) {
-        return valor;
-      }
-
-      // ---------------------------------------------
-      // Distribuição DFe:
-      // docZip = Base64(GZIP(XML))
-      // ---------------------------------------------
-      const compactado =
-        Buffer.from(valor, 'base64');
-
-      let xml;
-
-      try {
-        xml =
-          zlib.gunzipSync(compactado)
-            .toString('utf8');
-      } catch (erroGzip) {
-
-        console.warn(
-          '[DF-e] gunzip falhou, tentando inflate:',
-          erroGzip.message
-        );
-
-        try {
-          xml =
-            zlib.inflateSync(compactado)
-              .toString('utf8');
-        } catch (erroInflate) {
-
-          console.error(
-            '[DF-e] Falha ao descompactar docZip:',
-            erroInflate.message
-          );
-
-          return null;
-        }
-      }
-
-      if (!xml || !xml.trim()) {
-        return null;
-      }
-
-      console.log(
-        `[DF-e] docZip descompactado com sucesso (${xml.length} caracteres).`
-      );
-
-      return xml;
-
-    } catch (error) {
-
-      console.error(
-        '[DF-e] Erro ao decodificar docZip:',
-        error.message
-      );
-
-      return null;
-    }
   }
 }
 
@@ -671,3 +605,4 @@ export function lerNsu(empresaId = 1) {
 }
 
 export default new NfeDistribuicaoService();
+

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import {
   UserPlus,
   User,
@@ -60,7 +60,7 @@ export default function UsersPage() {
     setMessage('');
 
     if (form.pin && !/^\d{4}$/.test(form.pin)) {
-      setMessage('⚠️ O PIN deve ter exatamente 4 dígitos');
+      setMessage('O PIN deve ter exatamente 4 dígitos');
       setMessageType('error');
       setLoading(false);
       return;
@@ -81,7 +81,7 @@ export default function UsersPage() {
 
       if (error) throw error;
 
-      setMessage('✅ Perfil criado com sucesso!');
+      setMessage('Perfil criado com sucesso!');
       setMessageType('success');
 
       setForm({
@@ -96,7 +96,7 @@ export default function UsersPage() {
       });
 
     } catch (error) {
-      setMessage(`❌ Erro ao criar perfil: ${error.message}`);
+      setMessage(`Erro ao criar perfil: ${error.message}`);
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -108,11 +108,11 @@ export default function UsersPage() {
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">👤 Usuários</h1>
+        <h1 className="mt-2 text-3xl font-semibold">Usuários</h1>
         <p className="mt-2 text-sm text-slate-400">Criação e gerenciamento de perfis de usuário.</p>
       </div>
 
-      {/* FORMULÁRIO */}
+      {/* FORMULéRIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <h2 className="text-xl font-semibold text-white mb-6">Novo Perfil de Usuário</h2>
 
@@ -172,7 +172,7 @@ export default function UsersPage() {
               </label>
             </div>
             <p className="text-xs text-slate-500 mb-2">
-              ⚠️ O PIN protege a identidade do operador na bipagem
+              O PIN protege a identidade do operador na bipagem
             </p>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
@@ -194,7 +194,7 @@ export default function UsersPage() {
               </button>
             </div>
             {form.pin && form.pin.length > 0 && form.pin.length !== 4 && (
-              <p className="mt-1 text-xs text-amber-400">⚠️ O PIN deve ter exatamente 4 dígitos</p>
+              <p className="mt-1 text-xs text-amber-400">O PIN deve ter exatamente 4 dígitos</p>
             )}
           </div>
 

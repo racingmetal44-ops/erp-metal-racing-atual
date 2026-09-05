@@ -1,4 +1,4 @@
-﻿// src/backend/services/nfe/NfeSoapService.js
+// src/backend/services/nfe/NfeSoapService.js
 import axios from 'axios';
 import fs from 'fs-extra';
 import path from 'path';
@@ -20,13 +20,13 @@ export class NfeSoapService {
 
             // 2. URL do WebService
             const url = SEFAZ_CONFIG.SC[ambiente].NfeAutorizacao;
-            console.log('📡 Enviando para:', url);
+            console.log('?? Enviando para:', url);
 
             // 3. Montar SOAP
             const soapBody = this.montarSoap(xmlAssinado);
 
             // 4. Enviar com certificado (simulado por enquanto)
-            // Em produção, usar axios com httpsAgent configurado com o certificado
+            // Em produééo, usar axios com httpsAgent configurado com o certificado
             const response = await axios.post(url, soapBody, {
                 headers: {
                     'Content-Type': 'application/soap+xml; charset=utf-8',
@@ -39,7 +39,7 @@ export class NfeSoapService {
             const resultado = this.interpretarResposta(response.data);
             return resultado;
         } catch (error) {
-            console.error('❌ Erro no envio SOAP:', error.message);
+            console.error('? Erro no envio SOAP:', error.message);
             throw error;
         }
     }
@@ -63,7 +63,7 @@ export class NfeSoapService {
 
     interpretarResposta(xmlResponse) {
         // Extrair cStat, xMotivo, nProt, etc.
-        // Simulação
+        // Simulaééo
         return {
             success: true,
             cStat: 100,

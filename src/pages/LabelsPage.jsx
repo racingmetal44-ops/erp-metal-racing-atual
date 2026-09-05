@@ -26,25 +26,47 @@ export default function LabelsPage() {
 
   async function loadLabels() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('product_labels')
-      .select('*')
-      .order('id', { ascending: false });
-    if (!error) setLabels(data || []);
-    setLoading(false);
-  }
+    const [{ data: savedLabels, error: labelsError }, { data: stockProducts, error: productsError }] = await Promise.all([
+      supabase.from('product_labels').select('*').order('id', { ascending: false }),
+      supabase.from('products').select('id, name, sku, barcode').order('name', { ascending: true })
+    ]);
 
-  async function loadProducts() {
-    const { data } = await supabase
-      .from('products')
-      .select('id, name, sku, barcode')
-      .order('name', { ascending: true });
-    setProducts(data || []);
+    if (!labelsError && !productsError) {
+      const existing = savedLabels || [];
+      const covered = new Set(existing.flatMap((label) => [label.barcode, label.sku].filter(Boolean).map(String)));
+      const automaticLabels = (stockProducts || [])
+        .filter((product) => !covered.has(String(product.barcode || '')) && !covered.has(String(product.sku || '')))
+        .map((product) => ({
+          id: `stock-${product.id}`,
+          stockProductId: product.id,
+          automatic: true,
+          product_code: product.sku || product.barcode || String(product.id),
+          product_name: product.name || 'Produto sem nome',
+          sku: product.sku || '',
+          batch: '',
+          barcode: product.barcode || product.sku || String(product.id),
+          image_url: '',
+          status: 'ativo'
+        }));
+      setLabels([...existing, ...automaticLabels]);
+      setProducts(stockProducts || []);
+    }
+    setLoading(false);
   }
 
   useEffect(() => {
     loadLabels();
-    loadProducts();
+
+    const channel = supabase
+      .channel('labels-products-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+        loadLabels();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function handleSubmit(e) {
@@ -52,7 +74,7 @@ export default function LabelsPage() {
     setMessage('');
 
     if (!formData.barcode?.trim()) {
-      setMessage('❌ Código de barras é obrigatório!');
+      setMessage('Código de barras é obrigatório!');
       return;
     }
 
@@ -72,9 +94,9 @@ export default function LabelsPage() {
         .update(dataToSave)
         .eq('id', editingId);
       if (error) {
-        setMessage('❌ Erro: ' + error.message);
+        setMessage('Erro: ' + error.message);
       } else {
-        setMessage('✅ Etiqueta atualizada!');
+        setMessage('Etiqueta atualizada!');
         setEditingId(null);
         resetForm();
         loadLabels();
@@ -84,9 +106,9 @@ export default function LabelsPage() {
         .from('product_labels')
         .insert(dataToSave);
       if (error) {
-        setMessage('❌ Erro: ' + error.message);
+        setMessage('Erro: ' + error.message);
       } else {
-        setMessage('✅ Etiqueta criada!');
+        setMessage('Etiqueta criada!');
         resetForm();
         loadLabels();
       }
@@ -106,6 +128,10 @@ export default function LabelsPage() {
   }
 
   function handleEdit(label) {
+    if (label.automatic) {
+      setMessage('Esta etiqueta é gerada automaticamente pelo produto do estoque.');
+      return;
+    }
     setEditingId(label.id);
     setFormData({
       product_code: label.product_code || '',
@@ -119,16 +145,20 @@ export default function LabelsPage() {
   }
 
   async function handleDelete(id) {
+    if (String(id).startsWith('stock-')) {
+      setMessage('A etiqueta automática acompanha o produto do estoque e não precisa ser excluída.');
+      return;
+    }
     if (!confirm('Tem certeza?')) return;
     const { error } = await supabase
       .from('product_labels')
       .delete()
       .eq('id', id);
     if (!error) {
-      setMessage('✅ Etiqueta removida!');
+      setMessage('Etiqueta removida!');
       loadLabels();
     } else {
-      setMessage('❌ Erro: ' + error.message);
+      setMessage('Erro: ' + error.message);
     }
   }
 
@@ -166,7 +196,7 @@ export default function LabelsPage() {
 
   function handleBulkPrint() {
     if (selectedLabelIds.length === 0) {
-      setMessage('❌ Selecione pelo menos uma etiqueta para imprimir.');
+      setMessage('Selecione pelo menos uma etiqueta para imprimir.');
       return;
     }
     setSelectedLabel({ id: 'bulk', product_code: selectedLabelIds.length + ' etiquetas' });
@@ -325,7 +355,7 @@ export default function LabelsPage() {
       const barcodeImage = generateBarcodeSVGInline(label.barcode || label.product_code || '1234567890');
       html += `
         <div class="label">
-          <div class="brand">● METAL RACING ●</div>
+          <div class="brand">METAL RACING</div>
           <div class="product-name">${label.product_name || 'PRODUTO'}</div>
           <div class="product-code">${label.product_code || 'SEM CODIGO'}</div>
           <div class="sku">SKU: ${label.sku || 'N/D'}</div>
@@ -374,7 +404,7 @@ export default function LabelsPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Operação logística</p>
         <h1 className="mt-2 text-3xl font-semibold">Etiquetas</h1>
-        <p className="mt-2 text-sm text-slate-400">Cadastro, gestão e impressão de etiquetas com código de barras.</p>
+              <p className="mt-2 text-sm text-slate-400">Produtos do estoque aparecem automaticamente para impressão de etiquetas.</p>
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -401,7 +431,7 @@ export default function LabelsPage() {
               <option value="">Nenhum</option>
               {products.map(p => (
                 <option key={p.id} value={p.id}>
-                  {p.name} — {p.sku || 'SEM SKU'}
+                  {p.name} - {p.sku || 'SEM SKU'}
                 </option>
               ))}
             </select>
@@ -483,13 +513,13 @@ export default function LabelsPage() {
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h2 className="text-lg font-semibold">Etiquetas cadastradas</h2>
+          <h2 className="text-lg font-semibold">Etiquetas e produtos do estoque</h2>
           <div className="flex gap-2">
             <button
               onClick={handleBulkPrint}
               className="flex items-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:bg-slate-800 transition"
             >
-              🖨️ Imprimir em massa
+              Imprimir em massa
             </button>
             <input
               value={searchTerm}
@@ -541,24 +571,25 @@ export default function LabelsPage() {
                 <p className="mt-1 text-sm text-slate-500">
                   <span className="font-medium">Cód. Barras:</span> {label.barcode || 'N/D'}
                 </p>
+                {label.automatic && <p className="mt-2 text-xs text-emerald-300">Disponível automaticamente pelo estoque</p>}
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => handleEdit(label)}
                     className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-300 hover:bg-slate-800 transition"
                   >
-                    ✏️ Editar
+                    Editar
                   </button>
                   <button
                     onClick={() => handlePrint(label)}
                     className="flex items-center gap-1 rounded-lg border border-orange-500/40 px-3 py-1 text-xs text-orange-300 hover:bg-orange-500/10 transition"
                   >
-                    🖨️ Imprimir
+                    Imprimir
                   </button>
                   <button
                     onClick={() => handleDelete(label.id)}
                     className="rounded-lg border border-rose-500/30 px-3 py-1 text-xs text-rose-300 hover:bg-rose-500/10 transition"
                   >
-                    🗑️ Excluir
+                    Excluir
                   </button>
                 </div>
               </div>
@@ -601,8 +632,8 @@ export default function LabelsPage() {
 
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-400">
               {selectedLabel?.id === 'bulk' 
-                ? `🖨️ Impressão em massa para ${selectedLabelIds.length} etiqueta(s).`
-                : `🖨️ Impressão para ${selectedLabel?.product_code || 'etiqueta'}.`}
+                ? `Impressão em massa para ${selectedLabelIds.length} etiqueta(s).`
+                : `Impressão para ${selectedLabel?.product_code || 'etiqueta'}.`}
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
@@ -616,7 +647,7 @@ export default function LabelsPage() {
                 onClick={confirmPrint}
                 className="rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition"
               >
-                ✅ Confirmar e imprimir
+                Confirmar e imprimir
               </button>
             </div>
           </div>

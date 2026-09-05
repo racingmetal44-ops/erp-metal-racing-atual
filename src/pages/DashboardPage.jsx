@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, ShoppingCart, Factory, Bell, ArrowRight } from 'lucide-react';
+import { Package, ShoppingCart, Factory, Bell, FileText, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 function parseObservacao(observacao) {
@@ -17,26 +17,31 @@ const cards = [
   { title: 'Pedidos', valueKey: 'orders', icon: ShoppingCart, color: 'from-sky-500 to-cyan-500' },
   { title: 'Produção', valueKey: 'production', icon: Factory, color: 'from-emerald-500 to-green-500' },
   { title: 'Alertas', valueKey: 'alerts', icon: Bell, color: 'from-rose-500 to-red-500' },
+  { title: 'NF-e de entrada', valueKey: 'nfeEntradas', icon: FileText, color: 'from-violet-500 to-indigo-500' },
 ];
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ products: 0, orders: 0, production: 0, alerts: 0 });
+  const [stats, setStats] = useState({ products: 0, orders: 0, production: 0, alerts: 0, nfeEntradas: 0 });
   const [items, setItems] = useState([]);
 
   useEffect(() => {
     async function load() {
-      const [productsRes, ordersRes, productionRes, alertsRes] = await Promise.all([
+      const [productsRes, ordersRes, productionRes, alertsRes, nfeRes] = await Promise.all([
         supabase.from('products').select('*', { count: 'exact', head: true }),
         supabase.from('orders').select('*', { count: 'exact', head: true }),
         supabase.from('production_orders').select('*', { count: 'exact', head: true }),
         supabase.from('alerts').select('*', { count: 'exact', head: true }),
+        fetch('/api/nfe-entradas').then((response) => response.ok ? response.json() : { entradas: [] }).catch(() => ({ entradas: [] })),
       ]);
+
+      const entradas = Array.isArray(nfeRes?.entradas) ? nfeRes.entradas : [];
 
       setStats({
         products: productsRes.count ?? 0,
         orders: ordersRes.count ?? 0,
         production: productionRes.count ?? 0,
         alerts: alertsRes.count ?? 0,
+        nfeEntradas: entradas.filter((entrada) => String(entrada.status || '').toUpperCase() === 'CONFIRMADA').length,
       });
 
       const { data } = await supabase.from('stock_movements').select('*').order('id', { ascending: false }).limit(6);
@@ -54,7 +59,7 @@ export default function DashboardPage() {
         <p className="mt-2 text-sm text-slate-400">Painel executivo com métricas principais do ERP.</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {cards.map(({ title, valueKey, icon: Icon, color }) => (
           <div key={title} className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-lg shadow-slate-950/20">
             <div className={`inline-flex rounded-xl bg-gradient-to-br ${color} p-2`}>
@@ -74,7 +79,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4 space-y-3">
             {items.length === 0 ? (
-              <p className="text-sm text-slate-500">Nenhuma movimentação encontrada.</p>
+              <p className="text-sm text-slate-500">Nenhuma movimentaééo encontrada.</p>
             ) : (
               items.map((item) => {
                 const parsedObservacao = parseObservacao(item.observacao);
@@ -99,13 +104,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/20">
-          <h2 className="text-lg font-semibold">Atalhos rápidos</h2>
+          <h2 className="text-lg font-semibold">Atalhos répidos</h2>
           <div className="mt-4 space-y-3">
             {[
               { label: 'Bipagem', path: '/bipagem' },
               { label: 'Produção', path: '/producao' },
               { label: 'NF-e', path: '/nfe' },
-              { label: 'Importação', path: '/importacao' },
+              { label: 'Importaééo', path: '/importacao' },
             ].map((item) => (
               <a key={item.path} href={item.path} className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-slate-300 transition hover:border-orange-500/30 hover:text-orange-300">
                 <span>{item.label}</span>

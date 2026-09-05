@@ -1,0 +1,66 @@
+[
+  {
+    "empresaId": "1787261142745",
+    "codigoFornecedor": "P-1423",
+    "ean": "",
+    "produtoId": "bbf4293d-1373-4283-adeb-144623b0e931",
+    "sku": "P-1423",
+    "atualizadoEm": "2026-09-01T19:57:33.588Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "TESTE001",
+    "ean": "",
+    "produtoId": "46478863-ea5d-414a-ab8e-c80cb8c08554",
+    "sku": "TESTE001",
+    "atualizadoEm": "2026-09-01T19:58:36.447Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "1112911",
+    "ean": "",
+    "produtoId": "68265991-2901-4567-98d9-d5ac1e989334",
+    "sku": "1112911",
+    "atualizadoEm": "2026-09-02T18:28:30.267Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "1012128",
+    "ean": "",
+    "produtoId": "44cefb37-211c-4f65-b1cc-acf67a40f771",
+    "sku": "1012128",
+    "atualizadoEm": "2026-09-02T18:28:31.272Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "611678",
+    "ean": "",
+    "produtoId": "d379daab-2800-4647-abd2-53a5b8117e5e",
+    "sku": "611678",
+    "atualizadoEm": "2026-09-02T18:28:32.244Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "112123",
+    "ean": "",
+    "produtoId": "676814a6-3914-449d-ab7a-92ae2227296e",
+    "sku": "112123",
+    "atualizadoEm": "2026-09-02T18:28:33.203Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "AUTO001",
+    "ean": "",
+    "produtoId": "f94ed2bb-a996-477c-84dd-6efcb5b1f0ff",
+    "sku": "AUTO001",
+    "atualizadoEm": "2026-09-02T18:57:02.102Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "ITEM001",
+    "ean": "",
+    "produtoId": "7e20dc2c-ab0a-460d-9b3a-37816806a683",
+    "sku": "ITEM001",
+    "atualizadoEm": "2026-09-03T20:23:57.515Z"
+  }
+]

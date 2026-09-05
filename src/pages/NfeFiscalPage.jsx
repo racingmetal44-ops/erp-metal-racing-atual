@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FileCheck2, FileUp, Landmark, Loader2, RefreshCw, Send, ShieldAlert, Wifi, Printer, FileText, FilePlus2, FileDown, ExternalLink } from 'lucide-react';
 import { NfeEntradaPanel } from '../components/fiscal/NfeEntradaPanel';
+import NfeEntradaRelatorio from '../components/fiscal/NfeEntradaRelatorio';
 
 const Empty = {
   numero: '',
@@ -41,7 +42,7 @@ export default function NfeFiscalPage() {
   const validarLocal = () => {
     const e = [];
     if (!form.nome || !form.documento) e.push('Preencha nome e CPF/CNPJ do destinatário.');
-    if (!form.ibge) e.push('Informe o código IBGE do destinatário.');
+    if (!form.ibge) e.push('Informe o código IBGE do destinatério.');
     if (!form.descricao || !form.ncm || !form.cfop || !form.csosn) {
       e.push('Complete descrição, NCM, CFOP e CSOSN/CST do item.');
     }
@@ -441,8 +442,11 @@ export default function NfeFiscalPage() {
       <nav className="nf-tabs">
         <button className={tab === 'emitir' ? 'active' : ''} onClick={() => setTab('emitir')}>Emitir NF-e</button>
         <button className={tab === 'entrada' ? 'active' : ''} onClick={() => setTab('entrada')}>Entrada e XML</button>
+        <button className={tab === 'relatorio' ? 'active' : ''} onClick={() => setTab('relatorio')}>Tirar Relatório</button>
       </nav>
-      {tab === 'entrada' ? (
+      {tab === 'relatorio' ? (
+        <NfeEntradaRelatorio onClose={() => setTab('entrada')} />
+      ) : tab === 'entrada' ? (
         <NfeEntradaPanel empresaId="1" />
       ) : (
         <div className="nf-grid">
@@ -465,12 +469,12 @@ export default function NfeFiscalPage() {
               </div>
             </div>
             <div className="nf-card">
-              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saída</h2>
+              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saéda</h2>
               <div className="nf-fields">
                 {input('Número reservado *', 'numero', 'Ex.: 18128')}
                 {input('Série *', 'serie')}
-                {input('Código IBGE destinatário *', 'ibge', '4209102')}
-                {input('Nome / razão social *', 'nome', 'Destinatário')}
+                {input('Código IBGE destinatério *', 'ibge', '4209102')}
+                {input('Nome / razão social *', 'nome', 'Destinatério')}
                 {input('CPF ou CNPJ *', 'documento', '11144477735')}
                 {input('Descrição do item *', 'descricao', 'Produto ou serviço')}
               </div>
@@ -539,7 +543,7 @@ export default function NfeFiscalPage() {
     {resultado.sefaz?.cStat && (
       <p>
         cStat: {resultado.sefaz.cStat}
-        {' — '}
+        {' - '}
         {resultado.sefaz.xMotivo}
       </p>
     )}
@@ -614,7 +618,7 @@ export default function NfeFiscalPage() {
                 'Numeração transacional reservada',
                 'Homologação SEFAZ validada; produção permanece bloqueada'
               ].map(x => (
-                <div className="nf-check" key={x}><i>●</i>{x}</div>
+                <div className="nf-check" key={x}><i>?</i>{x}</div>
               ))}
             </div>
             <div className="nf-card">

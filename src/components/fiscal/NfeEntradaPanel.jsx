@@ -148,7 +148,7 @@ setProdutosERP(data || []);
             String(produto?.ean || '')
                 .replace(/\D/g, '');
 
-        // 1 - Correspondência exata pelo SKU
+        // 1 - Correspondéncia exata pelo SKU
         if (codigoNFe) {
 
             const porSku =
@@ -164,7 +164,7 @@ setProdutosERP(data || []);
             }
         }
 
-        // 2 - Correspondência pelo EAN/barcode
+        // 2 - Correspondéncia pelo EAN/barcode
         if (
             eanNFe &&
             eanNFe !== 'SEM GTIN' &&
@@ -279,7 +279,7 @@ setProdutosERP(data || []);
             );
 
             setErro(
-                '🔴 A consulta à SEFAZ está temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
+                'A consulta à SEFAZ está temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
             );
 
             return;
@@ -338,7 +338,7 @@ setProdutosERP(data || []);
                 setMensagem('');
 
                 setErro(
-                    `🔴 SEFAZ bloqueou temporariamente a consulta. cStat 656 — Consumo Indevido. Aguarde 1 hora antes de consultar novamente.`
+                    'A SEFAZ bloqueou temporariamente a consulta. cStat 656 - Consumo indevido. Aguarde 1 hora antes de consultar novamente.'
                 );
 
                 return;
@@ -346,11 +346,11 @@ setProdutosERP(data || []);
 
             if (data.success) {
                 setMensagem(
-                    `✅ ${data.message}`
+                    `${data.message}`
                 );
             } else {
                 setErro(
-                    `❌ SEFAZ: ${data.xMotivo || data.error || 'Consulta sem sucesso fiscal.'}`
+                    `SEFAZ: ${data.xMotivo || data.error || 'Consulta sem sucesso fiscal.'}`
                 );
             }
 
@@ -378,12 +378,12 @@ setProdutosERP(data || []);
         const justificativa =
             tipoEvento === '210240'
                 ? window.prompt(
-                    'Operação não Realizada exige justificativa (mínimo 15 caracteres):'
+                    'Operação não realizada exige justificativa (mínimo 15 caracteres):'
                 )
                 : null;
 
         if (tipoEvento === '210240' && (!justificativa || justificativa.trim().length < 15)) {
-            setErro('Justificativa obrigatória (mínimo 15 caracteres) para Operação não Realizada.');
+            setErro('Justificativa obrigatória (mínimo 15 caracteres) para operação não realizada.');
             return;
         }
 
@@ -411,7 +411,7 @@ setProdutosERP(data || []);
                 throw new Error(data.xMotivo || data.error || 'Falha na manifestação.');
             }
 
-            setMensagem(`✅ ${data.message} (cStat ${data.cStat})`);
+            setMensagem(`${data.message} (cStat ${data.cStat})`);
 
             await carregarEntradas();
 
@@ -431,37 +431,93 @@ setProdutosERP(data || []);
     // =========================================
     const entradasFiltradas = useMemo(() => {
 
-        let lista = [...entradas].sort(
-            (a, b) => Number(b.id) - Number(a.id)
+        let lista = Array.isArray(entradas)
+            ? [...entradas]
+            : [];
+
+        lista.sort(
+            (a, b) =>
+                Number(b?.id || 0) -
+                Number(a?.id || 0)
         );
 
         if (filtro === 'pendentes') {
-            lista = lista.filter(e => e.status === 'CONFERENCIA');
+
+            lista = lista.filter(
+                e =>
+                    String(e?.status || '').toUpperCase() ===
+                    'CONFERENCIA'
+            );
+
         } else if (filtro === 'processadas') {
-            lista = lista.filter(e => e.status === 'CONFIRMADA');
+
+            lista = lista.filter(
+                e =>
+                    String(e?.status || '').toUpperCase() ===
+                    'CONFIRMADA'
+            );
+
         } else if (filtro === 'novas') {
-            lista = lista.filter(e => e.tipo === 'SEFAZ' && e.status === 'CONFERENCIA');
+
+            lista = lista.filter(
+                e =>
+                    String(e?.tipo || '').toUpperCase() === 'SEFAZ' &&
+                    String(e?.status || '').toUpperCase() === 'CONFERENCIA'
+            );
+
         } else if (filtro === 'importadas') {
-            lista = lista.filter(e => e.tipo === 'XML' || e.tipo === 'MANUAL');
+
+            lista = lista.filter(
+                e =>
+                    ['XML', 'MANUAL'].includes(
+                        String(e?.tipo || '').toUpperCase()
+                    )
+            );
+
         } else if (filtro === 'erro') {
-            lista = lista.filter(e => e.status === 'ERRO');
+
+            lista = lista.filter(
+                e =>
+                    String(e?.status || '').toUpperCase() ===
+                    'ERRO'
+            );
         }
 
         const termo = busca.trim().toLowerCase();
 
         if (termo) {
-            lista = lista.filter(e =>
-                (e.chave || '').toLowerCase().includes(termo) ||
-                (e.fornecedor?.cnpj || '').replace(/\D/g, '').includes(termo.replace(/\D/g, '')) ||
-                (e.fornecedor?.razaoSocial || '').toLowerCase().includes(termo) ||
-                String(e.numero || '').includes(termo)
-            );
+
+            const termoNumerico =
+                termo.replace(/\D/g, '');
+
+            lista = lista.filter(e => {
+
+                const chave =
+                    String(e?.chave || '').toLowerCase();
+
+                const cnpj =
+                    String(e?.fornecedor?.cnpj || '')
+                        .replace(/\D/g, '');
+
+                const razaoSocial =
+                    String(e?.fornecedor?.razaoSocial || '')
+                        .toLowerCase();
+
+                const numero =
+                    String(e?.numero || '').toLowerCase();
+
+                return (
+                    chave.includes(termo) ||
+                    (termoNumerico && cnpj.includes(termoNumerico)) ||
+                    razaoSocial.includes(termo) ||
+                    numero.includes(termo)
+                );
+            });
         }
 
         return lista;
 
     }, [entradas, filtro, busca]);
-
     // =========================================
     // IMPORTAR XML MANUAL
     // =========================================
@@ -513,7 +569,7 @@ setProdutosERP(data || []);
             }
 
             setMensagem(
-                '✅ XML importado para conferência.'
+                'XML gravado na aba NF-e para conferência. Após revisar os itens, clique em CONFIRMAR ENTRADA para enviar a manifestação oficial ao SEFAZ.'
             );
 
             setArquivo(null);
@@ -657,7 +713,9 @@ setProdutosERP(data || []);
             }
 
             setMensagem(
-                '✅ Entrada manual criada para conferência.'
+                data.entrada?.chave
+                    ? 'Entrada manual gravada na aba NF-e para conferência. Após revisar os itens, clique em CONFIRMAR ENTRADA para receber a resposta oficial do SEFAZ.'
+                    : 'Entrada manual gravada na aba NF-e para conferência. Como não há chave de acesso, o SEFAZ só poderá ser consultado quando a chave for informada.'
             );
 
             await carregarEntradas();
@@ -679,7 +737,7 @@ setProdutosERP(data || []);
 
     // =========================================
     // CONFIRMAR ENTRADA (backend transacional)
-    // O estoque é atualizado pelo BACKEND com
+    // O estoque é atualizado pelo backend com
     // transação e rollback. O frontend apenas
     // envia os vínculos.
     // =========================================
@@ -712,7 +770,7 @@ setProdutosERP(data || []);
         }
 
         const confirmado = window.confirm(
-            '⚠️ ESTA OPERAÇÃO IRÁ ALTERAR O ESTOQUE.\n\n' +
+            'ESTA OPERAÇÃO IRÁ ALTERAR O ESTOQUE.\n\n' +
             `NF-e ${entrada.numero || '-'} - ` +
             `${entrada.fornecedor?.razaoSocial || 'fornecedor'}\n` +
             `${produtos.length} item(ns) receberão entrada de estoque.\n\n` +
@@ -863,31 +921,31 @@ setProdutosERP(data || []);
             if (sefaz.success) {
 
                 mensagemSefaz =
-                    '\n✅ CONFIRMAÇÃO DA OPERAÇÃO ACEITA PELA SEFAZ' +
+                    '\nConfirmação da operação aceita pela SEFAZ' +
                     `\ncStat: ${sefaz.cStat || '-'}` +
                     `\nProtocolo: ${sefaz.protocolo || '-'}`;
 
             } else if (sefaz.enviada) {
 
                 mensagemSefaz =
-                    '\n⚠️ ENTRADA REALIZADA, MAS A MANIFESTAÇÃO NÃO FOI ACEITA PELA SEFAZ' +
+                    '\nEntrada realizada, mas a manifestação não foi aceita pela SEFAZ' +
                     `\ncStat: ${sefaz.cStat || '-'}` +
                     `\nMotivo: ${sefaz.xMotivo || '-'}`;
 
             } else {
 
                 mensagemSefaz =
-                    '\n⚠️ ENTRADA REALIZADA NO ERP' +
+                    '\nEntrada realizada no ERP' +
                     '\nManifestação não enviada à SEFAZ' +
                     `\nMotivo: ${sefaz.xMotivo || '-'}`;
             }
 
             setMensagem(
-                '✅ Entrada realizada com sucesso.' +
+                'Entrada realizada com sucesso.' +
                 `\nNF-e ${resumo.numero || entrada.numero || '-'}` +
-                ` — ${resumo.fornecedor || entrada.fornecedor?.razaoSocial || ''}` +
-                ` — ${resumo.quantidadeItens ?? itens.length} item(ns)` +
-                ` — quantidade total ${resumo.quantidadeTotal ?? '-'}.` +
+                    ` | ${resumo.fornecedor || entrada.fornecedor?.razaoSocial || ''}` +
+                    ` | ${resumo.quantidadeItens ?? itens.length} item(ns)` +
+                    ` | quantidade total ${resumo.quantidadeTotal ?? '-'}.` +
                 mensagemSefaz
             );
 
@@ -934,7 +992,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    🌐 SEFAZ
+                    Consultar SEFAZ
                 </button>
 
                 <button
@@ -947,7 +1005,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    📄 Entrada por XML
+                    Entrada por XML
                 </button>
 
                 <button
@@ -960,7 +1018,7 @@ setProdutosERP(data || []);
                         }`
                     }
                 >
-                    ✏️ Entrada Manual
+                    Entrada Manual
                 </button>
 
             </div>
@@ -973,7 +1031,7 @@ setProdutosERP(data || []);
 
             {erro && (
                 <div className="p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300">
-                    ❌ {erro}
+                    {erro}
                 </div>
             )}
 
@@ -985,7 +1043,7 @@ setProdutosERP(data || []);
                 <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50 space-y-4">
 
                     <h2 className="text-lg font-semibold text-white">
-                        🌐 Consultar SEFAZ (Distribuição DF-e)
+                        Consultar SEFAZ (Distribuição DF-e)
                     </h2>
 
                     <p className="text-sm text-slate-400">
@@ -1003,20 +1061,20 @@ setProdutosERP(data || []);
                         className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white font-semibold"
                     >
                         {consultandoSefaz
-                            ? '⏳ Consultando SEFAZ...'
+                            ? 'Consultando SEFAZ...'
                             : tempoBloqueioSefaz > 0
-                                ? `⏱️ Aguardar ${Math.floor(tempoBloqueioSefaz / 60000)}:${String(Math.floor((tempoBloqueioSefaz % 60000) / 1000)).padStart(2, '0')}`
-                                : '🌐 Consultar SEFAZ'}
+                                ? `Aguardar ${Math.floor(tempoBloqueioSefaz / 60000)}:${String(Math.floor((tempoBloqueioSefaz % 60000) / 1000)).padStart(2, '0')}`
+                                : 'Consultar SEFAZ'}
                     </button>
 
                     {tempoBloqueioSefaz > 0 && (
                         <div className="p-4 rounded-lg bg-red-900/30 border border-red-700 text-red-300">
                             <div className="font-bold">
-                                🔴 CONSULTA À SEFAZ TEMPORARIAMENTE BLOQUEADA
+                                CONSULTA À SEFAZ TEMPORARIAMENTE BLOQUEADA
                             </div>
 
                             <div className="text-sm mt-1">
-                                cStat: 656 — Consumo Indevido
+                                cStat: 656 - Consumo indevido
                             </div>
 
                             <div className="text-sm mt-1">
@@ -1024,7 +1082,7 @@ setProdutosERP(data || []);
                             </div>
 
                             <div className="text-lg font-bold mt-2">
-                                ⏱️ {Math.floor(tempoBloqueioSefaz / 60000)}:
+                                Aguardar {Math.floor(tempoBloqueioSefaz / 60000)}:
                                 {String(
                                     Math.floor(
                                         (tempoBloqueioSefaz % 60000) / 1000
@@ -1054,7 +1112,7 @@ setProdutosERP(data || []);
                 <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50">
 
                     <h2 className="text-lg font-semibold text-white">
-                        📥 Importar XML de NF-e
+                        Importar XML de NF-e
                     </h2>
 
                     <input
@@ -1076,8 +1134,8 @@ setProdutosERP(data || []);
                         className="mt-4 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 text-white"
                     >
                         {loading
-                            ? '⏳ Processando...'
-                            : '📥 Importar XML'}
+                            ? 'Processando...'
+                            : 'Importar XML'}
                     </button>
 
                 </div>
@@ -1205,7 +1263,7 @@ setProdutosERP(data || []);
                         onClick={adicionarProdutoManual}
                         className="px-3 py-2 rounded-lg bg-slate-700 text-white"
                     >
-                        ➕ Produto
+                        Adicionar produto
                     </button>
 
                     <button
@@ -1213,7 +1271,7 @@ setProdutosERP(data || []);
                         disabled={loading}
                         className="ml-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white"
                     >
-                        ✅ Criar Entrada
+                        Criar entrada
                     </button>
 
                 </div>
@@ -1225,7 +1283,7 @@ setProdutosERP(data || []);
             <div className="p-4 rounded-xl border border-slate-700 bg-slate-800/50">
 
                 <h2 className="text-lg font-semibold text-white mb-4">
-                    📋 Entradas de NF-e
+                    Entradas de NF-e
                 </h2>
 
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -1258,7 +1316,7 @@ setProdutosERP(data || []);
                 </div>
 
                 <input
-                    placeholder="🔎 Buscar por chave, CNPJ, fornecedor ou número..."
+                    placeholder="Buscar por chave, CNPJ, fornecedor ou número..."
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     className="w-full rounded-lg bg-slate-900 border border-slate-700 p-2 text-white mb-4"
@@ -1366,8 +1424,8 @@ setProdutosERP(data || []);
                                                 )
                                             }>
                                                 {entrada.manifestacao.success
-                                                    ? "✅ RETORNO DA SEFAZ"
-                                                    : "❌ RETORNO DA SEFAZ"}
+                                                    ? "Retorno da SEFAZ"
+                                                    : "Retorno da SEFAZ"}
                                             </div>
 
                                             <div className="text-xs text-slate-300 mt-1">
@@ -1420,7 +1478,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    ✅ Confirmação da Operação
+                                                    Confirmação da Operação
                                                 </button>
 
                                                 <button
@@ -1428,7 +1486,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    📨 Ciência da Operação
+                                                    Ciência da Operação
                                                 </button>
 
                                                 <button
@@ -1436,7 +1494,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    ❓ Desconhecimento
+                                                    Desconhecimento
                                                 </button>
 
                                                 <button
@@ -1444,7 +1502,7 @@ setProdutosERP(data || []);
                                                     disabled={loading}
                                                     className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                                 >
-                                                    🚫 Operação não Realizada
+                                                    Operação não Realizada
                                                 </button>
                                             </>
                                         )}
@@ -1455,7 +1513,7 @@ setProdutosERP(data || []);
                                             rel="noreferrer"
                                             className="px-3 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs text-white"
                                         >
-                                            📄 Baixar XML
+                                            Baixar XML
                                         </a>
 
                                     </div>
@@ -1475,7 +1533,7 @@ setProdutosERP(data || []);
                                                         <div className="text-sm text-white p-2 bg-slate-900 rounded-lg">
                                                             {produto.descricao}
                                                             <div className="text-xs text-slate-500">
-                                                                {produto.quantidade} {produto.unidade} × R$ {Number(produto.valorUnitario).toFixed(2)}
+                                                                {produto.quantidade} {produto.unidade} - R$ {Number(produto.valorUnitario).toFixed(2)}
                                                                 {produto.ncm ? ` | NCM ${produto.ncm}` : ''}
                                                                 {produto.cfop ? ` | CFOP ${produto.cfop}` : ''}
                                                             </div>
@@ -1490,7 +1548,7 @@ setProdutosERP(data || []);
                                                         >
 
                                                             <option value="">
-                                                                Produto não cadastrado — selecione
+                                                                Produto não cadastrado - selecione
                                                             </option>
 
                                                             {produtosERP.map(
@@ -1501,7 +1559,7 @@ setProdutosERP(data || []);
                                                                         value={produtoERP.id}
                                                                     >
                                                                         {produtoERP.name}
-                                                                        {' — '}
+                                                                        {' - '}
                                                                         {produtoERP.sku}
                                                                     </option>
 
@@ -1528,7 +1586,7 @@ setProdutosERP(data || []);
                                             )}
 
                                             <div className="p-3 rounded-lg bg-yellow-900/30 border border-yellow-700 text-yellow-300 text-sm">
-                                                ⚠️ Esta operação irá alterar o estoque.
+                                                Esta operação irá alterar o estoque.
                                             </div>
 
                                             <button
@@ -1541,7 +1599,7 @@ setProdutosERP(data || []);
                                                 disabled={loading}
                                                 className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 text-white font-semibold"
                                             >
-                                                ✅ CONFIRMAR ENTRADA
+                                                CONFIRMAR ENTRADA
                                             </button>
 
                                         </div>
