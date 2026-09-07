@@ -1,0 +1,791 @@
+[
+  {
+    "id": 1787329240648,
+    "tipo": "MANUAL",
+    "status": "CONFIRMADA",
+    "empresaId": "1787261142745",
+    "chave": "",
+    "numero": "1000",
+    "serie": "1",
+    "naturezaOperacao": "COMPRA",
+    "dataEmissao": "2026-08-21T13:20:00-03:00",
+    "fornecedor": {
+      "razaoSocial": "FORNECEDOR TESTE LTDA",
+      "ie": "123456789",
+      "cnpj": "12345678000199",
+      "nomeFantasia": "FORNECEDOR TESTE"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "P-1423",
+        "descricao": "Pedaleira Song Pro",
+        "ncm": "87089990",
+        "cfop": "2102",
+        "unidade": "UN",
+        "quantidade": 5,
+        "valorUnitario": 100,
+        "valorTotal": 500
+      }
+    ],
+    "totais": {
+      "produtos": 500,
+      "nota": 500
+    },
+    "observacao": "TESTE DE ENTRADA MANUAL DO ERP",
+    "createdAt": "2026-08-21T16:20:40.648Z",
+    "updatedAt": "2026-09-01T19:57:34.027Z",
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "bbf4293d-1373-4283-adeb-144623b0e931",
+        "sku": "P-1423",
+        "quantidade": 5,
+        "valorUnitario": 100,
+        "metodo": "VINCULADO",
+        "criadoAutomaticamente": false
+      }
+    ],
+    "confirmadaEm": "2026-09-01T19:57:34.027Z",
+    "confirmadaPor": null
+  },
+  {
+    "emissor": "AC Certisign RFB G5",
+    "certificado": "Válido até 04/08/2027",
+    "telefone": "(47) 3433-6664",
+    "ambiente": "Homologação",
+    "regime_tributario": "Lucro Presumido",
+    "uf": "SC",
+    "status": "PRONTO PARA FATURAR",
+    "id": "1",
+    "cidade": "Joinville",
+    "email": "adm@artgrav.com.br",
+    "cep": "89207-500",
+    "bairro": "Guanabara",
+    "nome": "ART GRAV COMUNICACAO INDUSTRIAL LTDA",
+    "endereco": "Rua Teresópolis, 1180",
+    "cnpj": "13.862.162/0001-80",
+    "ie": "253.456.789",
+    "nome_fantasia": "METAL RACING ACESSÓRIOS AUTOMOTIVO"
+  },
+  {
+    "id": 1787925136048,
+    "tipo": "MANUAL",
+    "status": "CONFIRMADA",
+    "empresaId": 1,
+    "chave": "",
+    "numero": "999999",
+    "serie": "1",
+    "naturezaOperacao": "COMPRA",
+    "dataEmissao": "2026-08-28",
+    "fornecedor": {
+      "razaoSocial": "FORNECEDOR TESTE",
+      "ie": "",
+      "cnpj": "12345678000199"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "TESTE001",
+        "descricao": "PRODUTO DE TESTE",
+        "ncm": "00000000",
+        "cfop": "2102",
+        "unidade": "UN",
+        "quantidade": 2,
+        "valorUnitario": 100,
+        "valorTotal": 200
+      }
+    ],
+    "totais": {
+      "produtos": 200,
+      "nota": 200
+    },
+    "observacao": "TESTE DE ENTRADA MANUAL",
+    "createdAt": "2026-08-28T13:52:16.048Z",
+    "updatedAt": "2026-09-01T19:58:36.852Z",
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "46478863-ea5d-414a-ab8e-c80cb8c08554",
+        "sku": "TESTE001",
+        "quantidade": 2,
+        "valorUnitario": 100,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      }
+    ],
+    "confirmadaEm": "2026-09-01T19:58:36.852Z",
+    "confirmadaPor": null
+  },
+  {
+    "id": 1787948611323,
+    "tipo": "MANUAL",
+    "status": "CONFIRMADA",
+    "empresaId": 1,
+    "chave": "",
+    "numero": "TESTE-ENTRADA-001",
+    "serie": "1",
+    "naturezaOperacao": "COMPRA",
+    "cfop": "",
+    "dataEmissao": "2026-08-28T17:23:29.2537690-03:00",
+    "fornecedor": {
+      "razaoSocial": "FORNECEDOR TESTE",
+      "ie": "",
+      "cnpj": "12345678000199"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "P-1423",
+        "descricao": "Pedaleira Song Pro",
+        "ncm": "87089990",
+        "cfop": "2102",
+        "unidade": "UN",
+        "quantidade": 2,
+        "valorUnitario": 100,
+        "valorTotal": 200,
+        "cstCsosn": "102",
+        "ipi": 0,
+        "pis": 0,
+        "cofins": 0
+      }
+    ],
+    "totais": {
+      "produtos": 200,
+      "frete": 0,
+      "desconto": 0,
+      "nota": 200
+    },
+    "valorTotalInformado": null,
+    "observacao": "TESTE CONTROLADO DE ENTRADA",
+    "createdAt": "2026-08-28T20:23:31.323Z",
+    "updatedAt": "2026-08-28T20:28:11.792Z",
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "bbf4293d-1373-4283-adeb-144623b0e931",
+        "sku": "P-1423",
+        "quantidade": 2,
+        "valorUnitario": 100
+      }
+    ],
+    "confirmadaEm": "2026-08-28T20:28:11.792Z",
+    "confirmadaPor": null
+  },
+  {
+    "id": 1788269995109,
+    "tipo": "XML",
+    "status": "CONFIRMADA",
+    "empresaId": "1",
+    "chave": "42260803086292000115550010009279691990720309",
+    "numero": "927969",
+    "serie": "1",
+    "modelo": "55",
+    "naturezaOperacao": "5102 - VENDA DE MERCADORIA",
+    "tipoOperacao": "1",
+    "finalidade": "1",
+    "indicadorPresenca": "0",
+    "indicadorIntermediador": "",
+    "indicadorConsumidorFinal": "1",
+    "tipoEmissao": "1",
+    "codigoMunicipio": "4209102",
+    "dataEmissao": "2026-08-27T15:32:45-03:00",
+    "dataEntrada": "2026-08-27T15:32:45-03:00",
+    "ambiente": "producao",
+    "statusSefaz": "",
+    "motivoSefaz": "",
+    "protocoloSefaz": "",
+    "fornecedor": {
+      "cnpj": "3086292000115",
+      "cpf": "",
+      "razaoSocial": "MENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA",
+      "nomeFantasia": "MENEGOTO",
+      "ie": "253878586",
+      "ieST": "",
+      "im": "61721",
+      "suframa": "",
+      "regimeTributario": "3",
+      "email": "",
+      "telefone": "4730284200",
+      "endereco": {
+        "logradouro": "Rua Doutor João Colin",
+        "numero": "2559",
+        "complemento": "",
+        "bairro": "América",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89204005",
+        "pais": "",
+        "codigoPais": "1058"
+      }
+    },
+    "destinatario": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***",
+      "ie": "256444935",
+      "email": "",
+      "telefone": "4734336664",
+      "tipoPessoa": "JURIDICA",
+      "indicadorIE": "1",
+      "endereco": {
+        "logradouro": "Rua Teresópolis",
+        "numero": "1180",
+        "complemento": "",
+        "bairro": "Guanabara",
+        "cidade": "Joinville",
+        "codigoMunicipio": "4209102",
+        "uf": "SC",
+        "cep": "89207500",
+        "pais": "BRASIL",
+        "codigoPais": "1058"
+      }
+    },
+    "documentoReferenciado": [],
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "1112911",
+        "descricao": "BOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "82079000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 2,
+        "quantidadeTributada": 2,
+        "valorUnitario": 8.95,
+        "valorUnitarioTributado": 8.95,
+        "valorTotal": 17.9,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 2,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 17.9,
+              "pICMS": 17,
+              "vICMS": 3.04
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 14.86,
+              "pPIS": 0.65,
+              "vPIS": 0.1
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 14.86,
+              "pCOFINS": 3,
+              "vCOFINS": 0.45
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 17.9,
+            "icmsAliquota": 17,
+            "icmsValor": 3.04,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.1,
+            "cofinsCst": "1",
+            "cofinsValor": 0.45
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 2,
+        "codigo": "1012128",
+        "descricao": "ESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "96035000",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 30.75,
+        "valorUnitarioTributado": 30.75,
+        "valorTotal": 30.75,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 2,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 30.75,
+              "pICMS": 17,
+              "vICMS": 5.23
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.52,
+              "pPIS": 0.65,
+              "vPIS": 0.17
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 25.52,
+              "pCOFINS": 3,
+              "vCOFINS": 0.77
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 30.75,
+            "icmsAliquota": 17,
+            "icmsValor": 5.23,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 0.17,
+            "cofinsCst": "1",
+            "cofinsValor": 0.77
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 3,
+        "codigo": "611678",
+        "descricao": "FOLHA LIXA CHAMPAGNE A275 GR1200 NORTON",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "68052000",
+        "cest": "800300",
+        "cfop": "5102",
+        "unidade": "FL",
+        "unidadeTributada": "FL",
+        "quantidade": 50,
+        "quantidadeTributada": 50,
+        "valorUnitario": 3.9,
+        "valorUnitarioTributado": 3.9,
+        "valorTotal": 195,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 195,
+              "pICMS": 17,
+              "vICMS": 33.15
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 161.85,
+              "pPIS": 0.65,
+              "vPIS": 1.05
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 161.85,
+              "pCOFINS": 3,
+              "vCOFINS": 4.86
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 195,
+            "icmsAliquota": 17,
+            "icmsValor": 33.15,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 1.05,
+            "cofinsCst": "1",
+            "cofinsValor": 4.86
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      },
+      {
+        "item": 4,
+        "codigo": "112123",
+        "descricao": "THINNER 0454  5LTS PARA PU e BP S.WILLIAMS",
+        "ean": "SEM GTIN",
+        "eanTrib": "SEM GTIN",
+        "ncm": "38140090",
+        "cest": "",
+        "cfop": "5102",
+        "unidade": "UN",
+        "unidadeTributada": "UN",
+        "quantidade": 1,
+        "quantidadeTributada": 1,
+        "valorUnitario": 213.75,
+        "valorUnitarioTributado": 213.75,
+        "valorTotal": 213.75,
+        "frete": 0,
+        "seguro": 0,
+        "desconto": 0,
+        "outrasDespesas": 0,
+        "pedidoCompra": "",
+        "itemPedidoCompra": "",
+        "impostos": {
+          "icms": {
+            "grupo": "ICMS00",
+            "dados": {
+              "orig": 0,
+              "CST": 0,
+              "modBC": 3,
+              "vBC": 213.75,
+              "pICMS": 17,
+              "vICMS": 36.34
+            }
+          },
+          "ipi": {
+            "grupo": null,
+            "dados": {}
+          },
+          "pis": {
+            "grupo": "PISAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 177.41,
+              "pPIS": 0.65,
+              "vPIS": 1.15
+            }
+          },
+          "cofins": {
+            "grupo": "COFINSAliq",
+            "dados": {
+              "CST": 1,
+              "vBC": 177.41,
+              "pCOFINS": 3,
+              "vCOFINS": 5.32
+            }
+          },
+          "ii": {
+            "grupo": null,
+            "dados": {}
+          },
+          "issqn": {
+            "grupo": null,
+            "dados": {}
+          },
+          "resumo": {
+            "icmsCst": "",
+            "icmsBase": 213.75,
+            "icmsAliquota": 17,
+            "icmsValor": 36.34,
+            "ipiCst": "",
+            "ipiValor": 0,
+            "pisCst": "1",
+            "pisValor": 1.15,
+            "cofinsCst": "1",
+            "cofinsValor": 5.32
+          }
+        },
+        "impostoDevolucao": null,
+        "rastreabilidade": []
+      }
+    ],
+    "totais": {
+      "produtos": 457.4,
+      "frete": 0,
+      "seguro": 0,
+      "desconto": 0,
+      "outrasDespesas": 0,
+      "icmsBase": 457.4,
+      "icms": 77.76,
+      "icmsDesonerado": 0,
+      "icmsSTBase": 0,
+      "icmsST": 0,
+      "fcp": 0,
+      "fcpST": 0,
+      "fcpSTRet": 0,
+      "ipi": 0,
+      "ipiDevolvido": 0,
+      "pis": 2.47,
+      "cofins": 11.4,
+      "ii": 0,
+      "iss": 0,
+      "retPIS": 0,
+      "retCOFINS": 0,
+      "retCSLL": 0,
+      "retIRRF": 0,
+      "nota": 457.4
+    },
+    "transporte": {
+      "modalidadeFrete": "9",
+      "transportador": {
+        "cnpj": "",
+        "cpf": "",
+        "nome": "",
+        "ie": "",
+        "uf": "",
+        "municipio": "",
+        "endereco": ""
+      },
+      "veiculo": {
+        "placa": "",
+        "uf": "",
+        "rntc": ""
+      },
+      "volumes": []
+    },
+    "entrega": {
+      "logradouro": "",
+      "numero": "",
+      "complemento": "",
+      "bairro": "",
+      "codigoMunicipio": "",
+      "cidade": "",
+      "uf": "",
+      "cep": "",
+      "cnpj": "",
+      "cpf": ""
+    },
+    "retirada": {
+      "logradouro": "",
+      "numero": "",
+      "bairro": "",
+      "cidade": "",
+      "uf": "",
+      "cep": ""
+    },
+    "pagamento": {
+      "indicador": "",
+      "pagamentos": [
+        {
+          "indicadorPagamento": "1",
+          "forma": "15",
+          "descricaoForma": "",
+          "valor": 457.4,
+          "troco": 0,
+          "bandeira": "",
+          "cnpjCredenciadora": "",
+          "autorizacao": ""
+        }
+      ],
+      "duplicatas": [
+        {
+          "numero": "1",
+          "vencimento": "2026-09-24",
+          "valor": 457.4
+        }
+      ],
+      "valorTroco": 0
+    },
+    "intermediador": {
+      "cnpj": "",
+      "id": "",
+      "presente": false
+    },
+    "informacoesAdicionais": {
+      "complementares": "ENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-&#xD;NOVA BRASILIA&#xD;Pedido Nº: 730753&#xD;&#xD;Portador: BRADESCO BOLETO POR E-MAIL&#xD;Representante: JAIRO&#xD;&#xD;Digitador: PAULO Emitente: MARCIA&#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br&#xD;",
+      "fisco": "&#xD;",
+      "observacoes": [],
+      "observacoesFisco": [],
+      "processosReferenciados": []
+    },
+    "compra": {
+      "notaEmpenho": "",
+      "pedido": "",
+      "contrato": ""
+    },
+    "exportacao": {
+      "registro": []
+    },
+    "xmlOriginal": "<nfeProc versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><NFe xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infNFe Id=\"NFe42260803086292000115550010009279691990720309\" versao=\"4.00\"><ide><cUF>42</cUF><cNF>99072030</cNF><natOp>5102 - VENDA DE MERCADORIA</natOp><mod>55</mod><serie>1</serie><nNF>927969</nNF><dhEmi>2026-08-27T15:32:45-03:00</dhEmi><dhSaiEnt>2026-08-27T15:32:45-03:00</dhSaiEnt><tpNF>1</tpNF><idDest>1</idDest><cMunFG>4209102</cMunFG><tpImp>1</tpImp><tpEmis>1</tpEmis><cDV>9</cDV><tpAmb>1</tpAmb><finNFe>1</finNFe><indFinal>1</indFinal><indPres>0</indPres><procEmi>0</procEmi><verProc>4.00</verProc></ide><emit><CNPJ>03086292000115</CNPJ><xNome>MENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA</xNome><xFant>MENEGOTO</xFant><enderEmit><xLgr>Rua Doutor João Colin</xLgr><nro>2559</nro><xBairro>América</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89204005</CEP><cPais>1058</cPais><fone>4730284200</fone></enderEmit><IE>253878586</IE><IM>61721</IM><CNAE>4741500</CNAE><CRT>3</CRT></emit><dest><CNPJ>13862162000180</CNPJ><xNome>6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***</xNome><enderDest><xLgr>Rua Teresópolis</xLgr><nro>1180</nro><xBairro>Guanabara</xBairro><cMun>4209102</cMun><xMun>Joinville</xMun><UF>SC</UF><CEP>89207500</CEP><cPais>1058</cPais><xPais>BRASIL</xPais><fone>4734336664</fone></enderDest><indIEDest>1</indIEDest><IE>256444935</IE></dest><det nItem=\"1\"><prod><cProd>1112911</cProd><cEAN>SEM GTIN</cEAN><xProd>BOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000</xProd><NCM>82079000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>2.0000</qCom><vUnCom>8.9500000000</vUnCom><vProd>17.90</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>2.0000</qTrib><vUnTrib>8.9500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>2</orig><CST>00</CST><modBC>3</modBC><vBC>17.90</vBC><pICMS>17.0000</pICMS><vICMS>3.04</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>14.86</vBC><pPIS>0.6500</pPIS><vPIS>0.10</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>14.86</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>0.45</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>14.31</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.01</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.01</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>0.13</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>17.90</vItem></det><det nItem=\"2\"><prod><cProd>1012128</cProd><cEAN>SEM GTIN</cEAN><xProd>ESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI</xProd><NCM>96035000</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>30.7500000000</vUnCom><vProd>30.75</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>1.0000</qTrib><vUnTrib>30.7500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>2</orig><CST>00</CST><modBC>3</modBC><vBC>30.75</vBC><pICMS>17.0000</pICMS><vICMS>5.23</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>25.52</vBC><pPIS>0.6500</pPIS><vPIS>0.17</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>25.52</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>0.77</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>24.58</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.02</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.02</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>0.22</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>30.75</vItem></det><det nItem=\"3\"><prod><cProd>611678</cProd><cEAN>SEM GTIN</cEAN><xProd>FOLHA LIXA CHAMPAGNE A275 GR1200 NORTON</xProd><NCM>68052000</NCM><CEST>0800300</CEST><CFOP>5102</CFOP><uCom>FL</uCom><qCom>50.0000</qCom><vUnCom>3.9000000000</vUnCom><vProd>195.00</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>FL</uTrib><qTrib>50.0000</qTrib><vUnTrib>3.9000000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>195.00</vBC><pICMS>17.0000</pICMS><vICMS>33.15</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>161.85</vBC><pPIS>0.6500</pPIS><vPIS>1.05</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>161.85</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>4.86</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>000</CST><cClassTrib>000001</cClassTrib><gIBSCBS><vBC>155.94</vBC><gIBSUF><pIBSUF>0.10</pIBSUF><vIBSUF>0.16</vIBSUF></gIBSUF><gIBSMun><pIBSMun>0.00</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.16</vIBS><gCBS><pCBS>0.90</pCBS><vCBS>1.40</vCBS></gCBS></gIBSCBS></IBSCBS></imposto><vItem>195.00</vItem></det><det nItem=\"4\"><prod><cProd>112123</cProd><cEAN>SEM GTIN</cEAN><xProd>THINNER 0454  5LTS PARA PU e BP S.WILLIAMS</xProd><NCM>38140090</NCM><CFOP>5102</CFOP><uCom>UN</uCom><qCom>1.0000</qCom><vUnCom>213.7500000000</vUnCom><vProd>213.75</vProd><cEANTrib>SEM GTIN</cEANTrib><uTrib>UN</uTrib><qTrib>1.0000</qTrib><vUnTrib>213.7500000000</vUnTrib><indTot>1</indTot></prod><imposto><ICMS><ICMS00><orig>0</orig><CST>00</CST><modBC>3</modBC><vBC>213.75</vBC><pICMS>17.0000</pICMS><vICMS>36.34</vICMS></ICMS00></ICMS><PIS><PISAliq><CST>01</CST><vBC>177.41</vBC><pPIS>0.6500</pPIS><vPIS>1.15</vPIS></PISAliq></PIS><COFINS><COFINSAliq><CST>01</CST><vBC>177.41</vBC><pCOFINS>3.0000</pCOFINS><vCOFINS>5.32</vCOFINS></COFINSAliq></COFINS><IBSCBS><CST>410</CST><cClassTrib>410999</cClassTrib></IBSCBS></imposto><vItem>213.75</vItem></det><total><ICMSTot><vBC>457.40</vBC><vICMS>77.76</vICMS><vICMSDeson>0.00</vICMSDeson><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><qBCMono>0.00</qBCMono><vICMSMono>0.00</vICMSMono><qBCMonoReten>0.00</qBCMonoReten><vICMSMonoReten>0.00</vICMSMonoReten><qBCMonoRet>0.00</qBCMonoRet><vICMSMonoRet>0.00</vICMSMonoRet><vProd>457.40</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>0.00</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>2.47</vPIS><vCOFINS>11.40</vCOFINS><vOutro>0.00</vOutro><vNF>457.40</vNF></ICMSTot><IBSCBSTot><vBCIBSCBS>194.83</vBCIBSCBS><gIBS><gIBSUF><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSUF>0.19</vIBSUF></gIBSUF><gIBSMun><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vIBSMun>0.00</vIBSMun></gIBSMun><vIBS>0.19</vIBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gIBS><gCBS><vDif>0.00</vDif><vDevTrib>0.00</vDevTrib><vCBS>1.75</vCBS><vCredPres>0.00</vCredPres><vCredPresCondSus>0.00</vCredPresCondSus></gCBS></IBSCBSTot><vNFTot>457.40</vNFTot></total><transp><modFrete>9</modFrete></transp><cobr><fat><nFat>927969</nFat><vOrig>457.40</vOrig><vDesc>0.00</vDesc><vLiq>457.40</vLiq></fat><dup><nDup>001</nDup><dVenc>2026-09-24</dVenc><vDup>457.40</vDup></dup></cobr><pag><detPag><indPag>1</indPag><tPag>15</tPag><vPag>457.40</vPag></detPag></pag><infAdic><infAdFisco>&amp;#xD;</infAdFisco><infCpl>ENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-&amp;#xD;NOVA BRASILIA&amp;#xD;Pedido Nº: 730753&amp;#xD;&amp;#xD;Portador: BRADESCO BOLETO POR E-MAIL&amp;#xD;Representante: JAIRO&amp;#xD;&amp;#xD;Digitador: PAULO Emitente: MARCIA&amp;#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br&amp;#xD;</infCpl></infAdic><infRespTec><CNPJ>07481340000120</CNPJ><xContato>ARTELIDES BORDIGNON</xContato><email>interfoc@interfoc.com.br</email><fone>04933302900</fone></infRespTec></infNFe><Signature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><SignedInfo><CanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /><SignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\" /><Reference URI=\"#NFe42260803086292000115550010009279691990720309\"><Transforms><Transform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" /><Transform Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /></Transforms><DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\" /><DigestValue>DKwg68NCIYw8FB3odAR1qct7qJI=</DigestValue></Reference></SignedInfo><SignatureValue>g1eKUHT+HJawWkvWpfRoA9620FN3Q2V1uzRpgkuiFz6F9DSSjgMIerhamUCZ9T5r+Tk7BIeQGEhvwcdyXvdi+ljSqqc6sIwKFrxiIIZFbblDXrSTWjl/dWC2l3t9Vv+2eHNBnILukC0Zec0K/WHtgfL6a3C2f5C6dH2PZdYmN/Kqx2dPrdbsfhVwj18WXQOILkg2hRCzg1JCjyl4IgEQeycu7B/OZcsWAi6csTDtBp3OJnOrwjTbbweeU1f1S/VlcnTGjGOu+AgK1g9iSia9nd+LA8uKQstbjpP1nvAlgDigSfK4TM+ya24y8PwGlBhGBdT4W8oaoQgHzFIjKAX96A==</SignatureValue><KeyInfo><X509Data><X509Certificate>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</X509Certificate></X509Data></KeyInfo></Signature></NFe><protNFe versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"><infProt><tpAmb>1</tpAmb><verAplic>SVRS2608060405DR</verAplic><chNFe>42260803086292000115550010009279691990720309</chNFe><dhRecbto>2026-08-27T15:32:47-03:00</dhRecbto><nProt>242260403052750</nProt><digVal>DKwg68NCIYw8FB3odAR1qct7qJI=</digVal><cStat>100</cStat><xMotivo>Autorizado o uso da NF-e</xMotivo></infProt></protNFe></nfeProc>",
+    "arquivoOriginal": "42260803086292000115550010009279691990720309.xml",
+    "createdAt": "2026-09-01T13:39:55.109Z",
+    "updatedAt": "2026-09-02T18:28:34.793Z",
+    "manifestacao": {
+      "tipoEvento": "210200",
+      "descricao": "Confirmação da Operação",
+      "success": true,
+      "cStat": "135",
+      "xMotivo": "Evento registrado e vinculado a NF-e",
+      "protocolo": "591263176798812",
+      "dataHora": "2026-09-02T18:28:36.011Z"
+    },
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "68265991-2901-4567-98d9-d5ac1e989334",
+        "sku": "1112911",
+        "quantidade": 2,
+        "valorUnitario": 8.95,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 2,
+        "produtoId": "44cefb37-211c-4f65-b1cc-acf67a40f771",
+        "sku": "1012128",
+        "quantidade": 1,
+        "valorUnitario": 30.75,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 3,
+        "produtoId": "d379daab-2800-4647-abd2-53a5b8117e5e",
+        "sku": "611678",
+        "quantidade": 50,
+        "valorUnitario": 3.9,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      },
+      {
+        "itemNfe": 4,
+        "produtoId": "676814a6-3914-449d-ab7a-92ae2227296e",
+        "sku": "112123",
+        "quantidade": 1,
+        "valorUnitario": 213.75,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      }
+    ],
+    "confirmadaEm": "2026-09-02T18:28:34.793Z",
+    "confirmadaPor": null
+  },
+  {
+    "id": 1788375112435,
+    "tipo": "MANUAL",
+    "status": "CONFIRMADA",
+    "empresaId": "1",
+    "chave": "",
+    "numero": "TESTE-AUTO-001",
+    "serie": "1",
+    "naturezaOperacao": "COMPRA",
+    "cfop": "",
+    "dataEmissao": "2026-09-02T15:51:52",
+    "fornecedor": {
+      "endereco": {
+        "cidade": "Joinville",
+        "uf": "SC"
+      },
+      "razaoSocial": "FORNECEDOR TESTE AUTO",
+      "ie": "",
+      "cnpj": "12345678000199",
+      "nomeFantasia": "FORNECEDOR TESTE"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "AUTO001",
+        "descricao": "PRODUTO TESTE CRIACAO AUTOMATICA",
+        "ncm": "82079000",
+        "cfop": "1102",
+        "unidade": "UN",
+        "quantidade": 3,
+        "valorUnitario": 25,
+        "valorTotal": 75,
+        "cstCsosn": "",
+        "ipi": 0,
+        "pis": 0,
+        "cofins": 0
+      }
+    ],
+    "totais": {
+      "produtos": 75,
+      "frete": 0,
+      "desconto": 0,
+      "nota": 75
+    },
+    "valorTotalInformado": null,
+    "observacao": "",
+    "createdAt": "2026-09-02T18:51:52.435Z",
+    "updatedAt": "2026-09-02T18:57:02.605Z",
+    "itensVinculados": [
+      {
+        "itemNfe": 1,
+        "produtoId": "f94ed2bb-a996-477c-84dd-6efcb5b1f0ff",
+        "sku": "AUTO001",
+        "quantidade": 3,
+        "valorUnitario": 25,
+        "metodo": "CRIADO_AUTOMATICAMENTE",
+        "criadoAutomaticamente": true
+      }
+    ],
+    "confirmadaEm": "2026-09-02T18:57:02.605Z",
+    "confirmadaPor": null
+  }
+]

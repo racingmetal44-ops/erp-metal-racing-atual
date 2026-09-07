@@ -1,0 +1,37 @@
+﻿{
+    "id":  1787262982307,
+    "tipo":  "MANUAL",
+    "status":  "CONFERENCIA",
+    "empresaId":  "1787261142745",
+    "chave":  "",
+    "numero":  "999",
+    "serie":  "1",
+    "naturezaOperacao":  "COMPRA",
+    "dataEmissao":  "2026-08-20T18:00:00-03:00",
+    "fornecedor":  {
+                       "razaoSocial":  "FORNECEDOR TESTE LTDA",
+                       "ie":  "123456789",
+                       "cnpj":  "12345678000199",
+                       "nomeFantasia":  "FORNECEDOR TESTE"
+                   },
+    "produtos":  [
+                     {
+                         "item":  1,
+                         "codigo":  "TESTE001",
+                         "descricao":  "PRODUTO TESTE",
+                         "ncm":  "87089990",
+                         "cfop":  "2102",
+                         "unidade":  "UN",
+                         "quantidade":  5,
+                         "valorUnitario":  100,
+                         "valorTotal":  500
+                     }
+                 ],
+    "totais":  {
+                   "produtos":  500,
+                   "nota":  500
+               },
+    "observacao":  "TESTE DE ENTRADA MANUAL",
+    "createdAt":  "2026-08-20T21:56:22.307Z",
+    "updatedAt":  "2026-08-20T21:56:22.307Z"
+}

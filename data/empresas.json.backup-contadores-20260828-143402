@@ -1,0 +1,34 @@
+{
+    "empresas": [
+        {
+            "id": 1,
+            "razaoSocial": "ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA",
+            "nomeFantasia": "METAL RACING ACESSÓRIOS AUTOMOTIVO",
+            "cnpj": "13862162000180",
+            "uf": "SC",
+            "cUF": 42,
+            "ie": "261732765",
+            "inscricaoEstadual": "261732765",
+            "im": "",
+            "crt": 1,
+            "codigoIbge": "4209102",
+            "regimeTributario": "Simples Nacional",
+            "certificado": {
+                "path": "certificados/empresa_1.pfx",
+                "senha": "SUA_SENHA_AQUI"
+            },
+            "nfe": {
+                "versao": "4.00",
+                "ambiente": 2,
+                "series": {
+                    "1": {
+                        "ultimoNumero": 18129
+                    },
+                    "2": {
+                        "ultimoNumero": 4374
+                    }
+                }
+            }
+        }
+    ]
+}

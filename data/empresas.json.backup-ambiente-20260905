@@ -1,0 +1,41 @@
+﻿{
+    "empresas":  [
+                     {
+                         "id":  1,
+                         "razaoSocial":  "ART GRAV COMUNICAÇÃO INDUSTRIAL LTDA",
+                         "nomeFantasia":  "METAL RACING ACESSÓRIOS AUTOMOTIVO",
+                         "cnpj":  "13862162000180",
+                         "uf":  "SC",
+                         "cUF":  42,
+                         "ie":  "256444935",
+                         "inscricaoEstadual":  "256444935",
+                         "im":  "",
+                         "crt":  1,
+                         "certificado":  {
+                                             "path":  "certificados/empresa_1.pfx",
+                                             "senha":  "SUA_SENHA_AQUI"
+                                         },
+                         "nfe":  {
+                                     "versao":  "4.00",
+                                     "ambiente":  1,
+                                     "series":  {
+                                                    "1":  {
+                                                              "ultimoNumero":  18144
+                                                          },
+                                                    "2":  {
+                                                              "ultimoNumero":  4374
+                                                          }
+                                                }
+                                 },
+                         "endereco":  "Rua Teresópolis",
+                         "numero":  "1180",
+                         "bairro":  "Guanabara",
+                         "cidade":  "Joinville",
+                         "cep":  "89207500",
+                         "telefone":  "4734336664",
+                         "email":  "FINANCEIRO@METALRACING.COM.BR",
+                         "codigoIbge":  "4209102",
+                         "regimeTributario":  "Simples Nacional"
+                     }
+                 ]
+}

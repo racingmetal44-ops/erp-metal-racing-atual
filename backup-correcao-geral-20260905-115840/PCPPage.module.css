@@ -1,0 +1,153 @@
+﻿.pcpContainer {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  background: #f4f7fc;
+  min-height: 100vh;
+}
+
+.pcpHeader {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 28px;
+  color: #1a2a3a;
+  font-weight: 700;
+}
+
+.headerSubtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.headerRight {
+  display: flex;
+  gap: 12px;
+}
+
+.scannerButton {
+  padding: 10px 20px;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scannerButton:hover {
+  background: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.refreshButton {
+  width: 42px;
+  height: 42px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refreshButton:hover:not(:disabled) {
+  background: #e2e8f0;
+  transform: rotate(180deg);
+}
+
+.refreshButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navTabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+  flex-wrap: wrap;
+}
+
+.navTab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navTab:hover {
+  background: #f1f5f9;
+  color: #1a2a3a;
+}
+
+.navTab.active {
+  background: #0ea5e9;
+  color: white;
+}
+
+.pcpContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detailsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .detailsContainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .pcpContainer {
+    padding: 16px;
+  }
+  
+  .headerTitle {
+    font-size: 22px;
+  }
+  
+  .headerContent {
+    flex-direction: column;
+  }
+  
+  .headerRight {
+    width: 100%;
+  }
+  
+  .scannerButton {
+    flex: 1;
+  }
+}

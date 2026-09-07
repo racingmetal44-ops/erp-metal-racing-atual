@@ -1,0 +1,126 @@
+[
+  {
+    "id": 1787262982307,
+    "tipo": "MANUAL",
+    "status": "CONFERENCIA",
+    "empresaId": "1787261142745",
+    "chave": "",
+    "numero": "999",
+    "serie": "1",
+    "naturezaOperacao": "COMPRA",
+    "dataEmissao": "2026-08-20T18:00:00-03:00",
+    "fornecedor": {
+      "razaoSocial": "FORNECEDOR TESTE LTDA",
+      "ie": "123456789",
+      "cnpj": "12345678000199",
+      "nomeFantasia": "FORNECEDOR TESTE"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "TESTE001",
+        "descricao": "PRODUTO TESTE",
+        "ncm": "87089990",
+        "cfop": "2102",
+        "unidade": "UN",
+        "quantidade": 5,
+        "valorUnitario": 100,
+        "valorTotal": 500
+      }
+    ],
+    "totais": {
+      "produtos": 500,
+      "nota": 500
+    },
+    "observacao": "TESTE DE ENTRADA MANUAL",
+    "createdAt": "2026-08-20T21:56:22.307Z",
+    "updatedAt": "2026-08-20T21:56:22.307Z"
+  },
+  {
+    "id": 1787263048289,
+    "tipo": "XML",
+    "status": "CONFERENCIA",
+    "empresaId": "1787261142745",
+    "chave": "42260813862162000180550010002961391463343113",
+    "numero": "296139",
+    "serie": "1",
+    "naturezaOperacao": "VENDA",
+    "dataEmissao": "2026-08-19T21:39:46.304Z",
+    "fornecedor": {
+      "cnpj": "13862162000180",
+      "cpf": "",
+      "razaoSocial": "ART GRAV COMUNICAï¿½ï¿½O INDUSTRIAL LTDA",
+      "nomeFantasia": "ART GRAV",
+      "ie": "",
+      "endereco": {
+        "logradouro": "Rua Teresï¿½polis, 1180",
+        "numero": "S/N",
+        "bairro": "Guanabara",
+        "cidade": "Joinville",
+        "uf": "SC",
+        "cep": "89207500"
+      }
+    },
+    "destinatario": {
+      "cnpj": "12345678000199",
+      "razaoSocial": "Cliente Teste"
+    },
+    "produtos": [
+      {
+        "item": 1,
+        "codigo": "1",
+        "descricao": "Produto Teste",
+        "ncm": "83023000",
+        "cfop": "5101",
+        "unidade": "UN",
+        "quantidade": 10,
+        "valorUnitario": 2590,
+        "valorTotal": 259,
+        "ean": "SEM GTIN",
+        "imposto": {
+          "icms": {
+            "ICMS00": {
+              "orig": 0,
+              "CST": 102,
+              "modBC": 3,
+              "pICMS": 17,
+              "vICMS": 44.03
+            }
+          },
+          "ipi": null,
+          "pis": {
+            "PISAliq": {
+              "CST": 49,
+              "vBC": 259,
+              "pPIS": 1.65,
+              "vPIS": 4.27
+            }
+          },
+          "cofins": {
+            "COFINSAliq": {
+              "CST": 49,
+              "vBC": 259,
+              "pCOFINS": 7.6,
+              "vCOFINS": 19.68
+            }
+          }
+        }
+      }
+    ],
+    "totais": {
+      "produtos": 259,
+      "frete": 0,
+      "seguro": 0,
+      "desconto": 0,
+      "icms": 44.03,
+      "ipi": 0,
+      "pis": 4.27,
+      "cofins": 19.68,
+      "nota": 259
+    },
+    "xmlOriginal": "﻿<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<NFe xmlns=\"http://www.portalfiscal.inf.br/nfe\">\r\n  <infNFe versao=\"4.00\" Id=\"NFe42260813862162000180550010002961391463343113\">\r\n    <ide>\r\n      <cUF>42</cUF>\r\n      <cNF>39831607</cNF>\r\n      <natOp>VENDA</natOp>\r\n      <mod>55</mod>\r\n      <serie>001</serie>\r\n      <nNF>000296139</nNF>\r\n      <dhEmi>2026-08-19T21:39:46.304Z</dhEmi>\r\n      <tpNF>1</tpNF>\r\n      <idDest>1</idDest>\r\n      <cMunFG>4209102</cMunFG>\r\n      <tpImp>1</tpImp>\r\n      <tpEmis>1</tpEmis>\r\n      <cDV>3</cDV>\r\n      <tpAmb>2</tpAmb>\r\n      <finNFe>1</finNFe>\r\n      <indFinal>0</indFinal>\r\n      <indPres>0</indPres>\r\n      <procEmi>0</procEmi>\r\n      <verProc>ERP Metal Racing 1.0</verProc>\r\n    </ide>\r\n    <emit>\r\n      <CNPJ>13862162000180</CNPJ>\r\n      <xNome>ART GRAV COMUNICAï¿½ï¿½O INDUSTRIAL LTDA</xNome>\r\n      <xFant>ART GRAV</xFant>\r\n      <enderEmit>\r\n        <xLgr>Rua Teresï¿½polis, 1180</xLgr>\r\n        <nro>S/N</nro>\r\n        <xBairro>Guanabara</xBairro>\r\n        <cMun>4209102</cMun>\r\n        <xMun>Joinville</xMun>\r\n        <UF>SC</UF>\r\n        <CEP>89207500</CEP>\r\n        <cPais>1058</cPais>\r\n        <xPais>BRASIL</xPais>\r\n        <fone></fone>\r\n      </enderEmit>\r\n      <IE></IE>\r\n      <CRT>3</CRT>\r\n    </emit>\r\n    <dest>\r\n      <CNPJ>12345678000199</CNPJ>\r\n      \r\n      <xNome>Cliente Teste</xNome>\r\n      <enderDest>\r\n        <xLgr>Rua Teste, 123</xLgr>\r\n        <nro>S/N</nro>\r\n        <xBairro>Centro</xBairro>\r\n        <cMun>4205407</cMun>\r\n        <xMun>Florianï¿½polis</xMun>\r\n        <UF>SC</UF>\r\n        <CEP>88000000</CEP>\r\n        <cPais>1058</cPais>\r\n        <xPais>BRASIL</xPais>\r\n        <fone></fone>\r\n      </enderDest>\r\n      <IE></IE>\r\n      <email>teste@cliente.com</email>\r\n    </dest>\r\n    \r\n    <det nItem=\"1\">\r\n      <prod>\r\n        <cProd>001</cProd>\r\n        <cEAN>SEM GTIN</cEAN>\r\n        <xProd>Produto Teste</xProd>\r\n        <NCM>83023000</NCM>\r\n        <CEST>0102600</CEST>\r\n        <CFOP>5101</CFOP>\r\n        <uCom>UN</uCom>\r\n        <qCom>10</qCom>\r\n        <vUnCom>2590.00</vUnCom>\r\n        <vProd>259.00</vProd>\r\n        <cEANTrib>SEM GTIN</cEANTrib>\r\n        <uTrib>UN</uTrib>\r\n        <qTrib>10</qTrib>\r\n        <vUnTrib>2590.00</vUnTrib>\r\n        <indTot>1</indTot>\r\n      </prod>\r\n      <imposto>\r\n        <ICMS><ICMS00><orig>0</orig><CST>102</CST><modBC>3</modBC><pICMS>17.00</pICMS><vICMS>44.03</vICMS></ICMS00></ICMS>\r\n        <PIS><PISAliq><CST>49</CST><vBC>259.00</vBC><pPIS>1.65</pPIS><vPIS>4.27</vPIS></PISAliq></PIS>\r\n        <COFINS><COFINSAliq><CST>49</CST><vBC>259.00</vBC><pCOFINS>7.60</pCOFINS><vCOFINS>19.68</vCOFINS></COFINSAliq></COFINS>\r\n      </imposto>\r\n    </det>\r\n    <total>\r\n      <ICMSTot>\r\n        <vBC>259.00</vBC>\r\n        <vICMS>44.03</vICMS>\r\n        <vICMSDeson>0.00</vICMSDeson>\r\n        <vFCP>0.00</vFCP>\r\n        <vBCST>0.00</vBCST>\r\n        <vST>0.00</vST>\r\n        <vFCPST>0.00</vFCPST>\r\n        <vFCPSTRet>0.00</vFCPSTRet>\r\n        <vProd>259.00</vProd>\r\n        <vFrete>0.00</vFrete>\r\n        <vSeg>0.00</vSeg>\r\n        <vDesc>0.00</vDesc>\r\n        <vII>0.00</vII>\r\n        <vIPI>0.00</vIPI>\r\n        <vIPIDevol>0.00</vIPIDevol>\r\n        <vPIS>4.27</vPIS>\r\n        <vCOFINS>19.68</vCOFINS>\r\n        <vOutro>0.00</vOutro>\r\n        <vNF>259.00</vNF>\r\n        <vTotTrib>67.99</vTotTrib>\r\n      </ICMSTot>\r\n    </total>\r\n    <transp><modFrete>0</modFrete></transp>\r\n    <pag><detPag><indPag>0</indPag><tPag>01</tPag><vPag>259.00</vPag></detPag></pag>\r\n    <infAdic><infCpl>NF-e emitida pelo ERP Metal Racing</infCpl></infAdic>\r\n  </infNFe>\r\n</NFe>\r\n",
+    "arquivoOriginal": "nfe_000296139.xml",
+    "createdAt": "2026-08-20T21:57:28.289Z",
+    "updatedAt": "2026-08-20T21:57:28.289Z"
+  }
+]

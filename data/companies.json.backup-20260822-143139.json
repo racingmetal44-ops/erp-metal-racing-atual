@@ -1,0 +1,46 @@
+﻿[
+  {
+    "id": "1",
+    "nome": "ART GRAV COMUNICACAO INDUSTRIAL LTDA",
+    "cnpj": "13.862.162/0001-80",
+    "razao_social": "ART GRAV COMUNICACAO INDUSTRIAL LTDA",
+    "nome_fantasia": "METAL RACING ACESSÓRIOS AUTOMOTIVO",
+    "ie": "253.456.789",
+    "regime_tributario": "Lucro Presumido",
+    "cidade": "Joinville",
+    "uf": "SC",
+    "status": "ativo",
+    "ambiente": "Homologação",
+    "pronto_para_faturar": false,
+    "certificado": {
+      "nome": "certificado digital artgrav matriz.pfx",
+      "cnpj": "13.862.162/0001-80",
+      "emissor": "AC Certisign RFB G5",
+      "validade_inicial": "04/08/2025",
+      "validade_final": "04/08/2027",
+      "status": "valido"
+    }
+  },
+  {
+    "id": "2",
+    "nome": "Xcompetition Motorsport",
+    "cnpj": "13.862.162/0003-42",
+    "razao_social": "XCOMPETITION MOTORSPORT LTDA",
+    "nome_fantasia": "Xcompetition Motorsport",
+    "ie": "253.456.790",
+    "regime_tributario": "Lucro Presumido",
+    "cidade": "Joinville",
+    "uf": "SC",
+    "status": "ativo",
+    "ambiente": "Homologação",
+    "pronto_para_faturar": true,
+    "certificado": {
+      "nome": "certificado xcompetition.pfx",
+      "cnpj": "13.862.162/0003-42",
+      "emissor": "AC Certisign RFB G5",
+      "validade_inicial": "04/08/2025",
+      "validade_final": "04/08/2027",
+      "status": "valido"
+    }
+  }
+]

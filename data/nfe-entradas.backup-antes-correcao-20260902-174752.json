@@ -1,0 +1,602 @@
+{
+    "entradas":  [
+                     {
+                         "id":  1788269995109,
+                         "tipo":  "XML",
+                         "status":  "CONFIRMADA",
+                         "empresaId":  "1",
+                         "chave":  "42260803086292000115550010009279691990720309",
+                         "numero":  "927969",
+                         "serie":  "1",
+                         "modelo":  "55",
+                         "naturezaOperacao":  "5102 - VENDA DE MERCADORIA",
+                         "tipoOperacao":  "1",
+                         "finalidade":  "1",
+                         "indicadorPresenca":  "0",
+                         "indicadorIntermediador":  "",
+                         "indicadorConsumidorFinal":  "1",
+                         "tipoEmissao":  "1",
+                         "codigoMunicipio":  "4209102",
+                         "dataEmissao":  "2026-08-27T15:32:45-03:00",
+                         "dataEntrada":  "2026-08-27T15:32:45-03:00",
+                         "ambiente":  "producao",
+                         "statusSefaz":  "",
+                         "motivoSefaz":  "",
+                         "protocoloSefaz":  "",
+                         "fornecedor":  {
+                                            "cnpj":  "3086292000115",
+                                            "cpf":  "",
+                                            "razaoSocial":  "MENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA",
+                                            "nomeFantasia":  "MENEGOTO",
+                                            "ie":  "253878586",
+                                            "ieST":  "",
+                                            "im":  "61721",
+                                            "suframa":  "",
+                                            "regimeTributario":  "3",
+                                            "email":  "",
+                                            "telefone":  "4730284200",
+                                            "endereco":  {
+                                                             "logradouro":  "Rua Doutor João Colin",
+                                                             "numero":  "2559",
+                                                             "complemento":  "",
+                                                             "bairro":  "América",
+                                                             "cidade":  "Joinville",
+                                                             "codigoMunicipio":  "4209102",
+                                                             "uf":  "SC",
+                                                             "cep":  "89204005",
+                                                             "pais":  "",
+                                                             "codigoPais":  "1058"
+                                                         }
+                                        },
+                         "destinatario":  {
+                                              "cnpj":  "13862162000180",
+                                              "cpf":  "",
+                                              "razaoSocial":  "6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***",
+                                              "ie":  "256444935",
+                                              "email":  "",
+                                              "telefone":  "4734336664",
+                                              "tipoPessoa":  "JURIDICA",
+                                              "indicadorIE":  "1",
+                                              "endereco":  {
+                                                               "logradouro":  "Rua Teresópolis",
+                                                               "numero":  "1180",
+                                                               "complemento":  "",
+                                                               "bairro":  "Guanabara",
+                                                               "cidade":  "Joinville",
+                                                               "codigoMunicipio":  "4209102",
+                                                               "uf":  "SC",
+                                                               "cep":  "89207500",
+                                                               "pais":  "BRASIL",
+                                                               "codigoPais":  "1058"
+                                                           }
+                                          },
+                         "documentoReferenciado":  [
+
+                                                   ],
+                         "produtos":  [
+                                          {
+                                              "item":  1,
+                                              "codigo":  "1112911",
+                                              "descricao":  "BOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000",
+                                              "ean":  "SEM GTIN",
+                                              "eanTrib":  "SEM GTIN",
+                                              "ncm":  "82079000",
+                                              "cest":  "",
+                                              "cfop":  "5102",
+                                              "unidade":  "UN",
+                                              "unidadeTributada":  "UN",
+                                              "quantidade":  2,
+                                              "quantidadeTributada":  2,
+                                              "valorUnitario":  8.95,
+                                              "valorUnitarioTributado":  8.95,
+                                              "valorTotal":  17.9,
+                                              "frete":  0,
+                                              "seguro":  0,
+                                              "desconto":  0,
+                                              "outrasDespesas":  0,
+                                              "pedidoCompra":  "",
+                                              "itemPedidoCompra":  "",
+                                              "impostos":  {
+                                                               "icms":  {
+                                                                            "grupo":  "ICMS00",
+                                                                            "dados":  {
+                                                                                          "orig":  2,
+                                                                                          "CST":  0,
+                                                                                          "modBC":  3,
+                                                                                          "vBC":  17.9,
+                                                                                          "pICMS":  17,
+                                                                                          "vICMS":  3.04
+                                                                                      }
+                                                                        },
+                                                               "ipi":  {
+                                                                           "grupo":  null,
+                                                                           "dados":  {
+
+                                                                                     }
+                                                                       },
+                                                               "pis":  {
+                                                                           "grupo":  "PISAliq",
+                                                                           "dados":  {
+                                                                                         "CST":  1,
+                                                                                         "vBC":  14.86,
+                                                                                         "pPIS":  0.65,
+                                                                                         "vPIS":  0.1
+                                                                                     }
+                                                                       },
+                                                               "cofins":  {
+                                                                              "grupo":  "COFINSAliq",
+                                                                              "dados":  {
+                                                                                            "CST":  1,
+                                                                                            "vBC":  14.86,
+                                                                                            "pCOFINS":  3,
+                                                                                            "vCOFINS":  0.45
+                                                                                        }
+                                                                          },
+                                                               "ii":  {
+                                                                          "grupo":  null,
+                                                                          "dados":  {
+
+                                                                                    }
+                                                                      },
+                                                               "issqn":  {
+                                                                             "grupo":  null,
+                                                                             "dados":  {
+
+                                                                                       }
+                                                                         },
+                                                               "resumo":  {
+                                                                              "icmsCst":  "",
+                                                                              "icmsBase":  17.9,
+                                                                              "icmsAliquota":  17,
+                                                                              "icmsValor":  3.04,
+                                                                              "ipiCst":  "",
+                                                                              "ipiValor":  0,
+                                                                              "pisCst":  "1",
+                                                                              "pisValor":  0.1,
+                                                                              "cofinsCst":  "1",
+                                                                              "cofinsValor":  0.45
+                                                                          }
+                                                           },
+                                              "impostoDevolucao":  null,
+                                              "rastreabilidade":  [
+
+                                                                  ]
+                                          },
+                                          {
+                                              "item":  2,
+                                              "codigo":  "1012128",
+                                              "descricao":  "ESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI",
+                                              "ean":  "SEM GTIN",
+                                              "eanTrib":  "SEM GTIN",
+                                              "ncm":  "96035000",
+                                              "cest":  "",
+                                              "cfop":  "5102",
+                                              "unidade":  "UN",
+                                              "unidadeTributada":  "UN",
+                                              "quantidade":  1,
+                                              "quantidadeTributada":  1,
+                                              "valorUnitario":  30.75,
+                                              "valorUnitarioTributado":  30.75,
+                                              "valorTotal":  30.75,
+                                              "frete":  0,
+                                              "seguro":  0,
+                                              "desconto":  0,
+                                              "outrasDespesas":  0,
+                                              "pedidoCompra":  "",
+                                              "itemPedidoCompra":  "",
+                                              "impostos":  {
+                                                               "icms":  {
+                                                                            "grupo":  "ICMS00",
+                                                                            "dados":  {
+                                                                                          "orig":  2,
+                                                                                          "CST":  0,
+                                                                                          "modBC":  3,
+                                                                                          "vBC":  30.75,
+                                                                                          "pICMS":  17,
+                                                                                          "vICMS":  5.23
+                                                                                      }
+                                                                        },
+                                                               "ipi":  {
+                                                                           "grupo":  null,
+                                                                           "dados":  {
+
+                                                                                     }
+                                                                       },
+                                                               "pis":  {
+                                                                           "grupo":  "PISAliq",
+                                                                           "dados":  {
+                                                                                         "CST":  1,
+                                                                                         "vBC":  25.52,
+                                                                                         "pPIS":  0.65,
+                                                                                         "vPIS":  0.17
+                                                                                     }
+                                                                       },
+                                                               "cofins":  {
+                                                                              "grupo":  "COFINSAliq",
+                                                                              "dados":  {
+                                                                                            "CST":  1,
+                                                                                            "vBC":  25.52,
+                                                                                            "pCOFINS":  3,
+                                                                                            "vCOFINS":  0.77
+                                                                                        }
+                                                                          },
+                                                               "ii":  {
+                                                                          "grupo":  null,
+                                                                          "dados":  {
+
+                                                                                    }
+                                                                      },
+                                                               "issqn":  {
+                                                                             "grupo":  null,
+                                                                             "dados":  {
+
+                                                                                       }
+                                                                         },
+                                                               "resumo":  {
+                                                                              "icmsCst":  "",
+                                                                              "icmsBase":  30.75,
+                                                                              "icmsAliquota":  17,
+                                                                              "icmsValor":  5.23,
+                                                                              "ipiCst":  "",
+                                                                              "ipiValor":  0,
+                                                                              "pisCst":  "1",
+                                                                              "pisValor":  0.17,
+                                                                              "cofinsCst":  "1",
+                                                                              "cofinsValor":  0.77
+                                                                          }
+                                                           },
+                                              "impostoDevolucao":  null,
+                                              "rastreabilidade":  [
+
+                                                                  ]
+                                          },
+                                          {
+                                              "item":  3,
+                                              "codigo":  "611678",
+                                              "descricao":  "FOLHA LIXA CHAMPAGNE A275 GR1200 NORTON",
+                                              "ean":  "SEM GTIN",
+                                              "eanTrib":  "SEM GTIN",
+                                              "ncm":  "68052000",
+                                              "cest":  "800300",
+                                              "cfop":  "5102",
+                                              "unidade":  "FL",
+                                              "unidadeTributada":  "FL",
+                                              "quantidade":  50,
+                                              "quantidadeTributada":  50,
+                                              "valorUnitario":  3.9,
+                                              "valorUnitarioTributado":  3.9,
+                                              "valorTotal":  195,
+                                              "frete":  0,
+                                              "seguro":  0,
+                                              "desconto":  0,
+                                              "outrasDespesas":  0,
+                                              "pedidoCompra":  "",
+                                              "itemPedidoCompra":  "",
+                                              "impostos":  {
+                                                               "icms":  {
+                                                                            "grupo":  "ICMS00",
+                                                                            "dados":  {
+                                                                                          "orig":  0,
+                                                                                          "CST":  0,
+                                                                                          "modBC":  3,
+                                                                                          "vBC":  195,
+                                                                                          "pICMS":  17,
+                                                                                          "vICMS":  33.15
+                                                                                      }
+                                                                        },
+                                                               "ipi":  {
+                                                                           "grupo":  null,
+                                                                           "dados":  {
+
+                                                                                     }
+                                                                       },
+                                                               "pis":  {
+                                                                           "grupo":  "PISAliq",
+                                                                           "dados":  {
+                                                                                         "CST":  1,
+                                                                                         "vBC":  161.85,
+                                                                                         "pPIS":  0.65,
+                                                                                         "vPIS":  1.05
+                                                                                     }
+                                                                       },
+                                                               "cofins":  {
+                                                                              "grupo":  "COFINSAliq",
+                                                                              "dados":  {
+                                                                                            "CST":  1,
+                                                                                            "vBC":  161.85,
+                                                                                            "pCOFINS":  3,
+                                                                                            "vCOFINS":  4.86
+                                                                                        }
+                                                                          },
+                                                               "ii":  {
+                                                                          "grupo":  null,
+                                                                          "dados":  {
+
+                                                                                    }
+                                                                      },
+                                                               "issqn":  {
+                                                                             "grupo":  null,
+                                                                             "dados":  {
+
+                                                                                       }
+                                                                         },
+                                                               "resumo":  {
+                                                                              "icmsCst":  "",
+                                                                              "icmsBase":  195,
+                                                                              "icmsAliquota":  17,
+                                                                              "icmsValor":  33.15,
+                                                                              "ipiCst":  "",
+                                                                              "ipiValor":  0,
+                                                                              "pisCst":  "1",
+                                                                              "pisValor":  1.05,
+                                                                              "cofinsCst":  "1",
+                                                                              "cofinsValor":  4.86
+                                                                          }
+                                                           },
+                                              "impostoDevolucao":  null,
+                                              "rastreabilidade":  [
+
+                                                                  ]
+                                          },
+                                          {
+                                              "item":  4,
+                                              "codigo":  "112123",
+                                              "descricao":  "THINNER 0454  5LTS PARA PU e BP S.WILLIAMS",
+                                              "ean":  "SEM GTIN",
+                                              "eanTrib":  "SEM GTIN",
+                                              "ncm":  "38140090",
+                                              "cest":  "",
+                                              "cfop":  "5102",
+                                              "unidade":  "UN",
+                                              "unidadeTributada":  "UN",
+                                              "quantidade":  1,
+                                              "quantidadeTributada":  1,
+                                              "valorUnitario":  213.75,
+                                              "valorUnitarioTributado":  213.75,
+                                              "valorTotal":  213.75,
+                                              "frete":  0,
+                                              "seguro":  0,
+                                              "desconto":  0,
+                                              "outrasDespesas":  0,
+                                              "pedidoCompra":  "",
+                                              "itemPedidoCompra":  "",
+                                              "impostos":  {
+                                                               "icms":  {
+                                                                            "grupo":  "ICMS00",
+                                                                            "dados":  {
+                                                                                          "orig":  0,
+                                                                                          "CST":  0,
+                                                                                          "modBC":  3,
+                                                                                          "vBC":  213.75,
+                                                                                          "pICMS":  17,
+                                                                                          "vICMS":  36.34
+                                                                                      }
+                                                                        },
+                                                               "ipi":  {
+                                                                           "grupo":  null,
+                                                                           "dados":  {
+
+                                                                                     }
+                                                                       },
+                                                               "pis":  {
+                                                                           "grupo":  "PISAliq",
+                                                                           "dados":  {
+                                                                                         "CST":  1,
+                                                                                         "vBC":  177.41,
+                                                                                         "pPIS":  0.65,
+                                                                                         "vPIS":  1.15
+                                                                                     }
+                                                                       },
+                                                               "cofins":  {
+                                                                              "grupo":  "COFINSAliq",
+                                                                              "dados":  {
+                                                                                            "CST":  1,
+                                                                                            "vBC":  177.41,
+                                                                                            "pCOFINS":  3,
+                                                                                            "vCOFINS":  5.32
+                                                                                        }
+                                                                          },
+                                                               "ii":  {
+                                                                          "grupo":  null,
+                                                                          "dados":  {
+
+                                                                                    }
+                                                                      },
+                                                               "issqn":  {
+                                                                             "grupo":  null,
+                                                                             "dados":  {
+
+                                                                                       }
+                                                                         },
+                                                               "resumo":  {
+                                                                              "icmsCst":  "",
+                                                                              "icmsBase":  213.75,
+                                                                              "icmsAliquota":  17,
+                                                                              "icmsValor":  36.34,
+                                                                              "ipiCst":  "",
+                                                                              "ipiValor":  0,
+                                                                              "pisCst":  "1",
+                                                                              "pisValor":  1.15,
+                                                                              "cofinsCst":  "1",
+                                                                              "cofinsValor":  5.32
+                                                                          }
+                                                           },
+                                              "impostoDevolucao":  null,
+                                              "rastreabilidade":  [
+
+                                                                  ]
+                                          }
+                                      ],
+                         "totais":  {
+                                        "produtos":  457.4,
+                                        "frete":  0,
+                                        "seguro":  0,
+                                        "desconto":  0,
+                                        "outrasDespesas":  0,
+                                        "icmsBase":  457.4,
+                                        "icms":  77.76,
+                                        "icmsDesonerado":  0,
+                                        "icmsSTBase":  0,
+                                        "icmsST":  0,
+                                        "fcp":  0,
+                                        "fcpST":  0,
+                                        "fcpSTRet":  0,
+                                        "ipi":  0,
+                                        "ipiDevolvido":  0,
+                                        "pis":  2.47,
+                                        "cofins":  11.4,
+                                        "ii":  0,
+                                        "iss":  0,
+                                        "retPIS":  0,
+                                        "retCOFINS":  0,
+                                        "retCSLL":  0,
+                                        "retIRRF":  0,
+                                        "nota":  457.4
+                                    },
+                         "transporte":  {
+                                            "modalidadeFrete":  "9",
+                                            "transportador":  {
+                                                                  "cnpj":  "",
+                                                                  "cpf":  "",
+                                                                  "nome":  "",
+                                                                  "ie":  "",
+                                                                  "uf":  "",
+                                                                  "municipio":  "",
+                                                                  "endereco":  ""
+                                                              },
+                                            "veiculo":  {
+                                                            "placa":  "",
+                                                            "uf":  "",
+                                                            "rntc":  ""
+                                                        },
+                                            "volumes":  [
+
+                                                        ]
+                                        },
+                         "entrega":  {
+                                         "logradouro":  "",
+                                         "numero":  "",
+                                         "complemento":  "",
+                                         "bairro":  "",
+                                         "codigoMunicipio":  "",
+                                         "cidade":  "",
+                                         "uf":  "",
+                                         "cep":  "",
+                                         "cnpj":  "",
+                                         "cpf":  ""
+                                     },
+                         "retirada":  {
+                                          "logradouro":  "",
+                                          "numero":  "",
+                                          "bairro":  "",
+                                          "cidade":  "",
+                                          "uf":  "",
+                                          "cep":  ""
+                                      },
+                         "pagamento":  {
+                                           "indicador":  "",
+                                           "pagamentos":  [
+                                                              {
+                                                                  "indicadorPagamento":  "1",
+                                                                  "forma":  "15",
+                                                                  "descricaoForma":  "",
+                                                                  "valor":  457.4,
+                                                                  "troco":  0,
+                                                                  "bandeira":  "",
+                                                                  "cnpjCredenciadora":  "",
+                                                                  "autorizacao":  ""
+                                                              }
+                                                          ],
+                                           "duplicatas":  [
+                                                              {
+                                                                  "numero":  "1",
+                                                                  "vencimento":  "2026-09-24",
+                                                                  "valor":  457.4
+                                                              }
+                                                          ],
+                                           "valorTroco":  0
+                                       },
+                         "intermediador":  {
+                                               "cnpj":  "",
+                                               "id":  "",
+                                               "presente":  false
+                                           },
+                         "informacoesAdicionais":  {
+                                                       "complementares":  "ENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-\u0026#xD;NOVA BRASILIA\u0026#xD;Pedido Nº: 730753\u0026#xD;\u0026#xD;Portador: BRADESCO BOLETO POR E-MAIL\u0026#xD;Representante: JAIRO\u0026#xD;\u0026#xD;Digitador: PAULO Emitente: MARCIA\u0026#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br\u0026#xD;",
+                                                       "fisco":  "\u0026#xD;",
+                                                       "observacoes":  [
+
+                                                                       ],
+                                                       "observacoesFisco":  [
+
+                                                                            ],
+                                                       "processosReferenciados":  [
+
+                                                                                  ]
+                                                   },
+                         "compra":  {
+                                        "notaEmpenho":  "",
+                                        "pedido":  "",
+                                        "contrato":  ""
+                                    },
+                         "exportacao":  {
+                                            "registro":  [
+
+                                                         ]
+                                        },
+                         "xmlOriginal":  "\u003cnfeProc versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"\u003e\u003cNFe xmlns=\"http://www.portalfiscal.inf.br/nfe\"\u003e\u003cinfNFe Id=\"NFe42260803086292000115550010009279691990720309\" versao=\"4.00\"\u003e\u003cide\u003e\u003ccUF\u003e42\u003c/cUF\u003e\u003ccNF\u003e99072030\u003c/cNF\u003e\u003cnatOp\u003e5102 - VENDA DE MERCADORIA\u003c/natOp\u003e\u003cmod\u003e55\u003c/mod\u003e\u003cserie\u003e1\u003c/serie\u003e\u003cnNF\u003e927969\u003c/nNF\u003e\u003cdhEmi\u003e2026-08-27T15:32:45-03:00\u003c/dhEmi\u003e\u003cdhSaiEnt\u003e2026-08-27T15:32:45-03:00\u003c/dhSaiEnt\u003e\u003ctpNF\u003e1\u003c/tpNF\u003e\u003cidDest\u003e1\u003c/idDest\u003e\u003ccMunFG\u003e4209102\u003c/cMunFG\u003e\u003ctpImp\u003e1\u003c/tpImp\u003e\u003ctpEmis\u003e1\u003c/tpEmis\u003e\u003ccDV\u003e9\u003c/cDV\u003e\u003ctpAmb\u003e1\u003c/tpAmb\u003e\u003cfinNFe\u003e1\u003c/finNFe\u003e\u003cindFinal\u003e1\u003c/indFinal\u003e\u003cindPres\u003e0\u003c/indPres\u003e\u003cprocEmi\u003e0\u003c/procEmi\u003e\u003cverProc\u003e4.00\u003c/verProc\u003e\u003c/ide\u003e\u003cemit\u003e\u003cCNPJ\u003e03086292000115\u003c/CNPJ\u003e\u003cxNome\u003eMENEGOTO TINTAS MAQUINAS E FERRAMENTAS LTDA\u003c/xNome\u003e\u003cxFant\u003eMENEGOTO\u003c/xFant\u003e\u003cenderEmit\u003e\u003cxLgr\u003eRua Doutor João Colin\u003c/xLgr\u003e\u003cnro\u003e2559\u003c/nro\u003e\u003cxBairro\u003eAmérica\u003c/xBairro\u003e\u003ccMun\u003e4209102\u003c/cMun\u003e\u003cxMun\u003eJoinville\u003c/xMun\u003e\u003cUF\u003eSC\u003c/UF\u003e\u003cCEP\u003e89204005\u003c/CEP\u003e\u003ccPais\u003e1058\u003c/cPais\u003e\u003cfone\u003e4730284200\u003c/fone\u003e\u003c/enderEmit\u003e\u003cIE\u003e253878586\u003c/IE\u003e\u003cIM\u003e61721\u003c/IM\u003e\u003cCNAE\u003e4741500\u003c/CNAE\u003e\u003cCRT\u003e3\u003c/CRT\u003e\u003c/emit\u003e\u003cdest\u003e\u003cCNPJ\u003e13862162000180\u003c/CNPJ\u003e\u003cxNome\u003e6635-ART GRAV COMUNICACAO INDUSTRIAL LTDA-ME***\u003c/xNome\u003e\u003cenderDest\u003e\u003cxLgr\u003eRua Teresópolis\u003c/xLgr\u003e\u003cnro\u003e1180\u003c/nro\u003e\u003cxBairro\u003eGuanabara\u003c/xBairro\u003e\u003ccMun\u003e4209102\u003c/cMun\u003e\u003cxMun\u003eJoinville\u003c/xMun\u003e\u003cUF\u003eSC\u003c/UF\u003e\u003cCEP\u003e89207500\u003c/CEP\u003e\u003ccPais\u003e1058\u003c/cPais\u003e\u003cxPais\u003eBRASIL\u003c/xPais\u003e\u003cfone\u003e4734336664\u003c/fone\u003e\u003c/enderDest\u003e\u003cindIEDest\u003e1\u003c/indIEDest\u003e\u003cIE\u003e256444935\u003c/IE\u003e\u003c/dest\u003e\u003cdet nItem=\"1\"\u003e\u003cprod\u003e\u003ccProd\u003e1112911\u003c/cProd\u003e\u003ccEAN\u003eSEM GTIN\u003c/cEAN\u003e\u003cxProd\u003eBOSCH PONTA PHILLIPS 049MM PH2 1/4 2608521240000\u003c/xProd\u003e\u003cNCM\u003e82079000\u003c/NCM\u003e\u003cCFOP\u003e5102\u003c/CFOP\u003e\u003cuCom\u003eUN\u003c/uCom\u003e\u003cqCom\u003e2.0000\u003c/qCom\u003e\u003cvUnCom\u003e8.9500000000\u003c/vUnCom\u003e\u003cvProd\u003e17.90\u003c/vProd\u003e\u003ccEANTrib\u003eSEM GTIN\u003c/cEANTrib\u003e\u003cuTrib\u003eUN\u003c/uTrib\u003e\u003cqTrib\u003e2.0000\u003c/qTrib\u003e\u003cvUnTrib\u003e8.9500000000\u003c/vUnTrib\u003e\u003cindTot\u003e1\u003c/indTot\u003e\u003c/prod\u003e\u003cimposto\u003e\u003cICMS\u003e\u003cICMS00\u003e\u003corig\u003e2\u003c/orig\u003e\u003cCST\u003e00\u003c/CST\u003e\u003cmodBC\u003e3\u003c/modBC\u003e\u003cvBC\u003e17.90\u003c/vBC\u003e\u003cpICMS\u003e17.0000\u003c/pICMS\u003e\u003cvICMS\u003e3.04\u003c/vICMS\u003e\u003c/ICMS00\u003e\u003c/ICMS\u003e\u003cPIS\u003e\u003cPISAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e14.86\u003c/vBC\u003e\u003cpPIS\u003e0.6500\u003c/pPIS\u003e\u003cvPIS\u003e0.10\u003c/vPIS\u003e\u003c/PISAliq\u003e\u003c/PIS\u003e\u003cCOFINS\u003e\u003cCOFINSAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e14.86\u003c/vBC\u003e\u003cpCOFINS\u003e3.0000\u003c/pCOFINS\u003e\u003cvCOFINS\u003e0.45\u003c/vCOFINS\u003e\u003c/COFINSAliq\u003e\u003c/COFINS\u003e\u003cIBSCBS\u003e\u003cCST\u003e000\u003c/CST\u003e\u003ccClassTrib\u003e000001\u003c/cClassTrib\u003e\u003cgIBSCBS\u003e\u003cvBC\u003e14.31\u003c/vBC\u003e\u003cgIBSUF\u003e\u003cpIBSUF\u003e0.10\u003c/pIBSUF\u003e\u003cvIBSUF\u003e0.01\u003c/vIBSUF\u003e\u003c/gIBSUF\u003e\u003cgIBSMun\u003e\u003cpIBSMun\u003e0.00\u003c/pIBSMun\u003e\u003cvIBSMun\u003e0.00\u003c/vIBSMun\u003e\u003c/gIBSMun\u003e\u003cvIBS\u003e0.01\u003c/vIBS\u003e\u003cgCBS\u003e\u003cpCBS\u003e0.90\u003c/pCBS\u003e\u003cvCBS\u003e0.13\u003c/vCBS\u003e\u003c/gCBS\u003e\u003c/gIBSCBS\u003e\u003c/IBSCBS\u003e\u003c/imposto\u003e\u003cvItem\u003e17.90\u003c/vItem\u003e\u003c/det\u003e\u003cdet nItem=\"2\"\u003e\u003cprod\u003e\u003ccProd\u003e1012128\u003c/cProd\u003e\u003ccEAN\u003eSEM GTIN\u003c/cEAN\u003e\u003cxProd\u003eESCOVA MANUAL UNIVERSAL FILEIRA UNICA ACO INOX 0.30mm OSBORN 462391 / 462391 PEQUI\u003c/xProd\u003e\u003cNCM\u003e96035000\u003c/NCM\u003e\u003cCFOP\u003e5102\u003c/CFOP\u003e\u003cuCom\u003eUN\u003c/uCom\u003e\u003cqCom\u003e1.0000\u003c/qCom\u003e\u003cvUnCom\u003e30.7500000000\u003c/vUnCom\u003e\u003cvProd\u003e30.75\u003c/vProd\u003e\u003ccEANTrib\u003eSEM GTIN\u003c/cEANTrib\u003e\u003cuTrib\u003eUN\u003c/uTrib\u003e\u003cqTrib\u003e1.0000\u003c/qTrib\u003e\u003cvUnTrib\u003e30.7500000000\u003c/vUnTrib\u003e\u003cindTot\u003e1\u003c/indTot\u003e\u003c/prod\u003e\u003cimposto\u003e\u003cICMS\u003e\u003cICMS00\u003e\u003corig\u003e2\u003c/orig\u003e\u003cCST\u003e00\u003c/CST\u003e\u003cmodBC\u003e3\u003c/modBC\u003e\u003cvBC\u003e30.75\u003c/vBC\u003e\u003cpICMS\u003e17.0000\u003c/pICMS\u003e\u003cvICMS\u003e5.23\u003c/vICMS\u003e\u003c/ICMS00\u003e\u003c/ICMS\u003e\u003cPIS\u003e\u003cPISAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e25.52\u003c/vBC\u003e\u003cpPIS\u003e0.6500\u003c/pPIS\u003e\u003cvPIS\u003e0.17\u003c/vPIS\u003e\u003c/PISAliq\u003e\u003c/PIS\u003e\u003cCOFINS\u003e\u003cCOFINSAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e25.52\u003c/vBC\u003e\u003cpCOFINS\u003e3.0000\u003c/pCOFINS\u003e\u003cvCOFINS\u003e0.77\u003c/vCOFINS\u003e\u003c/COFINSAliq\u003e\u003c/COFINS\u003e\u003cIBSCBS\u003e\u003cCST\u003e000\u003c/CST\u003e\u003ccClassTrib\u003e000001\u003c/cClassTrib\u003e\u003cgIBSCBS\u003e\u003cvBC\u003e24.58\u003c/vBC\u003e\u003cgIBSUF\u003e\u003cpIBSUF\u003e0.10\u003c/pIBSUF\u003e\u003cvIBSUF\u003e0.02\u003c/vIBSUF\u003e\u003c/gIBSUF\u003e\u003cgIBSMun\u003e\u003cpIBSMun\u003e0.00\u003c/pIBSMun\u003e\u003cvIBSMun\u003e0.00\u003c/vIBSMun\u003e\u003c/gIBSMun\u003e\u003cvIBS\u003e0.02\u003c/vIBS\u003e\u003cgCBS\u003e\u003cpCBS\u003e0.90\u003c/pCBS\u003e\u003cvCBS\u003e0.22\u003c/vCBS\u003e\u003c/gCBS\u003e\u003c/gIBSCBS\u003e\u003c/IBSCBS\u003e\u003c/imposto\u003e\u003cvItem\u003e30.75\u003c/vItem\u003e\u003c/det\u003e\u003cdet nItem=\"3\"\u003e\u003cprod\u003e\u003ccProd\u003e611678\u003c/cProd\u003e\u003ccEAN\u003eSEM GTIN\u003c/cEAN\u003e\u003cxProd\u003eFOLHA LIXA CHAMPAGNE A275 GR1200 NORTON\u003c/xProd\u003e\u003cNCM\u003e68052000\u003c/NCM\u003e\u003cCEST\u003e0800300\u003c/CEST\u003e\u003cCFOP\u003e5102\u003c/CFOP\u003e\u003cuCom\u003eFL\u003c/uCom\u003e\u003cqCom\u003e50.0000\u003c/qCom\u003e\u003cvUnCom\u003e3.9000000000\u003c/vUnCom\u003e\u003cvProd\u003e195.00\u003c/vProd\u003e\u003ccEANTrib\u003eSEM GTIN\u003c/cEANTrib\u003e\u003cuTrib\u003eFL\u003c/uTrib\u003e\u003cqTrib\u003e50.0000\u003c/qTrib\u003e\u003cvUnTrib\u003e3.9000000000\u003c/vUnTrib\u003e\u003cindTot\u003e1\u003c/indTot\u003e\u003c/prod\u003e\u003cimposto\u003e\u003cICMS\u003e\u003cICMS00\u003e\u003corig\u003e0\u003c/orig\u003e\u003cCST\u003e00\u003c/CST\u003e\u003cmodBC\u003e3\u003c/modBC\u003e\u003cvBC\u003e195.00\u003c/vBC\u003e\u003cpICMS\u003e17.0000\u003c/pICMS\u003e\u003cvICMS\u003e33.15\u003c/vICMS\u003e\u003c/ICMS00\u003e\u003c/ICMS\u003e\u003cPIS\u003e\u003cPISAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e161.85\u003c/vBC\u003e\u003cpPIS\u003e0.6500\u003c/pPIS\u003e\u003cvPIS\u003e1.05\u003c/vPIS\u003e\u003c/PISAliq\u003e\u003c/PIS\u003e\u003cCOFINS\u003e\u003cCOFINSAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e161.85\u003c/vBC\u003e\u003cpCOFINS\u003e3.0000\u003c/pCOFINS\u003e\u003cvCOFINS\u003e4.86\u003c/vCOFINS\u003e\u003c/COFINSAliq\u003e\u003c/COFINS\u003e\u003cIBSCBS\u003e\u003cCST\u003e000\u003c/CST\u003e\u003ccClassTrib\u003e000001\u003c/cClassTrib\u003e\u003cgIBSCBS\u003e\u003cvBC\u003e155.94\u003c/vBC\u003e\u003cgIBSUF\u003e\u003cpIBSUF\u003e0.10\u003c/pIBSUF\u003e\u003cvIBSUF\u003e0.16\u003c/vIBSUF\u003e\u003c/gIBSUF\u003e\u003cgIBSMun\u003e\u003cpIBSMun\u003e0.00\u003c/pIBSMun\u003e\u003cvIBSMun\u003e0.00\u003c/vIBSMun\u003e\u003c/gIBSMun\u003e\u003cvIBS\u003e0.16\u003c/vIBS\u003e\u003cgCBS\u003e\u003cpCBS\u003e0.90\u003c/pCBS\u003e\u003cvCBS\u003e1.40\u003c/vCBS\u003e\u003c/gCBS\u003e\u003c/gIBSCBS\u003e\u003c/IBSCBS\u003e\u003c/imposto\u003e\u003cvItem\u003e195.00\u003c/vItem\u003e\u003c/det\u003e\u003cdet nItem=\"4\"\u003e\u003cprod\u003e\u003ccProd\u003e112123\u003c/cProd\u003e\u003ccEAN\u003eSEM GTIN\u003c/cEAN\u003e\u003cxProd\u003eTHINNER 0454  5LTS PARA PU e BP S.WILLIAMS\u003c/xProd\u003e\u003cNCM\u003e38140090\u003c/NCM\u003e\u003cCFOP\u003e5102\u003c/CFOP\u003e\u003cuCom\u003eUN\u003c/uCom\u003e\u003cqCom\u003e1.0000\u003c/qCom\u003e\u003cvUnCom\u003e213.7500000000\u003c/vUnCom\u003e\u003cvProd\u003e213.75\u003c/vProd\u003e\u003ccEANTrib\u003eSEM GTIN\u003c/cEANTrib\u003e\u003cuTrib\u003eUN\u003c/uTrib\u003e\u003cqTrib\u003e1.0000\u003c/qTrib\u003e\u003cvUnTrib\u003e213.7500000000\u003c/vUnTrib\u003e\u003cindTot\u003e1\u003c/indTot\u003e\u003c/prod\u003e\u003cimposto\u003e\u003cICMS\u003e\u003cICMS00\u003e\u003corig\u003e0\u003c/orig\u003e\u003cCST\u003e00\u003c/CST\u003e\u003cmodBC\u003e3\u003c/modBC\u003e\u003cvBC\u003e213.75\u003c/vBC\u003e\u003cpICMS\u003e17.0000\u003c/pICMS\u003e\u003cvICMS\u003e36.34\u003c/vICMS\u003e\u003c/ICMS00\u003e\u003c/ICMS\u003e\u003cPIS\u003e\u003cPISAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e177.41\u003c/vBC\u003e\u003cpPIS\u003e0.6500\u003c/pPIS\u003e\u003cvPIS\u003e1.15\u003c/vPIS\u003e\u003c/PISAliq\u003e\u003c/PIS\u003e\u003cCOFINS\u003e\u003cCOFINSAliq\u003e\u003cCST\u003e01\u003c/CST\u003e\u003cvBC\u003e177.41\u003c/vBC\u003e\u003cpCOFINS\u003e3.0000\u003c/pCOFINS\u003e\u003cvCOFINS\u003e5.32\u003c/vCOFINS\u003e\u003c/COFINSAliq\u003e\u003c/COFINS\u003e\u003cIBSCBS\u003e\u003cCST\u003e410\u003c/CST\u003e\u003ccClassTrib\u003e410999\u003c/cClassTrib\u003e\u003c/IBSCBS\u003e\u003c/imposto\u003e\u003cvItem\u003e213.75\u003c/vItem\u003e\u003c/det\u003e\u003ctotal\u003e\u003cICMSTot\u003e\u003cvBC\u003e457.40\u003c/vBC\u003e\u003cvICMS\u003e77.76\u003c/vICMS\u003e\u003cvICMSDeson\u003e0.00\u003c/vICMSDeson\u003e\u003cvFCP\u003e0.00\u003c/vFCP\u003e\u003cvBCST\u003e0.00\u003c/vBCST\u003e\u003cvST\u003e0.00\u003c/vST\u003e\u003cvFCPST\u003e0.00\u003c/vFCPST\u003e\u003cvFCPSTRet\u003e0.00\u003c/vFCPSTRet\u003e\u003cqBCMono\u003e0.00\u003c/qBCMono\u003e\u003cvICMSMono\u003e0.00\u003c/vICMSMono\u003e\u003cqBCMonoReten\u003e0.00\u003c/qBCMonoReten\u003e\u003cvICMSMonoReten\u003e0.00\u003c/vICMSMonoReten\u003e\u003cqBCMonoRet\u003e0.00\u003c/qBCMonoRet\u003e\u003cvICMSMonoRet\u003e0.00\u003c/vICMSMonoRet\u003e\u003cvProd\u003e457.40\u003c/vProd\u003e\u003cvFrete\u003e0.00\u003c/vFrete\u003e\u003cvSeg\u003e0.00\u003c/vSeg\u003e\u003cvDesc\u003e0.00\u003c/vDesc\u003e\u003cvII\u003e0.00\u003c/vII\u003e\u003cvIPI\u003e0.00\u003c/vIPI\u003e\u003cvIPIDevol\u003e0.00\u003c/vIPIDevol\u003e\u003cvPIS\u003e2.47\u003c/vPIS\u003e\u003cvCOFINS\u003e11.40\u003c/vCOFINS\u003e\u003cvOutro\u003e0.00\u003c/vOutro\u003e\u003cvNF\u003e457.40\u003c/vNF\u003e\u003c/ICMSTot\u003e\u003cIBSCBSTot\u003e\u003cvBCIBSCBS\u003e194.83\u003c/vBCIBSCBS\u003e\u003cgIBS\u003e\u003cgIBSUF\u003e\u003cvDif\u003e0.00\u003c/vDif\u003e\u003cvDevTrib\u003e0.00\u003c/vDevTrib\u003e\u003cvIBSUF\u003e0.19\u003c/vIBSUF\u003e\u003c/gIBSUF\u003e\u003cgIBSMun\u003e\u003cvDif\u003e0.00\u003c/vDif\u003e\u003cvDevTrib\u003e0.00\u003c/vDevTrib\u003e\u003cvIBSMun\u003e0.00\u003c/vIBSMun\u003e\u003c/gIBSMun\u003e\u003cvIBS\u003e0.19\u003c/vIBS\u003e\u003cvCredPres\u003e0.00\u003c/vCredPres\u003e\u003cvCredPresCondSus\u003e0.00\u003c/vCredPresCondSus\u003e\u003c/gIBS\u003e\u003cgCBS\u003e\u003cvDif\u003e0.00\u003c/vDif\u003e\u003cvDevTrib\u003e0.00\u003c/vDevTrib\u003e\u003cvCBS\u003e1.75\u003c/vCBS\u003e\u003cvCredPres\u003e0.00\u003c/vCredPres\u003e\u003cvCredPresCondSus\u003e0.00\u003c/vCredPresCondSus\u003e\u003c/gCBS\u003e\u003c/IBSCBSTot\u003e\u003cvNFTot\u003e457.40\u003c/vNFTot\u003e\u003c/total\u003e\u003ctransp\u003e\u003cmodFrete\u003e9\u003c/modFrete\u003e\u003c/transp\u003e\u003ccobr\u003e\u003cfat\u003e\u003cnFat\u003e927969\u003c/nFat\u003e\u003cvOrig\u003e457.40\u003c/vOrig\u003e\u003cvDesc\u003e0.00\u003c/vDesc\u003e\u003cvLiq\u003e457.40\u003c/vLiq\u003e\u003c/fat\u003e\u003cdup\u003e\u003cnDup\u003e001\u003c/nDup\u003e\u003cdVenc\u003e2026-09-24\u003c/dVenc\u003e\u003cvDup\u003e457.40\u003c/vDup\u003e\u003c/dup\u003e\u003c/cobr\u003e\u003cpag\u003e\u003cdetPag\u003e\u003cindPag\u003e1\u003c/indPag\u003e\u003ctPag\u003e15\u003c/tPag\u003e\u003cvPag\u003e457.40\u003c/vPag\u003e\u003c/detPag\u003e\u003c/pag\u003e\u003cinfAdic\u003e\u003cinfAdFisco\u003e\u0026amp;#xD;\u003c/infAdFisco\u003e\u003cinfCpl\u003eENTREGA:RUA UBIRAJARA PIAZERA DIPPOLD NR 226-\u0026amp;#xD;NOVA BRASILIA\u0026amp;#xD;Pedido Nº: 730753\u0026amp;#xD;\u0026amp;#xD;Portador: BRADESCO BOLETO POR E-MAIL\u0026amp;#xD;Representante: JAIRO\u0026amp;#xD;\u0026amp;#xD;Digitador: PAULO Emitente: MARCIA\u0026amp;#xD;Seu arquivo XML está disponível no endereço: www.armazenamentonfe.com.br\u0026amp;#xD;\u003c/infCpl\u003e\u003c/infAdic\u003e\u003cinfRespTec\u003e\u003cCNPJ\u003e07481340000120\u003c/CNPJ\u003e\u003cxContato\u003eARTELIDES BORDIGNON\u003c/xContato\u003e\u003cemail\u003einterfoc@interfoc.com.br\u003c/email\u003e\u003cfone\u003e04933302900\u003c/fone\u003e\u003c/infRespTec\u003e\u003c/infNFe\u003e\u003cSignature xmlns=\"http://www.w3.org/2000/09/xmldsig#\"\u003e\u003cSignedInfo\u003e\u003cCanonicalizationMethod Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /\u003e\u003cSignatureMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#rsa-sha1\" /\u003e\u003cReference URI=\"#NFe42260803086292000115550010009279691990720309\"\u003e\u003cTransforms\u003e\u003cTransform Algorithm=\"http://www.w3.org/2000/09/xmldsig#enveloped-signature\" /\u003e\u003cTransform Algorithm=\"http://www.w3.org/TR/2001/REC-xml-c14n-20010315\" /\u003e\u003c/Transforms\u003e\u003cDigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\" /\u003e\u003cDigestValue\u003eDKwg68NCIYw8FB3odAR1qct7qJI=\u003c/DigestValue\u003e\u003c/Reference\u003e\u003c/SignedInfo\u003e\u003cSignatureValue\u003eg1eKUHT+HJawWkvWpfRoA9620FN3Q2V1uzRpgkuiFz6F9DSSjgMIerhamUCZ9T5r+Tk7BIeQGEhvwcdyXvdi+ljSqqc6sIwKFrxiIIZFbblDXrSTWjl/dWC2l3t9Vv+2eHNBnILukC0Zec0K/WHtgfL6a3C2f5C6dH2PZdYmN/Kqx2dPrdbsfhVwj18WXQOILkg2hRCzg1JCjyl4IgEQeycu7B/OZcsWAi6csTDtBp3OJnOrwjTbbweeU1f1S/VlcnTGjGOu+AgK1g9iSia9nd+LA8uKQstbjpP1nvAlgDigSfK4TM+ya24y8PwGlBhGBdT4W8oaoQgHzFIjKAX96A==\u003c/SignatureValue\u003e\u003cKeyInfo\u003e\u003cX509Data\u003e\u003cX509Certificate\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\u003c/X509Certificate\u003e\u003c/X509Data\u003e\u003c/KeyInfo\u003e\u003c/Signature\u003e\u003c/NFe\u003e\u003cprotNFe versao=\"4.00\" xmlns=\"http://www.portalfiscal.inf.br/nfe\"\u003e\u003cinfProt\u003e\u003ctpAmb\u003e1\u003c/tpAmb\u003e\u003cverAplic\u003eSVRS2608060405DR\u003c/verAplic\u003e\u003cchNFe\u003e42260803086292000115550010009279691990720309\u003c/chNFe\u003e\u003cdhRecbto\u003e2026-08-27T15:32:47-03:00\u003c/dhRecbto\u003e\u003cnProt\u003e242260403052750\u003c/nProt\u003e\u003cdigVal\u003eDKwg68NCIYw8FB3odAR1qct7qJI=\u003c/digVal\u003e\u003ccStat\u003e100\u003c/cStat\u003e\u003cxMotivo\u003eAutorizado o uso da NF-e\u003c/xMotivo\u003e\u003c/infProt\u003e\u003c/protNFe\u003e\u003c/nfeProc\u003e",
+                         "arquivoOriginal":  "42260803086292000115550010009279691990720309.xml",
+                         "createdAt":  "2026-09-01T13:39:55.109Z",
+                         "updatedAt":  "2026-09-02T18:28:34.793Z",
+                         "manifestacao":  {
+                                              "tipoEvento":  "210200",
+                                              "descricao":  "Confirmação da Operação",
+                                              "success":  true,
+                                              "cStat":  "135",
+                                              "xMotivo":  "Evento registrado e vinculado a NF-e",
+                                              "protocolo":  "591263176798812",
+                                              "dataHora":  "2026-09-02T18:28:36.011Z"
+                                          },
+                         "itensVinculados":  [
+                                                 {
+                                                     "itemNfe":  1,
+                                                     "produtoId":  "68265991-2901-4567-98d9-d5ac1e989334",
+                                                     "sku":  "1112911",
+                                                     "quantidade":  2,
+                                                     "valorUnitario":  8.95,
+                                                     "metodo":  "CRIADO_AUTOMATICAMENTE",
+                                                     "criadoAutomaticamente":  true
+                                                 },
+                                                 {
+                                                     "itemNfe":  2,
+                                                     "produtoId":  "44cefb37-211c-4f65-b1cc-acf67a40f771",
+                                                     "sku":  "1012128",
+                                                     "quantidade":  1,
+                                                     "valorUnitario":  30.75,
+                                                     "metodo":  "CRIADO_AUTOMATICAMENTE",
+                                                     "criadoAutomaticamente":  true
+                                                 },
+                                                 {
+                                                     "itemNfe":  3,
+                                                     "produtoId":  "d379daab-2800-4647-abd2-53a5b8117e5e",
+                                                     "sku":  "611678",
+                                                     "quantidade":  50,
+                                                     "valorUnitario":  3.9,
+                                                     "metodo":  "CRIADO_AUTOMATICAMENTE",
+                                                     "criadoAutomaticamente":  true
+                                                 },
+                                                 {
+                                                     "itemNfe":  4,
+                                                     "produtoId":  "676814a6-3914-449d-ab7a-92ae2227296e",
+                                                     "sku":  "112123",
+                                                     "quantidade":  1,
+                                                     "valorUnitario":  213.75,
+                                                     "metodo":  "CRIADO_AUTOMATICAMENTE",
+                                                     "criadoAutomaticamente":  true
+                                                 }
+                                             ],
+                         "confirmadaEm":  "2026-09-02T18:28:34.793Z",
+                         "confirmadaPor":  null
+                     }
+                 ]
+}

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<NFe xmlns="http://www.portalfiscal.inf.br/nfe">
+  <infNFe versao="4.00" Id="NFeTESTE12345678901234567890123456789012345678">
+    <ide>
+      <cUF>42</cUF>
+      <cNF>12345678</cNF>
+      <natOp>TESTE</natOp>
+      <mod>55</mod>
+      <serie>1</serie>
+      <nNF>1</nNF>
+      <dhEmi>2026-08-22T10:00:00-03:00</dhEmi>
+      <tpNF>1</tpNF>
+      <idDest>1</idDest>
+      <cMunFG>4209102</cMunFG>
+      <tpImp>1</tpImp>
+      <tpEmis>1</tpEmis>
+      <cDV>0</cDV>
+      <tpAmb>2</tpAmb>
+      <finNFe>1</finNFe>
+      <indFinal>0</indFinal>
+      <indPres>0</indPres>
+      <procEmi>0</procEmi>
+      <verProc>ERP Metal Racing TESTE</verProc>
+    </ide>
+  </infNFe>
+</NFe>

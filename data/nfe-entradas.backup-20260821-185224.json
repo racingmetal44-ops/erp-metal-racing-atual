@@ -1,0 +1,58 @@
+﻿[
+    {
+        "id":  1787329240648,
+        "tipo":  "MANUAL",
+        "status":  "CONFERENCIA",
+        "empresaId":  "1787261142745",
+        "chave":  "",
+        "numero":  "1000",
+        "serie":  "1",
+        "naturezaOperacao":  "COMPRA",
+        "dataEmissao":  "2026-08-21T13:20:00-03:00",
+        "fornecedor":  {
+                           "razaoSocial":  "FORNECEDOR TESTE LTDA",
+                           "ie":  "123456789",
+                           "cnpj":  "12345678000199",
+                           "nomeFantasia":  "FORNECEDOR TESTE"
+                       },
+        "produtos":  [
+                         {
+                             "item":  1,
+                             "codigo":  "P-1423",
+                             "descricao":  "Pedaleira Song Pro",
+                             "ncm":  "87089990",
+                             "cfop":  "2102",
+                             "unidade":  "UN",
+                             "quantidade":  5,
+                             "valorUnitario":  100,
+                             "valorTotal":  500
+                         }
+                     ],
+        "totais":  {
+                       "produtos":  500,
+                       "nota":  500
+                   },
+        "observacao":  "TESTE DE ENTRADA MANUAL DO ERP",
+        "createdAt":  "2026-08-21T16:20:40.648Z",
+        "updatedAt":  "2026-08-21T16:20:40.648Z"
+    },
+    {
+        "emissor":  "AC Certisign RFB G5",
+        "certificado":  "Válido até 04/08/2027",
+        "telefone":  "(47) 3433-6664",
+        "ambiente":  "Homologação",
+        "regime_tributario":  "Lucro Presumido",
+        "uf":  "SC",
+        "status":  "PRONTO PARA FATURAR",
+        "id":  "1",
+        "cidade":  "Joinville",
+        "email":  "adm@artgrav.com.br",
+        "cep":  "89207-500",
+        "bairro":  "Guanabara",
+        "nome":  "ART GRAV COMUNICACAO INDUSTRIAL LTDA",
+        "endereco":  "Rua Teresópolis, 1180",
+        "cnpj":  "13.862.162/0001-80",
+        "ie":  "253.456.789",
+        "nome_fantasia":  "METAL RACING ACESSÓRIOS AUTOMOTIVO"
+    }
+]
