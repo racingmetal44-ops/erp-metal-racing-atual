@@ -2,6 +2,8 @@ import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
+import { getEntradasAsync } from '../services/nfe/NfeEntradaService.js';
 
 const router = express.Router();
 
@@ -11,6 +13,38 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '../../../data');
 const CONTAS_FILE = path.join(DATA_DIR, 'contas-pagar.json');
 const NFE_FILE = path.join(DATA_DIR, 'nfe-entradas.json');
+const SUPABASE_URL =
+    process.env.SUPABASE_URL ||
+    'https://ddohqrwkripaeocnyynu.supabase.co';
+
+const SUPABASE_SERVICE_KEY =
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    '';
+
+let _supabase = null;
+
+function supabase() {
+    if (!_supabase) {
+        if (!SUPABASE_SERVICE_KEY) {
+            throw new Error(
+                'SUPABASE_SERVICE_ROLE_KEY não configurada.'
+            );
+        }
+
+        _supabase = createClient(
+            SUPABASE_URL,
+            SUPABASE_SERVICE_KEY,
+            {
+                auth: {
+                    persistSession: false
+                }
+            }
+        );
+    }
+
+    return _supabase;
+}
 
 function garantirArquivo() {
     if (process.env.VERCEL) {
@@ -48,6 +82,167 @@ function salvarContas(contas) {
         'utf8'
     );
 }
+async function lerContasAsync() {
+    if (!process.env.VERCEL) {
+        return lerContas();
+    }
+
+    const { data, error } = await supabase()
+        .from('contas_pagar')
+        .select('*')
+        .order('id', {
+            ascending: true
+        });
+
+    if (error) {
+        throw new Error(
+            `Falha ao carregar contas a pagar do Supabase: ${error.message}`
+        );
+    }
+
+    return Array.isArray(data)
+        ? data
+        : [];
+}
+
+async function salvarContasAsync(contas) {
+    if (!Array.isArray(contas)) {
+        throw new Error(
+            'Lista de contas inválida para persistência.'
+        );
+    }
+
+    const contasNormalizadas = contas.map(conta => ({
+        ...conta,
+
+        id:
+            Number(conta.id),
+
+        fornecedor_nome:
+            conta.fornecedor_nome ?? '',
+
+        fornecedor_cnpj:
+            conta.fornecedor_cnpj ?? '',
+
+        nfe_id:
+            conta.nfe_id ?? null,
+
+        nfe_numero:
+            conta.nfe_numero ?? '',
+
+        nfe_serie:
+            conta.nfe_serie ?? '',
+
+        nfe_chave:
+            conta.nfe_chave ?? '',
+
+        numero_titulo:
+            conta.numero_titulo ?? '',
+
+        numero_parcela:
+            String(conta.numero_parcela ?? '1'),
+
+        descricao:
+            conta.descricao ?? '',
+
+        valor:
+            Number(conta.valor ?? 0),
+
+        valor_pago:
+            Number(conta.valor_pago ?? 0),
+
+        data_emissao:
+            conta.data_emissao ?? null,
+
+        data_vencimento:
+            conta.data_vencimento ?? null,
+
+        data_pagamento:
+            conta.data_pagamento ?? null,
+
+        forma_pagamento:
+            conta.forma_pagamento ?? '',
+
+        forma_pagamento_descricao:
+            conta.forma_pagamento_descricao ?? '',
+
+        status:
+            conta.status ?? 'PENDENTE',
+
+        conta_financeira:
+            conta.conta_financeira ?? '',
+
+        centro_custo:
+            conta.centro_custo ?? '',
+
+        categoria:
+            conta.categoria ?? 'NF-e de entrada',
+
+        juros:
+            Number(conta.juros ?? 0),
+
+        multa:
+            Number(conta.multa ?? 0),
+
+        desconto:
+            Number(conta.desconto ?? 0),
+
+        observacao:
+            conta.observacao ?? '',
+
+        baixas:
+            Array.isArray(conta.baixas)
+                ? conta.baixas
+                : [],
+
+        origem:
+            conta.origem ?? 'NFE_ENTRADA',
+
+        created_at:
+            conta.created_at ?? new Date().toISOString(),
+
+        updated_at:
+            new Date().toISOString()
+    }));
+
+    /*
+     * Mantém o JSON local durante o desenvolvimento.
+     */
+    if (!process.env.VERCEL) {
+        salvarContas(contasNormalizadas);
+    }
+
+    /*
+     * Persiste também no Supabase para que o ambiente local
+     * teste exatamente o mesmo armazenamento de produção.
+     */
+    if (
+        process.env.SUPABASE_SECRET_KEY ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+        const { error } = await supabase()
+            .from('contas_pagar')
+            .upsert(
+                contasNormalizadas,
+                {
+                    onConflict: 'id'
+                }
+            );
+
+        if (error) {
+            throw new Error(
+                `Falha ao sincronizar contas a pagar no Supabase: ${error.message}`
+            );
+        }
+    } else if (process.env.VERCEL) {
+        throw new Error(
+            'Credencial do Supabase não configurada no ambiente Vercel.'
+        );
+    }
+}
+async function lerNfesAsync() {
+    return await getEntradasAsync();
+}
 
 function lerNfes() {
     if (!fs.existsSync(NFE_FILE)) {
@@ -78,85 +273,180 @@ function nfeRegistradaComoEntrada(nfe) {
     return String(nfe?.status || '').toUpperCase() === 'CONFIRMADA';
 }
 
-export function sincronizarContasNfe({ persistir = true } = {}) {
-    const contas = lerContas();
-    const nfes = lerNfes();
+export async function sincronizarContasNfe({ persistir = true } = {}) {
+    const contas = await lerContasAsync();
+    const nfes = await lerNfesAsync();
+
     let criadas = 0;
     let atualizadas = 0;
 
+    let proximoId = contas.length
+        ? Math.max(
+            ...contas.map(
+                item => Number(item.id) || 0
+            )
+        ) + 1
+        : 1;
+
     for (const nfe of nfes) {
+
         if (!nfeRegistradaComoEntrada(nfe)) {
             continue;
         }
 
-        const duplicatas = Array.isArray(nfe?.pagamento?.duplicatas)
-            ? nfe.pagamento.duplicatas
-            : [];
+        const duplicatas =
+            Array.isArray(
+                nfe?.pagamento?.duplicatas
+            )
+                ? nfe.pagamento.duplicatas
+                : [];
 
         for (const parcela of duplicatas) {
-            const chave = String(nfe.chave || '');
-            const numeroParcela = String(parcela.numero || '1');
-            const existente = contas.find(item =>
-                String(item.nfe_chave || '') === chave &&
-                String(item.numero_parcela || '1') === numeroParcela
-            );
+
+            const chave =
+                String(nfe.chave || '');
+
+            const numeroParcela =
+                String(
+                    parcela.numero || '1'
+                );
+
+            const existente =
+                contas.find(item =>
+                    String(
+                        item.nfe_chave || ''
+                    ) === chave &&
+                    String(
+                        item.numero_parcela || '1'
+                    ) === numeroParcela
+                );
 
             const base = {
-                fornecedor_nome: nfe?.fornecedor?.razaoSocial || nfe?.fornecedor?.nomeFantasia || 'Fornecedor não informado',
-                fornecedor_cnpj: nfe?.fornecedor?.cnpj || nfe?.fornecedor?.cpf || '',
-                nfe_id: nfe.id ?? null,
-                nfe_numero: nfe.numero ?? '',
-                nfe_serie: nfe.serie ?? '',
-                nfe_chave: chave,
-                numero_titulo: `${nfe.numero || 'NF'}-${numeroParcela}`,
-                numero_parcela: numeroParcela,
-                descricao: `NF-e ${nfe.numero || ''} - Parcela ${numeroParcela}`,
-                valor: arredondar(parcela.valor),
-                data_emissao: nfe.dataEmissao || null,
-                data_vencimento: parcela.vencimento || null,
-                forma_pagamento: nfe?.pagamento?.pagamentos?.[0]?.forma || '',
-                forma_pagamento_descricao: nfe?.pagamento?.pagamentos?.[0]?.descricaoForma || '',
-                origem: 'NFE_ENTRADA'
+                fornecedor_nome:
+                    nfe?.fornecedor?.razaoSocial ||
+                    nfe?.fornecedor?.nomeFantasia ||
+                    'Fornecedor não informado',
+
+                fornecedor_cnpj:
+                    nfe?.fornecedor?.cnpj ||
+                    nfe?.fornecedor?.cpf ||
+                    '',
+
+                nfe_id:
+                    nfe.id ?? null,
+
+                nfe_numero:
+                    nfe.numero ?? '',
+
+                nfe_serie:
+                    nfe.serie ?? '',
+
+                nfe_chave:
+                    chave,
+
+                numero_titulo:
+                    `${nfe.numero || 'NF'}-${numeroParcela}`,
+
+                numero_parcela:
+                    numeroParcela,
+
+                descricao:
+                    `NF-e ${nfe.numero || ''} - Parcela ${numeroParcela}`,
+
+                valor:
+                    arredondar(parcela.valor),
+
+                data_emissao:
+                    nfe.dataEmissao || null,
+
+                data_vencimento:
+                    parcela.vencimento || null,
+
+                forma_pagamento:
+                    nfe?.pagamento?.pagamentos?.[0]?.forma ||
+                    '',
+
+                forma_pagamento_descricao:
+                    nfe?.pagamento?.pagamentos?.[0]?.descricaoForma ||
+                    '',
+
+                origem:
+                    'NFE_ENTRADA'
             };
 
             if (existente) {
-                Object.assign(existente, base, {
-                    updated_at: new Date().toISOString(),
-                    status: calcularStatus(existente)
-                });
+
+                Object.assign(
+                    existente,
+                    base,
+                    {
+                        updated_at:
+                            new Date().toISOString(),
+
+                        status:
+                            calcularStatus(
+                                existente
+                            )
+                    }
+                );
+
                 atualizadas++;
+
                 continue;
             }
 
-            const proximoId = contas.length
-                ? Math.max(...contas.map(item => Number(item.id) || 0)) + 1
-                : 1;
-
             contas.push({
-                id: proximoId,
+                id: proximoId++,
+
                 ...base,
+
                 valor_pago: 0,
+
                 data_pagamento: null,
-                status: calcularStatus(base),
+
+                status:
+                    calcularStatus(base),
+
                 conta_financeira: '',
+
                 centro_custo: '',
-                categoria: 'NF-e de entrada',
+
+                categoria:
+                    'NF-e de entrada',
+
                 juros: 0,
+
                 multa: 0,
+
                 desconto: 0,
+
                 observacao: '',
+
                 baixas: [],
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+
+                created_at:
+                    new Date().toISOString(),
+
+                updated_at:
+                    new Date().toISOString()
             });
+
             criadas++;
         }
     }
 
-    if (persistir) salvarContas(contas);
-    return { contas, criadas, atualizadas };
-}
+    if (persistir) {
+        await salvarContasAsync(
+            contas
+        );
+    }
 
+    return {
+        contas,
+        criadas,
+        atualizadas
+    };
+}
 function hoje() {
     return new Date().toISOString().slice(0, 10);
 }
@@ -184,147 +474,27 @@ function calcularStatus(conta) {
 }
 
 // =====================================================
-// SINCRONIZAR NF-e é?' CONTAS A PAGAR
+// SINCRONIZAR NF-e ??' CONTAS A PAGAR
 // =====================================================
 
-router.post('/sincronizar-nfe', (req, res) => {
+router.post('/sincronizar-nfe', async (req, res) => {
     try {
-        const contas = lerContas();
-        const nfes = lerNfes();
 
-        let criadas = 0;
-
-        for (const nfe of nfes) {
-            const duplicatas =
-                Array.isArray(nfe?.pagamento?.duplicatas)
-                    ? nfe.pagamento.duplicatas
-                    : [];
-
-            for (const parcela of duplicatas) {
-                const chave = String(nfe.chave || '');
-
-                const numeroParcela =
-                    String(parcela.numero || '');
-
-                const existe = contas.some(item =>
-                    String(item.nfe_chave || '') === chave &&
-                    String(item.numero_parcela || '') === numeroParcela
-                );
-
-                if (existe) {
-                    continue;
-                }
-
-                const proximoId =
-                    contas.length > 0
-                        ? Math.max(
-                            ...contas.map(item =>
-                                Number(item.id) || 0
-                            )
-                        ) + 1
-                        : 1;
-
-                const valor =
-                    Number(parcela.valor || 0);
-
-                const conta = {
-                    id: proximoId,
-
-                    fornecedor_nome:
-                        nfe?.fornecedor?.razaoSocial ||
-                        nfe?.fornecedor?.nomeFantasia ||
-                        'Fornecedor não informado',
-
-                    fornecedor_cnpj:
-                        nfe?.fornecedor?.cnpj ||
-                        nfe?.fornecedor?.cpf ||
-                        '',
-
-                    nfe_id:
-                        nfe.id ?? null,
-
-                    nfe_numero:
-                        nfe.numero ?? '',
-
-                    nfe_serie:
-                        nfe.serie ?? '',
-
-                    nfe_chave:
-                        chave,
-
-                    numero_titulo:
-                        `${nfe.numero || 'NF'}-${numeroParcela || '1'}`,
-
-                    numero_parcela:
-                        numeroParcela,
-
-                    descricao:
-                        `NF-e ${nfe.numero || ''} - Parcela ${numeroParcela || ''}`,
-
-                    valor,
-
-                    valor_pago: 0,
-
-                    data_emissao:
-                        nfe.dataEmissao || null,
-
-                    data_vencimento:
-                        parcela.vencimento || null,
-
-                    data_pagamento:
-                        null,
-
-                    status:
-                        calcularStatus({
-                            valor,
-                            valor_pago: 0,
-                            data_vencimento:
-                                parcela.vencimento || null
-                        }),
-
-                    forma_pagamento:
-                        nfe?.pagamento?.pagamentos?.[0]?.forma ||
-                        '',
-
-                    forma_pagamento_descricao:
-                        nfe?.pagamento?.pagamentos?.[0]?.descricaoForma ||
-                        '',
-
-                    conta_financeira: '',
-
-                    centro_custo: '',
-
-                    juros: 0,
-
-                    multa: 0,
-
-                    desconto: 0,
-
-                    observacao: '',
-
-                    origem: 'NFE_ENTRADA',
-
-                    created_at:
-                        new Date().toISOString(),
-
-                    updated_at:
-                        new Date().toISOString()
-                };
-
-                contas.push(conta);
-                criadas++;
-            }
-        }
-
-        salvarContas(contas);
+        const resultado =
+            await sincronizarContasNfe();
 
         res.json({
             success: true,
-            criadas,
-            total: contas.length
+            criadas:
+                resultado.criadas,
+            atualizadas:
+                resultado.atualizadas,
+            total:
+                resultado.contas.length
         });
 
     } catch (error) {
+
         console.error(
             '[FINANCEIRO] Erro ao sincronizar NF-e:',
             error
@@ -341,16 +511,18 @@ router.post('/sincronizar-nfe', (req, res) => {
 // LISTAR CONTAS A PAGAR
 // =====================================================
 
-router.get('/contas-pagar', (req, res) => {
+router.get('/contas-pagar', async (req, res) => {
     try {
-        const contas = lerContas();
 
-        const atualizadas = contas.map(conta => ({
-            ...conta,
-            status: calcularStatus(conta)
-        }));
+        const contas =
+            await lerContasAsync();
 
-        salvarContas(atualizadas);
+        const atualizadas =
+            contas.map(conta => ({
+                ...conta,
+                status:
+                    calcularStatus(conta)
+            }));
 
         res.json({
             success: true,
@@ -359,6 +531,12 @@ router.get('/contas-pagar', (req, res) => {
         });
 
     } catch (error) {
+
+        console.error(
+            '[FINANCEIRO] Erro ao listar contas:',
+            error
+        );
+
         res.status(500).json({
             success: false,
             error: error.message
@@ -367,12 +545,12 @@ router.get('/contas-pagar', (req, res) => {
 });
 
 // =====================================================
-// BAIXAR / PAGAR TÍTULO
+// BAIXAR / PAGAR T?TULO
 // =====================================================
 
-router.post('/contas-pagar/:id/baixar', (req, res) => {
+router.post('/contas-pagar/:id/baixar', async (req, res) => {
     try {
-        const contas = lerContas();
+        const contas = await lerContasAsync();
 
         const id = Number(req.params.id);
 
@@ -383,7 +561,7 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
         if (!conta) {
             return res.status(404).json({
                 success: false,
-                error: 'Conta a pagar não encontrada.'
+                error: 'Conta a pagar n?o encontrada.'
             });
         }
 
@@ -398,7 +576,7 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
         if (!Number.isFinite(valorOriginal) || valorOriginal <= 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Valor original da conta é inválido.'
+                error: 'Valor original da conta ? inv?lido.'
             });
         }
 
@@ -419,7 +597,7 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
         ) {
             return res.status(400).json({
                 success: false,
-                error: 'Juros, multa e desconto devem ser valores válidos e não negativos.'
+                error: 'Juros, multa e desconto devem ser valores v?lidos e n?o negativos.'
             });
         }
 
@@ -458,7 +636,7 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
         if (saldoAntes <= 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Esta conta já está totalmente paga.'
+                error: 'Esta conta j? est? totalmente paga.'
             });
         }
 
@@ -537,7 +715,7 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
         conta.updated_at =
             new Date().toISOString();
 
-        salvarContas(contas);
+        await salvarContasAsync(contas);
 
         res.json({
             success: true,
@@ -562,20 +740,20 @@ router.post('/contas-pagar/:id/baixar', (req, res) => {
 
 
 // =====================================================
-// RELATéRIO FINANCEIRO + NF-e DE ENTRADA
+// RELAT?RIO FINANCEIRO + NF-e DE ENTRADA
 // =====================================================
 
-function gerarRelatorioNfeFinanceiro(req) {
+async function gerarRelatorioNfeFinanceiro(req) {
     const query = req.method === 'GET' ? req.query : req.body;
     const filtros = query || {};
-    const sincronizacao = sincronizarContasNfe();
+    const sincronizacao = await sincronizarContasNfe();
     const contas = sincronizacao.contas.map(conta => ({
         ...conta,
         status: calcularStatus(conta)
     }));
     const chavesSelecionadas = new Set();
 
-    let nfes = lerNfes().filter(nfeRegistradaComoEntrada);
+    let nfes = (await lerNfesAsync()).filter(nfeRegistradaComoEntrada);
 
     const inicio = filtros.dataInicial || filtros.data_inicio || '';
     const fim = filtros.dataFinal || filtros.data_fim || '';
@@ -700,11 +878,11 @@ function gerarRelatorioNfeFinanceiro(req) {
     };
 }
 
-const relatorioNfeFinanceiro = (req, res) => {
+const relatorioNfeFinanceiro = async (req, res) => {
     try {
-        res.json(gerarRelatorioNfeFinanceiro(req));
+        res.json(await gerarRelatorioNfeFinanceiro(req));
     } catch (error) {
-        console.error('[RELATORIO NFE] Erro ao gerar relatório:', error);
+        console.error('[RELATORIO NFE] Erro ao gerar relat?rio:', error);
         res.status(500).json({ success: false, error: error.message });
     }
 };
@@ -712,7 +890,7 @@ const relatorioNfeFinanceiro = (req, res) => {
 router.get('/relatorios/nfe-financeiro', relatorioNfeFinanceiro);
 router.post('/relatorios/nfe-financeiro', relatorioNfeFinanceiro);
 
-router.get('/relatorio', (req, res) => {
+router.get('/relatorio', async (req, res) => {
     try {
         const {
             data_inicio,
@@ -721,8 +899,8 @@ router.get('/relatorio', (req, res) => {
             fornecedor
         } = req.query;
 
-        const contas = lerContas();
-        const nfes = lerNfes();
+        const contas = await lerContasAsync();
+        const nfes = await lerNfesAsync();
 
         let contasFiltradas = [...contas];
         let nfesFiltradas = [...nfes];
@@ -868,7 +1046,7 @@ router.get('/relatorio', (req, res) => {
 
     } catch (error) {
         console.error(
-            '[FINANCEIRO] Erro ao gerar relatério:',
+            '[FINANCEIRO] Erro ao gerar relat?rio:',
             error
         );
 
@@ -880,4 +1058,9 @@ router.get('/relatorio', (req, res) => {
 });
 
 export default router;
+
+
+
+
+
 

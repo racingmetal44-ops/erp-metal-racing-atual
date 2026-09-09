@@ -1,10 +1,10 @@
-import express from 'express';
+﻿import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
 import { XMLParser } from 'fast-xml-parser';
 
-// Serviços da integração SEFAZ / entrada
+// Servi?os da integra??o SEFAZ / entrada
 import NfeDistribuicaoService, {
     lerNsu
 } from '../services/nfe/NfeDistribuicaoService.js';
@@ -20,6 +20,7 @@ import {
     confirmarEntrada as confirmarEntradaTransacional,
     getEntradas as getEntradasService,
     getEntradasAsync,
+    saveEntradasAsync,
     saveEntradas as saveEntradasService,
     reverterEstoqueEntrada
 } from '../services/nfe/NfeEntradaService.js';
@@ -43,7 +44,7 @@ if (!process.env.VERCEL) {
 }
 
 // =====================================================
-// UTILITÁRIOS
+// UTILIT?RIOS
 // =====================================================
 
 function getEntradas() {
@@ -217,46 +218,67 @@ function validarTextoXml(valor, campo) {
 }
 
 function validarProdutoXml(produto) {
-
-    const quantidade =
-        arredondar2(
-            produto.quantidade
-        );
-
-    const unitario =
-        arredondar2(
-            produto.valorUnitario
-        );
-
-    const totalInformado =
-        arredondar2(
-            produto.valorTotal
-        );
-
-    const totalCalculado =
-        arredondar2(
-            quantidade * unitario
-        );
+    const quantidade = Number(produto.quantidade);
+    const unitario = Number(produto.valorUnitario);
+    const totalInformado = Number(produto.valorTotal);
 
     if (
-        Math.abs(
-            totalCalculado -
-            totalInformado
-        ) > 0.02
+        !Number.isFinite(quantidade) ||
+        quantidade <= 0
     ) {
         throw new Error(
+            `Quantidade invÃ¡lida para o produto "${produto.descricao}".`
+        );
+    }
+
+    if (
+        !Number.isFinite(unitario) ||
+        unitario < 0
+    ) {
+        throw new Error(
+            `Valor unitÃ¡rio invÃ¡lido para o produto "${produto.descricao}".`
+        );
+    }
+
+    if (
+        !Number.isFinite(totalInformado) ||
+        totalInformado < 0
+    ) {
+        throw new Error(
+            `Valor total invÃ¡lido para o produto "${produto.descricao}".`
+        );
+    }
+
+    // IMPORTANTE:
+    // O XML pode trazer valor unitÃ¡rio com atÃ© 4 ou mais casas.
+    // Ex.: 32,074 x 50 = 1.603,70.
+    // NÃ£o arredondar o unitÃ¡rio antes da multiplicaÃ§Ã£o.
+    const totalCalculado =
+        Math.round(
+            (quantidade * unitario + Number.EPSILON) * 100
+        ) / 100;
+
+    const totalXml =
+        Math.round(
+            (totalInformado + Number.EPSILON) * 100
+        ) / 100;
+
+    const diferenca =
+        Math.abs(totalCalculado - totalXml);
+
+    if (diferenca > 0.02) {
+        throw new Error(
             `Produto "${produto.descricao}" inconsistente: ` +
-            `${quantidade} x R$ ${unitario.toFixed(2)} = ` +
+            `${quantidade} x R$ ${unitario.toFixed(4)} = ` +
             `R$ ${totalCalculado.toFixed(2)}, ` +
-            `mas o XML informa R$ ${totalInformado.toFixed(2)}.`
+            `mas o XML informa R$ ${totalXml.toFixed(2)}.`
         );
     }
 
     return true;
 }
-
 // =====================================================
-// EMPRESA / CONFIGURAÇÃO FISCAL
+// EMPRESA / CONFIGURA??O FISCAL
 // =====================================================
 
 function obterEmpresa(empresaId) {
@@ -270,7 +292,7 @@ function obterEmpresa(empresaId) {
 
     if (!fs.existsSync(arquivoEmpresas)) {
         throw new Error(
-            'Arquivo de empresas não encontrado.'
+            'Arquivo de empresas n?o encontrado.'
         );
     }
 
@@ -298,7 +320,7 @@ function obterEmpresa(empresaId) {
 
     if (!empresa) {
         throw new Error(
-            `Empresa ${empresaId} não encontrada.`
+            `Empresa ${empresaId} n?o encontrada.`
         );
     }
 
@@ -366,7 +388,7 @@ function validarEntradaNFe(
 
     if (!cnpjDestinatario) {
         throw new Error(
-            'O XML não possui CNPJ do destinatário.'
+            'O XML n?o possui CNPJ do destinat?rio.'
         );
     }
 
@@ -440,7 +462,7 @@ function extrairXmlNfe(xml) {
 
     if (!nfe) {
         throw new Error(
-            'XML não contém uma NF-e válida.'
+            'XML n?o cont?m uma NF-e v?lida.'
         );
     }
 
@@ -449,7 +471,7 @@ function extrairXmlNfe(xml) {
 
     if (!infNFe) {
         throw new Error(
-            'Elemento infNFe não encontrado no XML.'
+            'Elemento infNFe n?o encontrado no XML.'
         );
     }
 
@@ -1860,8 +1882,8 @@ router.get('/', async (req, res) => {
         if (!process.env.VERCEL) {
             const locais = getEntradas();
             let alterado = false;
-        // Falha de manifestação não altera uma entrada de estoque
-        // que já foi confirmada pelo ERP.
+        // Falha de manifesta??o n?o altera uma entrada de estoque
+        // que j? foi confirmada pelo ERP.
         }
 
         res.json({
@@ -1922,7 +1944,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Arquivo XML não enviado.'
+                        'Arquivo XML n?o enviado.'
                 });
             }
 
@@ -1946,11 +1968,11 @@ router.post(
             if (!nfe.chave) {
 
                 throw new Error(
-                        'Não foi possível identificar a chave de acesso da NF-e.'
+                        'N?o foi poss?vel identificar a chave de acesso da NF-e.'
                 );
             }
 
-            const entradas = getEntradas();
+            const entradas = await getEntradasAsync();
 
             const duplicada =
                 entradas.find(
@@ -1966,7 +1988,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Esta NF-e já foi importada.',
+                        'Esta NF-e j? foi importada.',
 
                     entrada:
                         duplicada
@@ -2098,7 +2120,7 @@ router.post(
                 entrada
             );
 
-            saveEntradas(
+            await saveEntradasAsync(
                 entradas
             );
 
@@ -2150,7 +2172,7 @@ router.post(
 
 router.post(
     '/manual',
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -2177,7 +2199,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Empresa não informada.'
+                        'Empresa n?o informada.'
                 });
             }
 
@@ -2188,7 +2210,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Fornecedor não informado.'
+                        'Fornecedor n?o informado.'
                 });
             }
 
@@ -2199,7 +2221,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Número da NF-e não informado.'
+                        'N?mero da NF-e n?o informado.'
                 });
             }
 
@@ -2218,7 +2240,7 @@ router.post(
                 });
             }
 
-            const entradas = getEntradas();
+            const entradas = await getEntradasAsync();
 
             if (chave) {
 
@@ -2236,7 +2258,7 @@ router.post(
                         success: false,
 
                         error:
-                            'Esta chave de NF-e já está cadastrada.',
+                            'Esta chave de NF-e j? est? cadastrada.',
 
                         entrada:
                             duplicada
@@ -2441,7 +2463,7 @@ router.post(
                 entrada
             );
 
-            saveEntradas(
+            await saveEntradasAsync(
                 entradas
             );
 
@@ -2450,7 +2472,7 @@ router.post(
                 success: true,
 
                 message:
-                    'Entrada manual cadastrada para conferência. A resposta oficial do SEFAZ será obtida na confirmação da entrada quando houver chave de acesso.',
+                    'Entrada manual cadastrada para confer?ncia. A resposta oficial do SEFAZ ser? obtida na confirma??o da entrada quando houver chave de acesso.',
 
                 entrada
             });
@@ -2497,7 +2519,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Empresa não informada.'
+                        'Empresa n?o informada.'
                 });
             }
 
@@ -2603,7 +2625,7 @@ router.post(
                 resultado.documentos?.length
             ) {
 
-                const entradas = getEntradas();
+                const entradas = await getEntradasAsync();
 
                 for (
                     const doc
@@ -2759,7 +2781,7 @@ router.post(
                     novasEntradas > 0
                 ) {
 
-                    saveEntradas(
+                    await saveEntradasAsync(
                         entradas
                     );
                 }
@@ -2921,7 +2943,7 @@ router.get(
 
 router.get(
     '/pendentes',
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -2988,7 +3010,7 @@ router.get(
 
 router.get(
     '/:id',
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -2998,7 +3020,7 @@ router.get(
                 );
 
             const entrada =
-                getEntradas().find(
+                (await getEntradasAsync()).find(
                     item =>
                         item.id === id
                 );
@@ -3010,7 +3032,7 @@ router.get(
                     success: false,
 
                     error:
-                        'Entrada não encontrada.'
+                        'Entrada n?o encontrada.'
                 });
             }
 
@@ -3057,7 +3079,7 @@ router.post(
                 req.body || {};
 
             const entrada =
-                getEntradas().find(
+                (await getEntradasAsync()).find(
                     e =>
                         Number(e.id) ===
                         id
@@ -3070,7 +3092,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Entrada não encontrada.'
+                        'Entrada n?o encontrada.'
                 });
             }
 
@@ -3081,7 +3103,7 @@ router.post(
                     success: false,
 
                     error:
-                        'Esta entrada não possui chave de acesso (entrada manual sem chave).'
+                        'Esta entrada n?o possui chave de acesso (entrada manual sem chave).'
                 });
             }
 
@@ -3096,7 +3118,7 @@ router.post(
                     success: false,
 
                     error:
-                        `tipoEvento inválido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} (210200=Confirmação, 210210=Ciência, 210220=Desconhecimento, 210240=Não realizada).`
+                        `tipoEvento inv?lido. Use um dos: ${Object.keys(DESCRICOES_EVENTO).join(', ')} (210200=Confirma??o, 210210=Ci?ncia, 210220=Desconhecimento, 210240=N?o realizada).`
                 });
             }
 
@@ -3131,7 +3153,7 @@ router.post(
                     justificativa
                 });
 
-            const entradas = getEntradas();
+            const entradas = await getEntradasAsync();
 
             const index =
                 entradas.findIndex(
@@ -3170,7 +3192,7 @@ router.post(
                 entradas[index].updatedAt =
                     new Date().toISOString();
 
-                saveEntradas(
+                await saveEntradasAsync(
                     entradas
                 );
             }
@@ -3200,7 +3222,7 @@ router.post(
 
                         : (
                             resultado.xMotivo ||
-                            'SEFAZ não vinculou o evento.'
+                            'SEFAZ n?o vinculou o evento.'
                         )
             });
 
@@ -3229,7 +3251,7 @@ router.post(
 
 router.get(
     '/:id/xml',
-    (req, res) => {
+    async (req, res) => {
 
         try {
 
@@ -3239,7 +3261,7 @@ router.get(
                 );
 
             const entrada =
-                getEntradas().find(
+                (await getEntradasAsync()).find(
                     e =>
                         Number(e.id) ===
                         id
@@ -3252,7 +3274,7 @@ router.get(
                     success: false,
 
                     error:
-                        'Entrada não encontrada.'
+                        'Entrada n?o encontrada.'
                 });
             }
 
@@ -3305,7 +3327,7 @@ router.get(
                 success: false,
 
                 error:
-                    'XML não disponível para esta entrada.'
+                    'XML n?o dispon?vel para esta entrada.'
             });
 
         } catch (error) {
@@ -3323,7 +3345,7 @@ router.get(
 
 // =====================================================
 // CONFIRMAR ENTRADA
-// Estoque + manifesta??o 210200
+// Estoque + manifestaÃ§Ã£o 210200
 // =====================================================
 
 router.post(
@@ -3332,172 +3354,198 @@ router.post(
 
         try {
 
-            const id =
-                Number(
-                    req.params.id
-                );
+            const id = Number(req.params.id);
 
-            const entradas = getEntradas();
+            const entradas = await getEntradasAsync();
 
-            const index =
-                entradas.findIndex(
-                    item =>
-                        Number(item.id) ===
-                        id
-                );
+            const index = entradas.findIndex(
+                item => Number(item.id) === id
+            );
 
             if (index === -1) {
 
                 return res.status(404).json({
-
                     success: false,
-
-                    error:
-                        'Entrada não encontrada.'
+                    error: 'Entrada nÃ£o encontrada.'
                 });
+
             }
 
-            const entrada =
-                entradas[index];
+            const entrada = entradas[index];
+
+            // -------------------------------------------------
+            // PROTEÃ‡ÃƒO CONTRA DUPLA ENTRADA
+            // -------------------------------------------------
 
             if (
-                entrada.status ===
-                'CONFIRMADA'
+                entrada.status === 'CONFIRMADA' ||
+                entrada.status === 'PROCESSADA'
             ) {
 
                 return res.status(400).json({
-
                     success: false,
-
-                    error:
-                        'Esta NF-e já possui entrada de estoque.'
+                    error: 'Esta NF-e jÃ¡ possui entrada de estoque.'
                 });
+
             }
 
             const itens =
-                Array.isArray(
-                    req.body?.itens
-                )
+                Array.isArray(req.body?.itens)
                     ? req.body.itens
                     : [];
 
+            // -------------------------------------------------
+            // VALIDAR QUANTIDADE DE ITENS
+            // -------------------------------------------------
+
             if (
                 entrada.produtos?.length &&
-                itens.length !==
-                entrada.produtos.length
+                itens.length !== entrada.produtos.length
             ) {
 
                 return res.status(400).json({
-
                     success: false,
-
                     error:
-                        'A quantidade de itens enviados não corresponde à quantidade de itens da NF-e.'
+                        'A quantidade de itens enviados nÃ£o corresponde Ã  quantidade de itens da NF-e.'
+                });
+
+            }
+
+            // -------------------------------------------------
+            // RETENTATIVA DE MANIFESTAÃ‡ÃƒO
+            //
+            // Usado para entradas antigas que tiveram estoque
+            // confirmado e ficaram com manifestaÃ§Ã£o rejeitada.
+            // Nunca altera novamente o estoque.
+            // -------------------------------------------------
+
+            if (
+                entrada.status === 'REJEITADA' &&
+                entrada.itensVinculados?.length &&
+                entrada.chave
+            ) {
+
+                const sefazRetry =
+                    await reenviarManifestacao(entrada)
+                        .catch(error => ({
+                            enviada: true,
+                            success: false,
+                            cStat: null,
+                            xMotivo: error.message,
+                            protocolo: null,
+                            tipoEvento: '210200'
+                        }));
+
+                entrada.manifestacao = {
+                    ...sefazRetry,
+                    descricao: 'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
+                    dataHora: new Date().toISOString()
+                };
+
+                if (sefazRetry.success) {
+
+                    entrada.status = 'CONFIRMADA';
+                    entrada.statusSefaz = 'AUTORIZADA';
+                    entrada.motivoSefaz =
+                        sefazRetry.xMotivo || '';
+                    entrada.protocoloSefaz =
+                        sefazRetry.protocolo || '';
+                    entrada.confirmadaEm =
+                        entrada.confirmadaEm ||
+                        new Date().toISOString();
+                    entrada.updatedAt =
+                        new Date().toISOString();
+
+                    entradas[index] = entrada;
+
+                    await saveEntradasAsync(entradas);
+
+                    // SOMENTE SE SEFAZ ACEITAR
+                    await sincronizarContasNfe();
+
+                    return res.json({
+                        success: true,
+                        entradaConfirmada: true,
+                        message:
+                            'ManifestaÃ§Ã£o aceita pelo SEFAZ. Entrada confirmada.',
+                        entrada,
+                        resumo: {},
+                        sefaz: sefazRetry
+                    });
+
+                }
+
+                entrada.status = 'REJEITADA';
+                entrada.statusSefaz = 'REJEITADA';
+                entrada.motivoSefaz =
+                    sefazRetry.xMotivo ||
+                    'ManifestaÃ§Ã£o rejeitada pelo SEFAZ.';
+                entrada.updatedAt =
+                    new Date().toISOString();
+
+                entradas[index] = entrada;
+
+                await saveEntradasAsync(entradas);
+
+                // NÃƒO cria Financeiro
+                return res.status(422).json({
+                    success: false,
+                    rejected: true,
+                    error: entrada.motivoSefaz,
+                    entrada,
+                    resumo: {},
+                    sefaz: sefazRetry
                 });
             }
 
-                if (!entrada.chave) {
-                    entrada.status = 'REJEITADA';
-                    entrada.statusSefaz = 'NAO_ENVIADA';
-                    entrada.motivoSefaz = 'A NF-e não possui chave de acesso para manifestação oficial no SEFAZ.';
-                    entrada.updatedAt = new Date().toISOString();
-                    entradas[index] = entrada;
-                    saveEntradas(entradas);
-                    return res.status(422).json({
-                        success: false,
-                        rejected: true,
-                        error: entrada.motivoSefaz,
-                        entrada
-                    });
-                }
-
-                if (entrada.status === 'REJEITADA' && entrada.itensVinculados?.length) {
-                    const sefazRetry = await reenviarManifestacao(entrada).catch((error) => ({
-                        enviada: true,
-                        success: false,
-                        cStat: null,
-                        xMotivo: error.message,
-                        protocolo: null,
-                        tipoEvento: '210200'
-                    }));
-                    entrada.manifestacao = { ...sefazRetry, descricao: 'Confirmação da Operação', dataHora: new Date().toISOString() };
-                    if (sefazRetry.success) {
-                        entrada.status = 'CONFIRMADA';
-                        entrada.statusSefaz = 'AUTORIZADA';
-                        entrada.motivoSefaz = sefazRetry.xMotivo || '';
-                        entrada.protocoloSefaz = sefazRetry.protocolo || '';
-                        entrada.confirmadaEm = entrada.confirmadaEm || new Date().toISOString();
-                        entradas[index] = entrada;
-                        saveEntradas(entradas);
-                        sincronizarContasNfe();
-                        return res.json({ success: true, message: 'Manifestação aceita pelo SEFAZ. Entrada confirmada.', entrada, resumo: {}, sefaz: sefazRetry });
-                    }
-                    entrada.statusSefaz = 'REJEITADA';
-                    entrada.motivoSefaz = sefazRetry.xMotivo || 'Manifestação rejeitada pelo SEFAZ.';
-                    entradas[index] = entrada;
-                    saveEntradas(entradas);
-                    return res.status(422).json({ success: false, rejected: true, error: entrada.motivoSefaz, entrada, resumo: {}, sefaz: sefazRetry });
-                }
-
-            // =============================================
-            // ENTRADA TRANSACIONAL
-            // =============================================
+            // =================================================
+            // 1. ENTRADA TRANSACIONAL NO ERP
+            // =================================================
 
             const {
-                entrada:
-                    entradaAtualizada,
-                    resumo,
-                    aplicados
-            } =
-                await confirmarEntradaTransacional({
+                entrada: entradaAtualizada,
+                resumo,
+                aplicados
+            } = await confirmarEntradaTransacional({
 
-                    entradaId:
-                        id,
+                entradaId: id,
 
-                    itens,
+                itens,
 
-                    usuario:
-                        req.body?.usuario ||
-                        null
-                });
+                usuario:
+                    req.body?.usuario ||
+                    null
+            });
 
-            // =============================================
-            // SALVAR ERP
-            // =============================================
+            // -------------------------------------------------
+            // SALVAR ESTOQUE / ENTRADA
+            // -------------------------------------------------
 
-            entradas[index] =
-                entradaAtualizada;
+            entradas[index] = entradaAtualizada;
 
-            saveEntradas(
-                entradas
-            );
+            await saveEntradasAsync(entradas);
 
-            // =============================================
-            // CONFIRMAÇÃO SEFAZ
-            // 210200
-            // =============================================
+            // =================================================
+            // 2. MANIFESTAÃ‡ÃƒO SEFAZ
+            // =================================================
 
             let sefaz = {
 
                 enviada: false,
-
                 success: false,
-
                 cStat: null,
-
                 xMotivo: null,
-
                 protocolo: null,
-
                 tipoEvento: null
             };
 
-            if (
-                entradaAtualizada.chave
-            ) {
+            // =================================================
+            // ENTRADA COM CHAVE
+            // =================================================
 
-                sefaz.tipoEvento =
-                    '210200';
+            if (entradaAtualizada.chave) {
+
+                sefaz.tipoEvento = '210200';
 
                 try {
 
@@ -3536,9 +3584,7 @@ router.post(
                         enviada: true,
 
                         success:
-                            Boolean(
-                                resultado.success
-                            ),
+                            Boolean(resultado.success),
 
                         cStat:
                             resultado.cStat ||
@@ -3558,16 +3604,13 @@ router.post(
 
                     entradaAtualizada.manifestacao = {
 
-                        tipoEvento:
-                            '210200',
+                        tipoEvento: '210200',
 
                         descricao:
-                            'Confirmação da Operação',
+                            'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
 
                         success:
-                            Boolean(
-                                resultado.success
-                            ),
+                            Boolean(resultado.success),
 
                         cStat:
                             resultado.cStat ||
@@ -3585,17 +3628,31 @@ router.post(
                             new Date().toISOString()
                     };
 
-                    entradas[index] =
-                        entradaAtualizada;
+                    entradaAtualizada.statusSefaz =
+                        resultado.dryRun
+                            ? 'TESTE_DRY_RUN'
+                            : (
+                                resultado.success
+                                    ? 'AUTORIZADA'
+                                    : 'PENDENTE'
+                            );
 
-                    saveEntradas(
-                        entradas
-                    );
+                    entradaAtualizada.motivoSefaz =
+                        resultado.dryRun
+                            ? 'Manifestação simulada em DRY_RUN. Nenhum evento oficial foi enviado ao SEFAZ.'
+                            : (
+                                resultado.xMotivo ||
+                                ''
+                            );
+
+                    entradaAtualizada.protocoloSefaz =
+                        resultado.protocolo ||
+                        '';
 
                 } catch (error) {
 
                     console.error(
-                        '[ENTRADA] Erro ao enviar confirmação para SEFAZ:',
+                        '[ENTRADA] Erro ao enviar confirmaÃ§Ã£o para SEFAZ:',
                         error
                     );
 
@@ -3618,11 +3675,10 @@ router.post(
 
                     entradaAtualizada.manifestacao = {
 
-                        tipoEvento:
-                            '210200',
+                        tipoEvento: '210200',
 
                         descricao:
-                            'Confirmação da Operação',
+                            'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
 
                         success: false,
 
@@ -3637,15 +3693,25 @@ router.post(
                             new Date().toISOString()
                     };
 
-                    entradas[index] =
-                        entradaAtualizada;
+                    entradaAtualizada.statusSefaz =
+                        'PENDENTE';
 
-                    saveEntradas(
-                        entradas
-                    );
+                    entradaAtualizada.motivoSefaz =
+                        error.message;
+
+                    entradaAtualizada.protocoloSefaz =
+                        '';
                 }
 
             } else {
+
+                // =================================================
+                // ENTRADA SEM CHAVE
+                //
+                // ESTOQUE: SIM
+                // SEFAZ: NÃƒO
+                // FINANCEIRO POR MANIFESTAÃ‡ÃƒO: NÃƒO
+                // =================================================
 
                 sefaz = {
 
@@ -3656,70 +3722,165 @@ router.post(
                     cStat: null,
 
                     xMotivo:
-                        'Entrada sem chave de acesso. A confirmação não foi enviada à SEFAZ.',
+                        'Entrada sem chave de acesso. ManifestaÃ§Ã£o SEFAZ nÃ£o enviada.',
 
                     protocolo: null,
 
                     tipoEvento: null
                 };
-            }
-            if (!sefaz.success) {
-                // A entrada do ERP já foi confirmada.
-                // Falha na manifestação SEFAZ não desfaz o estoque.
-                entradaAtualizada.status = 'CONFIRMADA';
-                entradaAtualizada.statusSefaz = 'PENDENTE';
+
+                entradaAtualizada.statusSefaz =
+                    'NAO_ENVIADA';
+
                 entradaAtualizada.motivoSefaz =
-                    sefaz.xMotivo || 'Manifestação SEFAZ pendente.';
+                    sefaz.xMotivo;
+
                 entradaAtualizada.protocoloSefaz =
-                    sefaz.protocolo || '';
-                entradaAtualizada.rejeitadaEm = '';
-                entradaAtualizada.updatedAt =
-                    new Date().toISOString();
-
-                entradas[index] = entradaAtualizada;
-                saveEntradas(entradas);
-
-                sincronizarContasNfe();
-
-                return res.json({
-                    success: true,
-                    entradaConfirmada: true,
-                    manifestacaoPendente: true,
-                    message:
-                        'Entrada de estoque confirmada. Manifestação SEFAZ pendente.',
-                    error: sefaz.xMotivo || null,
-                    entrada: entradaAtualizada,
-                    resumo,
-                    sefaz
-                });
+                    '';
             }
 
-            // Somente uma resposta oficial aceita cria títulos no Financeiro.
-            sincronizarContasNfe();
+            // =================================================
+            // SALVAR RESULTADO DA MANIFESTAÃ‡ÃƒO
+            // =================================================
 
-            // =============================================
-            // MENSAGEM
-            // =============================================
+            entradaAtualizada.updatedAt =
+                new Date().toISOString();
 
-            const mensagem =
-                sefaz.success
+            entradas[index] =
+                entradaAtualizada;
 
-                    ? 'Entrada realizada com sucesso. Estoque atualizado. Confirmação da Operação aceita pela SEFAZ.'
+            await saveEntradasAsync(
+                entradas
+            );
 
-                    : (
-                        sefaz.enviada
+            // =================================================
+            // 3. FINANCEIRO
+            //
+            // REGRA:
+            // SOMENTE manifestaÃ§Ã£o oficial aceita.
+            // =================================================
 
-                            ? 'Entrada realizada com sucesso. Estoque atualizado, mas a Confirmação da Operação não foi aceita pela SEFAZ.'
+            if (sefaz.success) {
 
-                            : 'Entrada realizada com sucesso. Estoque atualizado. Não foi enviada manifestação à SEFAZ porque esta entrada não possui chave de acesso.'
+                try {
+
+                    await sincronizarContasNfe();
+
+                    console.log(
+                        `[FINANCEIRO] NF-e ${entradaAtualizada.numero || entradaAtualizada.chave} sincronizada apÃ³s SEFAZ autorizado.`
                     );
 
-            res.json({
+                } catch (financeiroError) {
+
+                    console.error(
+                        '[FINANCEIRO] Falha ao sincronizar tÃ­tulo:',
+                        financeiroError
+                    );
+
+                    return res.status(500).json({
+
+                        success: false,
+
+                        entradaConfirmada: true,
+
+                        sefaz,
+
+                        entrada:
+                            entradaAtualizada,
+
+                        resumo,
+
+                        error:
+                            'Entrada e manifestaÃ§Ã£o SEFAZ concluÃ­das, mas houve falha ao sincronizar o Financeiro: ' +
+                            financeiroError.message
+                    });
+
+                }
+
+                return res.json({
+
+                    success: true,
+
+                    entradaConfirmada: true,
+
+                    financeiroSincronizado: true,
+
+                    message:
+                        'Entrada realizada com sucesso. Estoque atualizado, manifestaÃ§Ã£o SEFAZ aceita e tÃ­tulo financeiro sincronizado.',
+
+                    entrada:
+                        entradaAtualizada,
+
+                    resumo,
+
+                    sefaz
+                });
+
+            }
+
+            // =================================================
+            // 4. SEFAZ PENDENTE / REJEITADO / SEM CHAVE
+            //
+            // ESTOQUE CONTINUA CONFIRMADO.
+            // NÃƒO CRIA TÃTULO FINANCEIRO.
+            // =================================================
+
+            entradaAtualizada.status =
+                'CONFIRMADA';
+
+            entradaAtualizada.statusSefaz =
+                sefaz.enviada
+                    ? 'PENDENTE'
+                    : 'NAO_ENVIADA';
+
+            entradaAtualizada.motivoSefaz =
+                sefaz.xMotivo ||
+                (
+                    sefaz.enviada
+                        ? 'ManifestaÃ§Ã£o SEFAZ pendente.'
+                        : 'Entrada sem chave de acesso.'
+                );
+
+            entradaAtualizada.protocoloSefaz =
+                sefaz.protocolo ||
+                '';
+
+            entradaAtualizada.rejeitadaEm =
+                '';
+
+            entradaAtualizada.updatedAt =
+                new Date().toISOString();
+
+            entradas[index] =
+                entradaAtualizada;
+
+            await saveEntradasAsync(
+                entradas
+            );
+
+            // MUITO IMPORTANTE:
+            // NÃƒO chamar sincronizarContasNfe() aqui.
+
+            return res.json({
 
                 success: true,
 
+                entradaConfirmada: true,
+
+                manifestacaoPendente:
+                    Boolean(sefaz.enviada && !sefaz.success),
+
+                financeiroSincronizado:
+                    false,
+
                 message:
-                    mensagem,
+                    sefaz.enviada
+                        ? 'Entrada de estoque confirmada. ManifestaÃ§Ã£o SEFAZ pendente. TÃ­tulo financeiro nÃ£o foi criado.'
+                        : 'Entrada de estoque confirmada. NÃ£o houve manifestaÃ§Ã£o SEFAZ porque a entrada nÃ£o possui chave de acesso. TÃ­tulo financeiro nÃ£o foi criado.',
+
+                error:
+                    sefaz.xMotivo ||
+                    null,
 
                 entrada:
                     entradaAtualizada,
@@ -3736,22 +3897,25 @@ router.post(
                 error
             );
 
-            res.status(400).json({
+            return res.status(400).json({
 
                 success: false,
 
                 error:
                     error.message
             });
+
         }
     }
 );
 
-// =====================================================
-// EXPORT
+// =====================================================// EXPORT
 // =====================================================
 
 export default router;
+
+
+
 
 
 

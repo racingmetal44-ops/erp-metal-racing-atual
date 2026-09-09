@@ -33,7 +33,7 @@ export const DESCRICOES_EVENTO = {
 };
 
 const X_COND_USO =
-    'O autor deste evento declara ter ciência de que a utilização indevida do evento poderé sujeité-lo és sanéées previstas na legislaééo tributária.';
+    'O autor deste evento declara ter ciÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âªncia de que a utilizaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o indevida do evento poderÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© sujeitÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©-lo ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©s sanÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©es previstas na legislaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©o tributÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ria.';
 
 function lerEventos() {
     try {
@@ -95,7 +95,7 @@ function validarChave(chNFe) {
 
     if (!/^\d{44}$/.test(chave)) {
         throw new Error(
-            'Chave da NF-e inválida. Deve possuir 44 dígitos.'
+            'Chave da NF-e invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lida. Deve possuir 44 dÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­gitos.'
         );
     }
 
@@ -109,7 +109,7 @@ function validarCnpj(cnpj) {
 
     if (!/^\d{14}$/.test(valor)) {
         throw new Error(
-            'CNPJ do destinatário inválido.'
+            'CNPJ do destinatÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡rio invÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡lido.'
         );
     }
 
@@ -117,9 +117,9 @@ function validarCnpj(cnpj) {
 }
 
 /*
- * XML ESPECÍFICO DA MANIFESTAÇÃO
+ * XML ESPECÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂFICO DA MANIFESTAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢O
  *
- * 210200 - Confirmação da Operação
+ * 210200 - ConfirmaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o da OperaÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o
  *
  * Estrutura:
  *
@@ -138,7 +138,7 @@ function validarCnpj(cnpj) {
  *       descEvento
  *       xCondUso
  *
- * A assinatura fica como irmé de infEvento
+ * A assinatura fica como irmÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â© de infEvento
  * dentro de evento.
  */
 function montarXmlEvento({ tpAmb, cnpj, chNFe, tipoEvento, sequencia, justificativa }) {
@@ -252,7 +252,7 @@ function assinarEvento(
 
     if (!match) {
         throw new Error(
-            'Id do infEvento não encontrado.'
+            'Id do infEvento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrado.'
         );
     }
 
@@ -345,7 +345,7 @@ function analisarResposta(xmlResposta) {
 
     /*
      * Ignora o 128 para encontrar
-     * o cStat específico do evento.
+     * o cStat especÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­fico do evento.
      */
     const indiceEvento =
         cStatTags.findIndex(
@@ -402,7 +402,7 @@ export class NfeManifestacaoService {
 
         if (!empresaId) {
             throw new Error(
-                'Empresa não informada.'
+                'Empresa nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o informada.'
             );
         }
 
@@ -431,7 +431,7 @@ export class NfeManifestacaoService {
 
         if (!url) {
             throw new Error(
-                'URL do serviço RecepcaoEvento não encontrada.'
+                'URL do serviÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â§o RecepcaoEvento nÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â£o encontrada.'
             );
         }
 
@@ -440,7 +440,7 @@ export class NfeManifestacaoService {
             '============================================'
         );
         console.log(
-            ' ?? MANIFESTAÇÃO DO DESTINATÁRIO'
+            ' ?? MANIFESTAÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢O DO DESTINATÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂRIO'
         );
         console.log(
             '============================================'
@@ -478,16 +478,12 @@ export class NfeManifestacaoService {
         const eventos =
             lerEventos();
 
-        const anteriores =
-            eventos.filter(
-                evento =>
-                    evento.chNFe === chave &&
-                    evento.tipoEvento === tipoEvento &&
-                    evento.success === true
-            );
-
-        const sequencia =
-            anteriores.length + 1;
+        /*
+         * Manifestacao do destinatario:
+         * nSeqEvento deve ser 1 para os eventos
+         * 210200, 210210, 210220 e 210240.
+         */
+        const sequencia = 1;
 
         const xmlEvento =
             montarXmlEvento({
@@ -507,7 +503,7 @@ export class NfeManifestacaoService {
             );
 
         /*
-         * Lote de um énico evento.
+         * Lote de um ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â©nico evento.
          */
         const idLote =
             String(Date.now())
@@ -525,11 +521,13 @@ export class NfeManifestacaoService {
          */
         const soapEnvelope =
             `<?xml version="1.0" encoding="utf-8"?>` +
-            `<soap12:Envelope xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">` +
+            `<soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ` +
+                `xmlns:xsd="http://www.w3.org/2001/XMLSchema" ` +
+                `xmlns:soap12="http://www.w3.org/2003/05/soap-envelope">` +
 
                 `<soap12:Header>` +
                     `<nfeCabecMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4">` +
-                        `<cUF>91</cUF>` +
+                        `<cUF>42</cUF>` +
                         `<versaoDados>1.00</versaoDados>` +
                     `</nfeCabecMsg>` +
                 `</soap12:Header>` +
@@ -567,6 +565,46 @@ export class NfeManifestacaoService {
                     keepAlive: false
                 });
 
+            fs.writeFileSync(
+
+                path.join(process.cwd(), 
+
+                    `manifestacao-debug-${tipoEvento}-${chave}.xml`
+
+                ),
+
+                soapEnvelope,
+
+                'utf8'
+
+            );
+
+            
+
+            if (process.env.NFE_MANIFESTACAO_DRY_RUN === 'true') {
+                const arquivoDryRun =
+                    path.join(
+                        process.cwd(),
+                        `manifestacao-debug-${tipoEvento}-${chave}.xml`
+                    );
+
+                console.log(
+                    '[MANIFESTACAO] DRY-RUN ativo: SOAP gerado, envio cancelado.'
+                );
+
+                console.log(
+                    `[MANIFESTACAO] SOAP salvo em: ${arquivoDryRun}`
+                );
+
+                return {
+                    success: true,
+                    dryRun: true,
+                    tipoEvento,
+                    chave,
+                    arquivoSoap: arquivoDryRun,
+                    soap: soapEnvelope
+                };
+            }
             response =
                 await axios.post(
                     url,
@@ -587,14 +625,9 @@ export class NfeManifestacaoService {
                             () => true,
 
                         headers: {
-                            'Content-Type':
-                                'application/soap+xml; charset=utf-8',
-
-                            'SOAPAction':
-                                '"http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4/nfeRecepcaoEventoNF"',
-
-                            'Accept':
-                                'application/soap+xml, text/xml, */*'
+                            'Content-Type': 'application/xml+soap; charset=utf-8',
+                            'SOAPAction': "http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4/nfeRecepcaoEventoNF",
+                            'Accept': 'application/xml+soap, text/xml, */*'
                         }
                     }
                 );
@@ -604,8 +637,39 @@ export class NfeManifestacaoService {
             const tempoMs =
                 Date.now() - inicio;
 
+            const respostaErro =
+                String(
+                    error.response?.data || ''
+                );
+
+            try {
+                fs.writeFileSync(
+                    path.join(
+                        process.cwd(),
+                        `manifestacao-resposta-erro-${tipoEvento}-${chave}.xml`
+                    ),
+                    respostaErro,
+                    'utf8'
+                );
+            } catch (erroGravacao) {
+                console.error(
+                    '[MANIFESTACAO] Erro ao gravar resposta SEFAZ:',
+                    erroGravacao.message
+                );
+            }
+
             console.error(
-                '[MANIFESTACAO] ? ERRO DE CONEXÃO:',
+                '[MANIFESTACAO] HTTP SEFAZ:',
+                error.response?.status || null
+            );
+
+            console.error(
+                '[MANIFESTACAO] RESPOSTA BRUTA SEFAZ:',
+                respostaErro.slice(0, 15000)
+            );
+
+            console.error(
+                '[MANIFESTACAO] ? ERRO DE CONEXÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢O:',
                 error.code || '',
                 error.message
             );
@@ -643,6 +707,15 @@ export class NfeManifestacaoService {
             String(
                 response.data || ''
             );
+
+        fs.writeFileSync(
+            path.join(
+                process.cwd(),
+                `manifestacao-resposta-${tipoEvento}-${chave}.xml`
+            ),
+            xmlResposta,
+            'utf8'
+        );
 
         const resultado =
             analisarResposta(
@@ -785,7 +858,7 @@ export class NfeManifestacaoService {
         console.log(
             resultado.sucesso
                 ? ' ? EVENTO VINCULADO'
-                : ' ? EVENTO NºO VINCULADO'
+                : ' ? EVENTO NÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚ÂºO VINCULADO'
         );
 
         console.log(
@@ -820,3 +893,13 @@ export class NfeManifestacaoService {
 }
 
 export default new NfeManifestacaoService();
+
+
+
+
+
+
+
+
+
+
