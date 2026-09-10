@@ -1,0 +1,420 @@
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useERPContext } from '../contexts/ERPContext';
+import { useToast } from '../hooks/useToast';
+import { productService } from '../services/productService';
+import { LabelPreview } from './Labels/components/LabelPreview';
+import { ProductSearch } from './Labels/components/ProductSearch';
+import { LabelControls } from './Labels/components/LabelControls';
+import { PrintOptions } from './Labels/components/PrintOptions';
+import { LabelSettings } from './Labels/components/LabelSettings';
+import styles from './Labels/Labels.module.css';
+
+const LabelsPage = () => {
+  const { products, loading: productsLoading } = useERPContext();
+  const { showToast } = useToast();
+  
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [labelData, setLabelData] = useState({
+    name: '',
+    sku: '',
+    barcode: '',
+    price: '',
+    brand: '',
+    customFields: {}
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [labelSettings, setLabelSettings] = useState({
+    width: 80,
+    height: 50,
+    fontSize: 12,
+    showPrice: true,
+    showBrand: true,
+    showBarcode: true
+  });
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return products;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return products.filter(product => 
+      product.name.toLowerCase().includes(term) ||
+      (product.sku && product.sku.toLowerCase().includes(term)) ||
+      (product.barcode && product.barcode.includes(term))
+    );
+  }, [products, searchTerm]);
+
+  const handleProductSelect = useCallback((product) => {
+    setSelectedProduct(product);
+    setLabelData({
+      name: product.name || '',
+      sku: product.sku || '',
+      barcode: product.barcode || '',
+      price: product.price || '',
+      brand: product.brand || '',
+      customFields: product.customFields || {}
+    });
+
+    if (!product.sku) {
+      showToast('Este produto não possui SKU cadastrado. Por favor, cadastre-o antes de imprimir etiquetas.', 'warning');
+    }
+  }, [showToast]);
+
+  const handleLabelDataChange = useCallback((field, value) => {
+    setLabelData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handlePrint = useCallback(async () => {
+    if (!selectedProduct) {
+      showToast('Selecione um produto para imprimir a etiqueta.', 'error');
+      return;
+    }
+
+    if (!labelData.sku) {
+      showToast('O produto selecionado não possui SKU. Cadastre-o antes de imprimir.', 'error');
+      return;
+    }
+
+    setIsPrinting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      showToast(Imprimindo  etiqueta(s) para , 'success');
+    } catch (error) {
+      showToast('Erro ao imprimir etiqueta. Tente novamente.', 'error');
+      console.error('Print error:', error);
+    } finally {
+      setIsPrinting(false);
+    }
+  }, [selectedProduct, labelData, quantity, showToast]);
+
+  const handleBatchPrint = useCallback(async (productIds) => {
+    if (!productIds || productIds.length === 0) {
+      showToast('Selecione pelo menos um produto para impressão em lote.', 'error');
+      return;
+    }
+
+    const selectedProducts = products.filter(p => productIds.includes(p.id));
+    const missingSku = selectedProducts.filter(p => !p.sku);
+    
+    if (missingSku.length > 0) {
+      showToast(${missingSku.length} produto(s) não possuem SKU. Cadastre-os antes de imprimir., 'warning');
+      return;
+    }
+
+    setIsPrinting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      showToast(Imprimindo  etiquetas em lote., 'success');
+    } catch (error) {
+      showToast('Erro ao imprimir etiquetas em lote.', 'error');
+    } finally {
+      setIsPrinting(false);
+    }
+  }, [products, showToast]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedProduct(null);
+    setLabelData({
+      name: '',
+      sku: '',
+      barcode: '',
+      price: '',
+      brand: '',
+      customFields: {}
+    });
+    setSearchTerm('');
+  }, []);
+
+  return (
+    <div className={styles.labelsContainer}>
+      <div className={styles.labelsHeader}>
+        <h1>Etiquetas</h1>
+        <p className={styles.subtitle}>Gerencie e imprima etiquetas para seus produtos</p>
+      </div>
+
+      <div className={styles.labelsGrid}>
+        <div className={styles.leftPanel}>
+          <ProductSearch
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            products={filteredProducts}
+            selectedProduct={selectedProduct}
+            onProductSelect={handleProductSelect}
+            loading={productsLoading}
+          />
+
+          {selectedProduct && (
+            <LabelControls
+              product={selectedProduct}
+              labelData={labelData}
+              onLabelDataChange={handleLabelDataChange}
+              onClearSelection={handleClearSelection}
+            />
+          )}
+
+          <div className={styles.actionsPanel}>
+            <PrintOptions
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              onPrint={handlePrint}
+              isPrinting={isPrinting}
+              disabled={!selectedProduct || !labelData.sku}
+            />
+            
+            <LabelSettings
+              settings={labelSettings}
+              onSettingsChange={setLabelSettings}
+            />
+          </div>
+        </div>
+
+        <div className={styles.rightPanel}>
+          <LabelPreview
+            labelData={labelData}
+            settings={labelSettings}
+            selectedProduct={selectedProduct}
+          />
+          
+          {selectedProduct && (
+            <div className={styles.batchActions}>
+              <button
+                className={styles.batchPrintButton}
+                onClick={() => handleBatchPrint([selectedProduct.id])}
+                disabled={isPrinting || !labelData.sku}
+              >
+                <span className={styles.buttonIcon}>🖨️</span>
+                Imprimir em Lote
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.integrationInfo}>
+        <div className={styles.integrationBadge}>
+          <span className={styles.badgeIcon}>🔌</span>
+          <span>Integrações disponíveis: Impressora Térmica · Mercado Livre · Shopee · Bling</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LabelsPage;
+@"
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useERPContext } from '../contexts/ERPContext';
+import { useToast } from '../hooks/useToast';
+import { productService } from '../services/productService';
+import { LabelPreview } from './Labels/components/LabelPreview';
+import { ProductSearch } from './Labels/components/ProductSearch';
+import { LabelControls } from './Labels/components/LabelControls';
+import { PrintOptions } from './Labels/components/PrintOptions';
+import { LabelSettings } from './Labels/components/LabelSettings';
+import styles from './Labels/Labels.module.css';
+
+const LabelsPage = () => {
+  const { products, loading: productsLoading } = useERPContext();
+  const { showToast } = useToast();
+  
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [labelData, setLabelData] = useState({
+    name: '',
+    sku: '',
+    barcode: '',
+    price: '',
+    brand: '',
+    customFields: {}
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [labelSettings, setLabelSettings] = useState({
+    width: 80,
+    height: 50,
+    fontSize: 12,
+    showPrice: true,
+    showBrand: true,
+    showBarcode: true
+  });
+
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return products;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return products.filter(product => 
+      product.name.toLowerCase().includes(term) ||
+      (product.sku && product.sku.toLowerCase().includes(term)) ||
+      (product.barcode && product.barcode.includes(term))
+    );
+  }, [products, searchTerm]);
+
+  const handleProductSelect = useCallback((product) => {
+    setSelectedProduct(product);
+    setLabelData({
+      name: product.name || '',
+      sku: product.sku || '',
+      barcode: product.barcode || '',
+      price: product.price || '',
+      brand: product.brand || '',
+      customFields: product.customFields || {}
+    });
+
+    if (!product.sku) {
+      showToast('Este produto não possui SKU cadastrado. Por favor, cadastre-o antes de imprimir etiquetas.', 'warning');
+    }
+  }, [showToast]);
+
+  const handleLabelDataChange = useCallback((field, value) => {
+    setLabelData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  }, []);
+
+  const handlePrint = useCallback(async () => {
+    if (!selectedProduct) {
+      showToast('Selecione um produto para imprimir a etiqueta.', 'error');
+      return;
+    }
+
+    if (!labelData.sku) {
+      showToast('O produto selecionado não possui SKU. Cadastre-o antes de imprimir.', 'error');
+      return;
+    }
+
+    setIsPrinting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      showToast(`Imprimindo ${quantity} etiqueta(s) para ${labelData.name}`, 'success');
+    } catch (error) {
+      showToast('Erro ao imprimir etiqueta. Tente novamente.', 'error');
+      console.error('Print error:', error);
+    } finally {
+      setIsPrinting(false);
+    }
+  }, [selectedProduct, labelData, quantity, showToast]);
+
+  const handleBatchPrint = useCallback(async (productIds) => {
+    if (!productIds || productIds.length === 0) {
+      showToast('Selecione pelo menos um produto para impressão em lote.', 'error');
+      return;
+    }
+
+    const selectedProducts = products.filter(p => productIds.includes(p.id));
+    const missingSku = selectedProducts.filter(p => !p.sku);
+    
+    if (missingSku.length > 0) {
+      showToast(`${missingSku.length} produto(s) não possuem SKU. Cadastre-os antes de imprimir.`, 'warning');
+      return;
+    }
+
+    setIsPrinting(true);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      showToast(`Imprimindo ${selectedProducts.length} etiquetas em lote.`, 'success');
+    } catch (error) {
+      showToast('Erro ao imprimir etiquetas em lote.', 'error');
+    } finally {
+      setIsPrinting(false);
+    }
+  }, [products, showToast]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedProduct(null);
+    setLabelData({
+      name: '',
+      sku: '',
+      barcode: '',
+      price: '',
+      brand: '',
+      customFields: {}
+    });
+    setSearchTerm('');
+  }, []);
+
+  return (
+    <div className={styles.labelsContainer}>
+      <div className={styles.labelsHeader}>
+        <h1>Etiquetas</h1>
+        <p className={styles.subtitle}>Gerencie e imprima etiquetas para seus produtos</p>
+      </div>
+
+      <div className={styles.labelsGrid}>
+        <div className={styles.leftPanel}>
+          <ProductSearch
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            products={filteredProducts}
+            selectedProduct={selectedProduct}
+            onProductSelect={handleProductSelect}
+            loading={productsLoading}
+          />
+
+          {selectedProduct && (
+            <LabelControls
+              product={selectedProduct}
+              labelData={labelData}
+              onLabelDataChange={handleLabelDataChange}
+              onClearSelection={handleClearSelection}
+            />
+          )}
+
+          <div className={styles.actionsPanel}>
+            <PrintOptions
+              quantity={quantity}
+              onQuantityChange={setQuantity}
+              onPrint={handlePrint}
+              isPrinting={isPrinting}
+              disabled={!selectedProduct || !labelData.sku}
+            />
+            
+            <LabelSettings
+              settings={labelSettings}
+              onSettingsChange={setLabelSettings}
+            />
+          </div>
+        </div>
+
+        <div className={styles.rightPanel}>
+          <LabelPreview
+            labelData={labelData}
+            settings={labelSettings}
+            selectedProduct={selectedProduct}
+          />
+          
+          {selectedProduct && (
+            <div className={styles.batchActions}>
+              <button
+                className={styles.batchPrintButton}
+                onClick={() => handleBatchPrint([selectedProduct.id])}
+                disabled={isPrinting || !labelData.sku}
+              >
+                <span className={styles.buttonIcon}>🖨️</span>
+                Imprimir em Lote
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.integrationInfo}>
+        <div className={styles.integrationBadge}>
+          <span className={styles.badgeIcon}>🔌</span>
+          <span>Integrações disponíveis: Impressora Térmica · Mercado Livre · Shopee · Bling</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LabelsPage;
+"@ | Out-File -FilePath "src\pages\LabelsPage.jsx" -Encoding UTF8

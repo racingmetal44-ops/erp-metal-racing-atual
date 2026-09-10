@@ -1,9 +1,9 @@
-import express from 'express';
+﻿import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createClient } from '@supabase/supabase-js';
 import { getEntradasAsync } from '../services/nfe/NfeEntradaService.js';
+import db from '../database/db.js';
 
 const router = express.Router();
 
@@ -13,137 +13,138 @@ const __dirname = path.dirname(__filename);
 const DATA_DIR = path.join(__dirname, '../../../data');
 const CONTAS_FILE = path.join(DATA_DIR, 'contas-pagar.json');
 const NFE_FILE = path.join(DATA_DIR, 'nfe-entradas.json');
-const SUPABASE_URL =
-    process.env.SUPABASE_URL ||
-    'https://ddohqrwkripaeocnyynu.supabase.co';
+function garantirBanco() {
+    try {
+        db.prepare(`
+            CREATE TABLE IF NOT EXISTS contas_pagar (
+                id INTEGER PRIMARY KEY,
+                nfe_entrada_id INTEGER,
+                fornecedor TEXT,
+                documento TEXT,
+                descricao TEXT,
+                vencimento TEXT,
+                valor REAL DEFAULT 0,
+                valor_pago REAL DEFAULT 0,
+                status TEXT DEFAULT 'PENDENTE',
+                categoria TEXT,
+                conta_financeira_id INTEGER,
+                created_at TEXT,
+                updated_at TEXT
+            )
+        `).run();
 
-const SUPABASE_SERVICE_KEY =
-    process.env.SUPABASE_SECRET_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    '';
+        const colunas = db.prepare(`
+            PRAGMA table_info(contas_pagar)
+        `).all();
 
-let _supabase = null;
+        const nomes = new Set(
+            colunas.map(coluna => coluna.name)
+        );
 
-function supabase() {
-    if (!_supabase) {
-        if (!SUPABASE_SERVICE_KEY) {
-            throw new Error(
-                'SUPABASE_SERVICE_ROLE_KEY não configurada.'
-            );
-        }
-
-        _supabase = createClient(
-            SUPABASE_URL,
-            SUPABASE_SERVICE_KEY,
-            {
-                auth: {
-                    persistSession: false
-                }
+        const adicionarColuna = (nome, tipo) => {
+            if (!nomes.has(nome)) {
+                db.prepare(
+                    `ALTER TABLE contas_pagar ADD COLUMN ${nome} ${tipo}`
+                ).run();
             }
+        };
+
+        adicionarColuna('fornecedor_nome', 'TEXT');
+        adicionarColuna('fornecedor_cnpj', 'TEXT');
+        adicionarColuna('nfe_id', 'TEXT');
+        adicionarColuna('nfe_numero', 'TEXT');
+        adicionarColuna('nfe_serie', 'TEXT');
+        adicionarColuna('nfe_chave', 'TEXT');
+        adicionarColuna('numero_titulo', 'TEXT');
+        adicionarColuna('numero_parcela', 'TEXT');
+        adicionarColuna('data_emissao', 'TEXT');
+        adicionarColuna('data_vencimento', 'TEXT');
+        adicionarColuna('data_pagamento', 'TEXT');
+        adicionarColuna('forma_pagamento', 'TEXT');
+        adicionarColuna('forma_pagamento_descricao', 'TEXT');
+        adicionarColuna('centro_custo', 'TEXT');
+        adicionarColuna('juros', 'REAL DEFAULT 0');
+        adicionarColuna('multa', 'REAL DEFAULT 0');
+        adicionarColuna('desconto', 'REAL DEFAULT 0');
+        adicionarColuna('observacao', 'TEXT');
+        adicionarColuna('baixas', 'TEXT');
+        adicionarColuna('origem', 'TEXT');
+    } catch (error) {
+        console.error(
+            '[FINANCEIRO] Erro ao preparar SQLite:',
+            error
         );
-    }
-
-    return _supabase;
-}
-
-function garantirArquivo() {
-    if (process.env.VERCEL) {
-        return;
-    }
-
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-
-    if (!fs.existsSync(CONTAS_FILE)) {
-        fs.writeFileSync(
-            CONTAS_FILE,
-            JSON.stringify([], null, 2),
-            'utf8'
-        );
+        throw error;
     }
 }
 
 function lerContas() {
-    garantirArquivo();
+    garantirBanco();
+
+    const rows = db.prepare(`
+        SELECT *
+        FROM contas_pagar
+        ORDER BY id ASC
+    `).all();
+
+    return rows.map(normalizarContaBanco);
+}
+
+function normalizarContaBanco(conta) {
+    let baixas = [];
 
     try {
-        const conteudo = fs.readFileSync(CONTAS_FILE, 'utf8');
-        return JSON.parse(conteudo || '[]');
+        if (Array.isArray(conta.baixas)) {
+            baixas = conta.baixas;
+        } else if (conta.baixas) {
+            baixas = JSON.parse(conta.baixas);
+        }
     } catch {
-        return [];
-    }
-}
-
-function salvarContas(contas) {
-    garantirArquivo();
-
-    fs.writeFileSync(
-        CONTAS_FILE,
-        JSON.stringify(contas, null, 2),
-        'utf8'
-    );
-}
-async function lerContasAsync() {
-    if (!process.env.VERCEL) {
-        return lerContas();
+        baixas = [];
     }
 
-    const { data, error } = await supabase()
-        .from('contas_pagar')
-        .select('*')
-        .order('id', {
-            ascending: true
-        });
-
-    if (error) {
-        throw new Error(
-            `Falha ao carregar contas a pagar do Supabase: ${error.message}`
-        );
-    }
-
-    return Array.isArray(data)
-        ? data
-        : [];
-}
-
-async function salvarContasAsync(contas) {
-    if (!Array.isArray(contas)) {
-        throw new Error(
-            'Lista de contas inválida para persistência.'
-        );
-    }
-
-    const contasNormalizadas = contas.map(conta => ({
+    return {
         ...conta,
 
-        id:
-            Number(conta.id),
+        id: Number(conta.id),
 
         fornecedor_nome:
-            conta.fornecedor_nome ?? '',
+            conta.fornecedor_nome ??
+            conta.fornecedor ??
+            '',
 
         fornecedor_cnpj:
-            conta.fornecedor_cnpj ?? '',
+            conta.fornecedor_cnpj ??
+            conta.documento ??
+            '',
 
         nfe_id:
-            conta.nfe_id ?? null,
+            conta.nfe_id ??
+            conta.nfe_entrada_id ??
+            null,
 
         nfe_numero:
-            conta.nfe_numero ?? '',
+            conta.nfe_numero ??
+            '',
 
         nfe_serie:
-            conta.nfe_serie ?? '',
+            conta.nfe_serie ??
+            '',
 
         nfe_chave:
-            conta.nfe_chave ?? '',
+            conta.nfe_chave ??
+            '',
 
         numero_titulo:
-            conta.numero_titulo ?? '',
+            conta.numero_titulo ??
+            '',
 
         numero_parcela:
             String(conta.numero_parcela ?? '1'),
 
         descricao:
-            conta.descricao ?? '',
+            conta.descricao ??
+            '',
 
         valor:
             Number(conta.valor ?? 0),
@@ -152,31 +153,41 @@ async function salvarContasAsync(contas) {
             Number(conta.valor_pago ?? 0),
 
         data_emissao:
-            conta.data_emissao ?? null,
+            conta.data_emissao ??
+            null,
 
         data_vencimento:
-            conta.data_vencimento ?? null,
+            conta.data_vencimento ??
+            conta.vencimento ??
+            null,
 
         data_pagamento:
-            conta.data_pagamento ?? null,
+            conta.data_pagamento ??
+            null,
 
         forma_pagamento:
-            conta.forma_pagamento ?? '',
+            conta.forma_pagamento ??
+            '',
 
         forma_pagamento_descricao:
-            conta.forma_pagamento_descricao ?? '',
+            conta.forma_pagamento_descricao ??
+            '',
 
         status:
-            conta.status ?? 'PENDENTE',
+            conta.status ??
+            'PENDENTE',
 
         conta_financeira:
-            conta.conta_financeira ?? '',
+            conta.conta_financeira ??
+            '',
 
         centro_custo:
-            conta.centro_custo ?? '',
+            conta.centro_custo ??
+            '',
 
         categoria:
-            conta.categoria ?? 'NF-e de entrada',
+            conta.categoria ??
+            'NF-e de entrada',
 
         juros:
             Number(conta.juros ?? 0),
@@ -188,57 +199,216 @@ async function salvarContasAsync(contas) {
             Number(conta.desconto ?? 0),
 
         observacao:
-            conta.observacao ?? '',
+            conta.observacao ??
+            '',
 
-        baixas:
-            Array.isArray(conta.baixas)
-                ? conta.baixas
-                : [],
+        baixas,
 
         origem:
-            conta.origem ?? 'NFE_ENTRADA',
+            conta.origem ??
+            'NFE_ENTRADA',
 
         created_at:
-            conta.created_at ?? new Date().toISOString(),
+            conta.created_at ??
+            new Date().toISOString(),
 
         updated_at:
+            conta.updated_at ??
             new Date().toISOString()
-    }));
+    };
+}
 
-    /*
-     * Mantém o JSON local durante o desenvolvimento.
-     */
-    if (!process.env.VERCEL) {
-        salvarContas(contasNormalizadas);
-    }
+function salvarContas(contas) {
+    garantirBanco();
 
-    /*
-     * Persiste também no Supabase para que o ambiente local
-     * teste exatamente o mesmo armazenamento de produção.
-     */
-    if (
-        process.env.SUPABASE_SECRET_KEY ||
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-    ) {
-        const { error } = await supabase()
-            .from('contas_pagar')
-            .upsert(
-                contasNormalizadas,
-                {
-                    onConflict: 'id'
-                }
-            );
+    const inserir = db.prepare(`
+        INSERT INTO contas_pagar (
+            id,
+            nfe_entrada_id,
+            fornecedor,
+            documento,
+            descricao,
+            vencimento,
+            valor,
+            valor_pago,
+            status,
+            categoria,
+            conta_financeira_id,
+            created_at,
+            updated_at,
+            fornecedor_nome,
+            fornecedor_cnpj,
+            nfe_id,
+            nfe_numero,
+            nfe_serie,
+            nfe_chave,
+            numero_titulo,
+            numero_parcela,
+            data_emissao,
+            data_vencimento,
+            data_pagamento,
+            forma_pagamento,
+            forma_pagamento_descricao,
+            centro_custo,
+            juros,
+            multa,
+            desconto,
+            observacao,
+            baixas,
+            origem
+        )
+        VALUES (
+            @id,
+            @nfe_entrada_id,
+            @fornecedor,
+            @documento,
+            @descricao,
+            @vencimento,
+            @valor,
+            @valor_pago,
+            @status,
+            @categoria,
+            @conta_financeira_id,
+            @created_at,
+            @updated_at,
+            @fornecedor_nome,
+            @fornecedor_cnpj,
+            @nfe_id,
+            @nfe_numero,
+            @nfe_serie,
+            @nfe_chave,
+            @numero_titulo,
+            @numero_parcela,
+            @data_emissao,
+            @data_vencimento,
+            @data_pagamento,
+            @forma_pagamento,
+            @forma_pagamento_descricao,
+            @centro_custo,
+            @juros,
+            @multa,
+            @desconto,
+            @observacao,
+            @baixas,
+            @origem
+        )
+    `);
 
-        if (error) {
-            throw new Error(
-                `Falha ao sincronizar contas a pagar no Supabase: ${error.message}`
-            );
+    const atualizar = db.prepare(`
+        UPDATE contas_pagar
+        SET
+            nfe_entrada_id = @nfe_entrada_id,
+            fornecedor = @fornecedor,
+            documento = @documento,
+            descricao = @descricao,
+            vencimento = @vencimento,
+            valor = @valor,
+            valor_pago = @valor_pago,
+            status = @status,
+            categoria = @categoria,
+            conta_financeira_id = @conta_financeira_id,
+            created_at = @created_at,
+            updated_at = @updated_at,
+            fornecedor_nome = @fornecedor_nome,
+            fornecedor_cnpj = @fornecedor_cnpj,
+            nfe_id = @nfe_id,
+            nfe_numero = @nfe_numero,
+            nfe_serie = @nfe_serie,
+            nfe_chave = @nfe_chave,
+            numero_titulo = @numero_titulo,
+            numero_parcela = @numero_parcela,
+            data_emissao = @data_emissao,
+            data_vencimento = @data_vencimento,
+            data_pagamento = @data_pagamento,
+            forma_pagamento = @forma_pagamento,
+            forma_pagamento_descricao = @forma_pagamento_descricao,
+            centro_custo = @centro_custo,
+            juros = @juros,
+            multa = @multa,
+            desconto = @desconto,
+            observacao = @observacao,
+            baixas = @baixas,
+            origem = @origem
+        WHERE id = @id
+    `);
+
+    const transacao = db.transaction((lista) => {
+        const ids = new Set(
+            lista.map(conta => Number(conta.id))
+        );
+
+        for (const conta of lista) {
+            const normalizada = normalizarContaBanco(conta);
+
+            const dados = {
+                ...normalizada,
+
+                nfe_entrada_id:
+                    normalizada.nfe_id
+                    ? Number(normalizada.nfe_id) || null
+                    : null,
+
+                fornecedor:
+                    normalizada.fornecedor_nome,
+
+                documento:
+                    normalizada.fornecedor_cnpj,
+
+                vencimento:
+                    normalizada.data_vencimento,
+
+                conta_financeira_id:
+                    Number(normalizada.conta_financeira) || null,
+
+                baixas:
+                    JSON.stringify(
+                        normalizada.baixas || []
+                    )
+            };
+
+            const existe = db.prepare(`
+                SELECT id
+                FROM contas_pagar
+                WHERE id = ?
+            `).get(normalizada.id);
+
+            if (existe) {
+                atualizar.run(dados);
+            } else {
+                inserir.run(dados);
+            }
         }
-    } else if (process.env.VERCEL) {
+
+        const existentes = db.prepare(`
+            SELECT id
+            FROM contas_pagar
+        `).all();
+
+        for (const registro of existentes) {
+            if (!ids.has(Number(registro.id))) {
+                db.prepare(`
+                    DELETE FROM contas_pagar
+                    WHERE id = ?
+                `).run(registro.id);
+            }
+        }
+    });
+
+    transacao(contas);
+}
+
+async function lerContasAsync() {
+    return lerContas();
+}
+
+async function salvarContasAsync(contas) {
+    if (!Array.isArray(contas)) {
         throw new Error(
-            'Credencial do Supabase não configurada no ambiente Vercel.'
+            'Lista de contas inválida para persistência.'
         );
     }
+
+    salvarContas(contas);
 }
 async function lerNfesAsync() {
     return await getEntradasAsync();
@@ -325,7 +495,7 @@ export async function sincronizarContasNfe({ persistir = true } = {}) {
                 fornecedor_nome:
                     nfe?.fornecedor?.razaoSocial ||
                     nfe?.fornecedor?.nomeFantasia ||
-                    'Fornecedor não informado',
+                    'Fornecedor nÃ£o informado',
 
                 fornecedor_cnpj:
                     nfe?.fornecedor?.cnpj ||
@@ -1058,6 +1228,8 @@ router.get('/relatorio', async (req, res) => {
 });
 
 export default router;
+
+
 
 
 

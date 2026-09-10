@@ -1,6 +1,5 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -13,13 +12,33 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    const { error } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
-    if (!error) {
-      setMessage('Conta criada. Verifique o e-mail e depois faça login.');
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nome: email.split('@')[0],
+          email,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Não foi possível criar a conta.');
+      }
+
+      setMessage('Conta criada com sucesso. Faça login para acessar o ERP.');
       navigate('/login');
-    } else {
-      setMessage(error.message);
+    } catch (error) {
+      console.error('[AUTH] Erro no cadastro:', error);
+      setMessage(error.message || 'Erro ao criar conta.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -45,3 +64,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

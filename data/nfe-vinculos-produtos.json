@@ -69,15 +69,15 @@
     "ean": "",
     "produtoId": "b15370d7-b6d6-4203-a779-273e76d7b1cd",
     "sku": "63475",
-    "atualizadoEm": "2026-09-05T13:35:35.106Z"
+    "atualizadoEm": "2026-09-10T14:55:27.098Z"
   },
   {
     "empresaId": "1",
     "codigoFornecedor": "52141",
-    "ean": "17898939720362",
+    "ean": "",
     "produtoId": "67adc52d-3a0e-4ce1-9675-b1bca91e1152",
     "sku": "52141",
-    "atualizadoEm": "2026-09-05T13:35:35.320Z"
+    "atualizadoEm": "2026-09-10T14:55:27.102Z"
   },
   {
     "empresaId": "1",
@@ -85,22 +85,30 @@
     "ean": "",
     "produtoId": "8bf3c325-bc4b-474d-9945-de233b02c1c3",
     "sku": "66383",
-    "atualizadoEm": "2026-09-05T13:35:35.554Z"
+    "atualizadoEm": "2026-09-10T14:55:27.104Z"
   },
   {
     "empresaId": "1",
     "codigoFornecedor": "2279",
-    "ean": "7891360491293",
+    "ean": "",
     "produtoId": "4bcafde2-94e9-4b8b-b04f-b4e74d81ecc6",
     "sku": "2279",
-    "atualizadoEm": "2026-09-05T13:35:35.776Z"
+    "atualizadoEm": "2026-09-10T14:55:27.107Z"
   },
   {
     "empresaId": "1",
     "codigoFornecedor": "52586",
-    "ean": "97896343088777",
+    "ean": "",
     "produtoId": "022fb7b0-0ab3-4d9c-adc6-9f7312290436",
     "sku": "52586",
-    "atualizadoEm": "2026-09-05T13:35:35.998Z"
+    "atualizadoEm": "2026-09-10T14:55:27.109Z"
+  },
+  {
+    "empresaId": "1",
+    "codigoFornecedor": "10067",
+    "ean": "",
+    "produtoId": "60da953f-a3a0-40ed-8798-c0457106da22",
+    "sku": "10067",
+    "atualizadoEm": "2026-09-09T18:03:33.208Z"
   }
 ]

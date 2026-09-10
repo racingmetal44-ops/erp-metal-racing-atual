@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '../../lib/supabase';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -116,22 +115,33 @@ export function NfeEntradaPanel({ empresaId }) {
 
     async function carregarProdutos() {
 
-        const { data, error } =
-            await supabase
-                .from('products')
-                .select('*')
-                .order('name', { ascending: true });
+        const response =
+            await fetch(apiUrl('/api/produtos'));
 
-        if (error) {
-            throw error;
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.error ||
+                'Erro ao carregar produtos do ERP.'
+            );
         }
 
-        console.log('=== PRODUTOS ERP CARREGADOS ===');
-console.log('Quantidade:', (data || []).length);
-console.log('Primeiro produto:', (data || [])[0]);
-console.log('Campos do primeiro produto:', Object.keys((data || [])[0] || {}));
+        const produtos =
+            Array.isArray(data.produtos)
+                ? data.produtos
+                : [];
 
-setProdutosERP(data || []);
+        console.log('=== PRODUTOS ERP CARREGADOS ===');
+        console.log('Quantidade:', produtos.length);
+        console.log('Primeiro produto:', produtos[0]);
+        console.log(
+            'Campos do primeiro produto:',
+            Object.keys(produtos[0] || {})
+        );
+
+        setProdutosERP(produtos);
     }
 
     // =========================================
@@ -1624,3 +1634,4 @@ setProdutosERP(data || []);
 
 
 export default NfeEntradaPanel;
+

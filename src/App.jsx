@@ -1,6 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+﻿import { Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { supabase } from './lib/supabase';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -37,16 +36,26 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    try {
+      const usuarioSalvo = localStorage.getItem('metal_racing_user');
+
+      if (usuarioSalvo) {
+        const usuario = JSON.parse(usuarioSalvo);
+
+        if (usuario?.id && Number(usuario?.ativo) === 1) {
+          setSession({
+            user: usuario
+          });
+        } else {
+          localStorage.removeItem('metal_racing_user');
+        }
+      }
+    } catch (error) {
+      console.error('[AUTH] Erro ao recuperar sessão local:', error);
+      localStorage.removeItem('metal_racing_user');
+    } finally {
       setLoading(false);
-    });
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => listener.subscription.unsubscribe();
+    }
   }, []);
 
   return (
@@ -94,3 +103,6 @@ function App() {
 }
 
 export default App;
+
+
+

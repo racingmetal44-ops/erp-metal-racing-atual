@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import {
   Image as ImageIcon,
   Trash2,
@@ -16,7 +16,6 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 function generateBarcode() {
   return `BC-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
@@ -66,31 +65,33 @@ export default function StockPage() {
     if (!nome && !sku) return { duplicado: false };
 
     try {
-      let query = supabase
-        .from('products')
-        .select('id, name, sku')
-        .or(`name.ilike.${nome},sku.ilike.${sku}`);
+      const params = new URLSearchParams();
 
-      // Se estiver editando, excluir o préprio produto
+      if (nome) params.set('nome', nome);
+      if (sku) params.set('sku', sku);
+
+      const response = await fetch(`/api/produtos?${params.toString()}`);
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const resultado = await response.json();
+      let data = Array.isArray(resultado?.data) ? resultado.data : [];
+
+      // Se estiver editando, excluir o próprio produto
       if (editingId) {
-        query = query.neq('id', editingId);
+        data = data.filter(p => String(p.id) !== String(editingId));
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Erro na validação:', error);
-        return { duplicado: false, erro: error.message };
-      }
-
-      if (data && data.length > 0) {
-        // Verificar quais campos coincidem
+      if (data.length > 0) {
         const encontrados = [];
+
         data.forEach(p => {
           const pNome = p.name?.toLowerCase();
           const pSku = p.sku?.toLowerCase();
-          const nomeLower = nome.toLowerCase();
-          const skuLower = sku.toLowerCase();
+          const nomeLower = nome?.toLowerCase();
+          const skuLower = sku?.toLowerCase();
 
           if (pNome === nomeLower && pSku === skuLower) {
             encontrados.push(`"${p.name}" (Nome e SKU exatamente iguais)`);
@@ -115,58 +116,6 @@ export default function StockPage() {
       return { duplicado: false, erro: error.message };
     }
   }
-
-  async function loadProducts() {
-    setLoading(true);
-    try {
-      const { data: productsData, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .order('id', { ascending: false });
-
-      if (productsError) {
-        setMessage(`Falha ao carregar produtos: ${productsError.message}`);
-        setProducts([]);
-        setLoading(false);
-        return;
-      }
-
-      const { data: filesData, error: filesError } = await supabase
-        .from('product_files')
-        .select('*')
-        .order('id', { ascending: false });
-
-      const filesByProduct = {};
-      if (filesData) {
-        filesData.forEach((file) => {
-          const productId = file.product_id;
-          if (!filesByProduct[productId]) {
-            filesByProduct[productId] = [];
-          }
-          filesByProduct[productId].push(file);
-        });
-      }
-
-      const mappedProducts = (productsData || []).map((product) => ({
-        ...product,
-        images: (filesByProduct[product.id] || []).sort((a, b) =>
-          (b.sort_order || 0) - (a.sort_order || 0)
-        ),
-      }));
-
-      if (filesError) {
-        setMessage(`Produtos carregados, mas falha ao recuperar imagens: ${filesError.message}`);
-      }
-
-      setProducts(mappedProducts);
-      calcularEstatisticas(mappedProducts);
-    } catch (error) {
-      setMessage(`Erro: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function calcularEstatisticas(lista) {
     const baixo = lista.filter(p => (p.current_stock ?? 0) < (p.min_stock ?? 0)).length;
     const alto = lista.filter(p => (p.current_stock ?? 0) > (p.max_stock ?? 99999)).length;
@@ -174,6 +123,38 @@ export default function StockPage() {
     setStats({ total: lista.length, baixo, alto, totalItens });
   }
 
+  async function loadProducts() {
+    try {
+      setLoading(true);
+
+      const response = await fetch('/api/produtos');
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const resultado = await response.json();
+
+      if (!resultado.success) {
+        throw new Error(resultado.error || 'Falha ao carregar produtos');
+      }
+
+      const lista = Array.isArray(resultado.data)
+        ? resultado.data
+        : [];
+
+      setProducts(lista);
+      calcularEstatisticas(lista);
+
+    } catch (error) {
+      console.error('[ESTOQUE] Erro ao carregar produtos:', error);
+      setMessage(error.message || 'Falha ao carregar produtos.');
+      setProducts([]);
+      calcularEstatisticas([]);
+    } finally {
+      setLoading(false);
+    }
+  }
   useEffect(() => {
     loadProducts();
   }, []);
@@ -232,71 +213,57 @@ export default function StockPage() {
 
   async function uploadProductFiles(productId) {
     if (!pendingFiles.length) return;
-    const bucketName = 'product-files';
 
     for (const [index, fileEntry] of pendingFiles.entries()) {
-      const storagePath = `${productId}/${Date.now()}-${fileEntry.file.name.replace(/\s+/g, '-')}`;
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(storagePath, fileEntry.file, {
-          upsert: true,
-          contentType: fileEntry.file.type,
-        });
+      const arquivo = fileEntry.file;
 
-      if (uploadError) {
-        throw new Error(`Falha ao enviar imagem: ${uploadError.message}`);
+      const formData = new FormData();
+      formData.append('file', arquivo);
+
+      const response = await fetch(`/api/produtos/${productId}/arquivos`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      let resultado = null;
+
+      try {
+        resultado = await response.json();
+      } catch {
+        resultado = null;
       }
 
-      const { data: publicData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
-
-      const fileData = {
-        product_id: productId,
-        product_name: form.name,
-        product_barcode: form.barcode || '',
-        file_url: publicData?.publicUrl ?? '',
-        file_name: fileEntry.file.name,
-        file_type: fileEntry.file.type,
-        file_size: fileEntry.file.size,
-        file_category: 'foto',
-        photo_angle: 'front',
-        sort_order: index + 1,
-        is_ai_training: false,
-        added_by_name: 'sistema',
-        created_date: new Date().toISOString(),
-        updated_date: new Date().toISOString(),
-      };
-
-      const { error: dbError } = await supabase.from('product_files').insert(fileData);
-      if (dbError) {
-        throw new Error(`Falha ao salvar metadados: ${dbError.message}`);
+      if (!response.ok || !resultado?.success) {
+        throw new Error(
+          resultado?.error ||
+          `Falha ao enviar imagem ${index + 1}. HTTP ${response.status}`
+        );
       }
     }
   }
-
   // =============================================
   // HANDLE SUBMIT COM VALIDAééO
+  // =============================================
+  // =============================================
+  // HANDLE SUBMIT COM VALIDACAO - SQLITE
   // =============================================
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage('');
     setUploading(true);
 
-    // VALIDAééO BéSICA
     if (!form.name?.trim()) {
-      setMessage('? Nome do produto é obrigatório!');
+      setMessage('Nome do produto é obrigatório!');
       setUploading(false);
       return;
     }
 
     if (!form.sku?.trim()) {
-      setMessage('? SKU é obrigatório!');
+      setMessage('SKU é obrigatório!');
       setUploading(false);
       return;
     }
 
-    // =============================================
-    // VERIFICAR DUPLICIDADE
-    // =============================================
     const validacao = await verificarDuplicado();
 
     if (validacao.duplicado) {
@@ -311,8 +278,8 @@ export default function StockPage() {
       return;
     }
 
-    // CONTINUAR COM O CADASTRO
     const barcodeValue = form.barcode?.trim() || generateBarcode();
+
     const payload = {
       name: form.name.trim(),
       sku: form.sku.trim(),
@@ -326,39 +293,59 @@ export default function StockPage() {
     };
 
     try {
+      let response;
+
       if (editingId) {
-        const { error } = await supabase
-          .from('products')
-          .update(payload)
-          .eq('id', editingId);
-
-        if (error) throw error;
-        if (pendingFiles.length) await uploadProductFiles(editingId);
-        setMessage('? Produto atualizado com sucesso.');
+        response = await fetch(`/api/produtos/${editingId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
       } else {
-        const { data: insertedProduct, error } = await supabase
-          .from('products')
-          .insert(payload)
-          .select()
-          .single();
-
-        if (error) throw error;
-        if (pendingFiles.length && insertedProduct) {
-          await uploadProductFiles(insertedProduct.id);
-        }
-        setMessage('? Produto criado com sucesso.');
+        response = await fetch('/api/produtos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
       }
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.success) {
+        throw new Error(
+          resultado.error ||
+          `Falha ao salvar produto (HTTP ${response.status})`
+        );
+      }
+
+      const produtoSalvo = resultado.data;
+
+      // As imagens serão migradas para o armazenamento local
+      // em uma etapa separada, sem alterar o layout da página.
+
+      setMessage(
+        editingId
+          ? 'Produto atualizado com sucesso.'
+          : 'Produto criado com sucesso.'
+      );
 
       resetForm();
       setSearch('');
       await loadProducts();
+
     } catch (error) {
-      setMessage(`? ${error.message || 'Falha ao salvar o produto.'}`);
+      console.error('[ESTOQUE] Erro ao salvar produto:', error);
+      setMessage(
+        error.message || 'Falha ao salvar o produto.'
+      );
     } finally {
       setUploading(false);
     }
   }
-
   function handleEdit(product) {
     setEditingId(product.id);
     setForm({
@@ -380,16 +367,28 @@ export default function StockPage() {
     if (!confirm('Tem certeza que deseja excluir este produto?')) return;
 
     try {
-      await supabase.from('product_files').delete().eq('product_id', id);
-      const { error } = await supabase.from('products').delete().eq('id', id);
-      if (error) throw error;
-      setMessage('??? Produto removido com sucesso.');
+      const response = await fetch(`/api/produtos/${id}`, {
+        method: 'DELETE'
+      });
+
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.success) {
+        throw new Error(
+          resultado.error || `Erro HTTP ${response.status}`
+        );
+      }
+
+      setMessage('Produto removido com sucesso.');
       await loadProducts();
+
     } catch (error) {
-      setMessage(`? ${error.message || 'Falha ao remover o produto.'}`);
+      console.error('[ESTOQUE] Erro ao excluir produto:', error);
+      setMessage(
+        error.message || 'Falha ao remover o produto.'
+      );
     }
   }
-
   function handleFilesChange(event) {
     const files = Array.from(event.target.files || []);
     const imageFiles = files.filter((file) => file.type.startsWith('image/'));
@@ -447,19 +446,22 @@ export default function StockPage() {
 
   async function buscarProdutoParaBipe(codigo) {
     if (!codigo || codigo.trim() === '') return;
+
     setBipeLoading(true);
     setBipeStatus('');
 
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .or(`barcode.eq.${codigo},sku.eq.${codigo}`)
-        .single();
+      const codigoLimpo = codigo.trim();
+
+      const response = await fetch(
+        `/api/produtos/buscar/${encodeURIComponent(codigoLimpo)}`
+      );
+
+      const resultado = await response.json();
 
       setBipeLoading(false);
 
-      if (error || !data) {
+      if (!response.ok || !resultado.success || !resultado.data) {
         setBipeProduct(null);
         setBipeStatus('nao-encontrado');
         setMessage('Produto não encontrado!');
@@ -467,25 +469,23 @@ export default function StockPage() {
         return;
       }
 
-      const { data: files } = await supabase
-        .from('product_files')
-        .select('*')
-        .eq('product_id', data.id)
-        .order('is_primary', { ascending: false });
+      const data = resultado.data;
 
       setBipeProduct({
         ...data,
-        images: files ?? []
+        images: Array.isArray(data.files) ? data.files : []
       });
+
       setBipeStatus('encontrado');
       setMessage('');
+
     } catch (error) {
+      console.error('[ESTOQUE] Erro na busca por bipagem:', error);
       setBipeLoading(false);
       setBipeStatus('nao-encontrado');
-      setMessage(`? Erro: ${error.message}`);
+      setMessage(`Erro: ${error.message}`);
     }
   }
-
   async function confirmarBipe(operacao = 'adicionar') {
     if (!bipeProduct) return;
 
@@ -494,50 +494,55 @@ export default function StockPage() {
       : Math.max(0, (bipeProduct.current_stock ?? 0) - 1);
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ current_stock: novaQuantidade })
-        .eq('id', bipeProduct.id);
+      const response = await fetch(`/api/produtos/${bipeProduct.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          current_stock: novaQuantidade,
+          estoque_atual: novaQuantidade,
+        }),
+      });
 
-      if (error) throw error;
+      const resultado = await response.json();
+
+      if (!response.ok || !resultado.success) {
+        throw new Error(
+          resultado.error || `Erro HTTP ${response.status}`
+        );
+      }
 
       if (operacao === 'adicionar') {
         setBipeStatus('entrada');
-        setMessage(`?? ENTRADA: ${bipeProduct.name} +1 (Total: ${novaQuantidade})`);
+        setMessage(
+          `ENTRADA: ${bipeProduct.name} +1 (Total: ${novaQuantidade})`
+        );
       } else {
         setBipeStatus('saida');
-        setMessage(`?? SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`);
+        setMessage(
+          `SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
+        );
       }
+
+      await loadProducts();
 
       setTimeout(() => {
         setBipeProduct(null);
         setBipeCode('');
         setBipeStatus('');
+
         if (bipeInputRef.current) {
           bipeInputRef.current.focus();
         }
       }, 1500);
-      
-      await loadProducts();
+
     } catch (error) {
-      setMessage(`? Erro ao atualizar: ${error.message}`);
+      console.error('[ESTOQUE] Erro na bipagem:', error);
+      setBipeStatus('nao-encontrado');
+      setMessage(`Erro: ${error.message}`);
     }
   }
-
-  function getStockStatus(product) {
-    const current = product.current_stock ?? 0;
-    const min = product.min_stock ?? 0;
-    const max = product.max_stock ?? 99999;
-
-    if (current < min) {
-      return { label: 'Baixo', color: 'text-rose-400', bg: 'bg-rose-500/15', icon: AlertTriangle };
-    }
-    if (current > max) {
-      return { label: 'Alto', color: 'text-amber-400', bg: 'bg-amber-500/15', icon: TrendingUp };
-    }
-    return { label: 'OK', color: 'text-emerald-400', bg: 'bg-emerald-500/15', icon: CheckCircle };
-  }
-
   function getBipeBgColor() {
     switch (bipeStatus) {
       case 'entrada':
@@ -571,7 +576,7 @@ export default function StockPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Módulo</p>
         <h1 className="mt-2 text-3xl font-semibold">?? Estoque</h1>
-        <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com integração real ao Supabase.</p>
+        <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com armazenamento local.</p>
       </div>
 
       {/* ESTATÍSTICAS */}
@@ -748,7 +753,31 @@ export default function StockPage() {
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">?? Editar</button>
                       <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10">Excluir</button>
-                      <button onClick={async () => { const novaQtd = (product.current_stock ?? 0) + 1; await supabase.from('products').update({ current_stock: novaQtd }).eq('id', product.id); loadProducts(); }} className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"><Plus size={14} className="inline mr-1" />+1</button>
+                        <button onClick={async () => {
+                          const novaQtd = (product.current_stock ?? 0) + 1;
+                          try {
+                            const response = await fetch(`/api/produtos/${product.id}`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                current_stock: novaQtd,
+                                estoque_atual: novaQtd
+                              })
+                            });
+
+                            const resultado = await response.json();
+
+                            if (!response.ok || !resultado.success) {
+                              throw new Error(resultado.error || `Erro HTTP ${response.status}`);
+                            }
+
+                            await loadProducts();
+                            setMessage('Estoque atualizado com sucesso.');
+                          } catch (error) {
+                            console.error('[ESTOQUE] Erro ao adicionar estoque:', error);
+                            setMessage(error.message || 'Falha ao atualizar estoque.');
+                          }
+                        }} className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"><Plus size={14} className="inline mr-1" />+1</button>
                     </div>
                   </div>
                 </div>
@@ -869,3 +898,13 @@ export default function StockPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

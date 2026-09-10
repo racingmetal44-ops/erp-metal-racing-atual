@@ -13,10 +13,13 @@ import { fileURLToPath } from 'url';
 
 // Rotas
 import nfeEntradaRoutes from './src/backend/routes/nfeEntradaRoutes.js';
+import produtosRoutes from './src/backend/routes/produtosRoutes.js';
+import authRoutes from './src/backend/routes/authRoutes.js';
 import financeiroRoutes from './src/backend/routes/financeiroRoutes.js';
 import certificateRoutes from './src/backend/routes/certificateRoutes.js';
 import assinaturaRoutes from './src/backend/routes/assinatura.js';
 import nfeRoutes from './src/backend/routes/nfeRoutes.js';
+import pcpRoutes from './src/backend/routes/pcpRoutes.js';
 import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js';
 
 
@@ -62,6 +65,20 @@ app.use((req, res, next) => {
 });
 
 
+
+// ============================================
+// STORAGE LOCAL DE ARQUIVOS
+// ============================================
+
+const STORAGE_DIR = path.join(__dirname, 'storage');
+
+if (!fs.existsSync(STORAGE_DIR)) {
+    fs.mkdirSync(STORAGE_DIR, {
+        recursive: true
+    });
+}
+
+app.use('/storage', express.static(STORAGE_DIR));
 // ============================================
 // ARMAZENAMENTO LOCAL
 // ============================================
@@ -580,6 +597,9 @@ app.delete('/api/empresas/:id', (req, res) => {
 
 app.use('/api/nfe', nfeRoutes);
 
+// PCP - Produção
+app.use('/api/pcp', pcpRoutes);
+
 
 // ============================================
 // NF-e - ENTRADAS DE MERCADORIAS
@@ -618,6 +638,21 @@ app.use(
     assinaturaRoutes
 );
 
+
+
+// ============================================
+// PRODUTOS / ESTOQUE
+// ============================================
+
+app.use(
+    '/api/produtos',
+    produtosRoutes
+);
+
+app.use(
+    '/api/auth',
+    authRoutes
+);
 
 // ============================================
 // TRATAMENTO DE ROTA N?O ENCONTRADA
@@ -730,6 +765,12 @@ app.listen(
     }
 );
 }
+
+
+
+
+
+
 
 
 

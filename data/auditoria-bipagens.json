@@ -128,5 +128,31 @@
     "created_at": "2026-09-05T13:35:38.067Z",
     "origem": "NF-e",
     "motivo_fallback": "new row violates row-level security policy for table \"bipagem_history\""
+  },
+  {
+    "tipo": "entrada_nf",
+    "product_id": "b15370d7-b6d6-4203-a779-273e76d7b1cd",
+    "product_name": "COPO PLASTICO PP 180ML C/100 TRANSPARENT",
+    "product_sku": "63475",
+    "quantidade": 1,
+    "quantidade_anterior": 12,
+    "quantidade_nova": 13,
+    "usuario_nome": "Teste Autom�tico",
+    "created_at": "2026-09-09T16:50:36.113Z",
+    "origem": "NF-e",
+    "motivo_fallback": "TypeError: fetch failed"
+  },
+  {
+    "tipo": "entrada_nf",
+    "product_id": "60da953f-a3a0-40ed-8798-c0457106da22",
+    "product_name": "JATEADO OPACO PRETO C/ 1,40MT IX",
+    "product_sku": "10067",
+    "quantidade": 50,
+    "quantidade_anterior": 0,
+    "quantidade_nova": 50,
+    "usuario_nome": "Teste XML",
+    "created_at": "2026-09-09T18:03:33.586Z",
+    "origem": "NF-e",
+    "motivo_fallback": "invalid input syntax for type uuid: \"teste-xml\""
   }
 ]

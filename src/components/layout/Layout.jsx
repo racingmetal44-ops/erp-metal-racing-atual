@@ -1,6 +1,5 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+﻿import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ScanBarcode, Factory, ShoppingCart, FileText, Landmark, TrendingUp, Bell, Users, Tag, Truck, Tv, Settings, Bot, Table2, Map, Building2, RotateCcw, Lightbulb, ShieldCheck, Upload, LogOut, ClipboardList, Calculator } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -32,8 +31,8 @@ const navItems = [
 export default function Layout({ session }) {
   const navigate = useNavigate();
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
+  function handleLogout() {
+    localStorage.removeItem('metal_racing_user');
     navigate('/login');
   }
 
@@ -85,3 +84,4 @@ export default function Layout({ session }) {
     </div>
   );
 }
+
