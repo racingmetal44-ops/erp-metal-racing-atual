@@ -38,8 +38,7 @@ const db = new Database(databasePath);
 
 if (!isVercel) {
     db.pragma('journal_mode = WAL');
+    db.pragma('foreign_keys = ON');
 }
-
-db.pragma('foreign_keys = ON');
 
 export default db;
