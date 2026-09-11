@@ -56,7 +56,7 @@ export default function StockPage() {
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
   // =============================================
-  // VALIDAééO DE DUPLICIDADE (FUNCIONANDO)
+  // VALIDAÃ©Ã©O DE DUPLICIDADE (FUNCIONANDO)
   // =============================================
   async function verificarDuplicado() {
     const nome = form.name?.trim();
@@ -79,7 +79,7 @@ export default function StockPage() {
       const resultado = await response.json();
       let data = Array.isArray(resultado?.data) ? resultado.data : [];
 
-      // Se estiver editando, excluir o próprio produto
+      // Se estiver editando, excluir o prÃ³prio produto
       if (editingId) {
         data = data.filter(p => String(p.id) !== String(editingId));
       }
@@ -105,16 +105,40 @@ export default function StockPage() {
         if (encontrados.length > 0) {
           return {
             duplicado: true,
-            mensagem: `Já existe: ${encontrados.join(', ')}`
+            mensagem: `JÃ¡ existe: ${encontrados.join(', ')}`
           };
         }
       }
 
       return { duplicado: false };
     } catch (error) {
-      console.error('Erro na validação:', error);
+      console.error('Erro na validaÃ§Ã£o:', error);
       return { duplicado: false, erro: error.message };
     }
+  }
+  function getStockStatus(product) {
+    const atual = Number(product.current_stock ?? 0);
+    const minimo = Number(product.min_stock ?? 0);
+    const maximo = Number(product.max_stock ?? 99999);
+
+    if (atual < minimo) {
+      return {
+        label: 'Baixo',
+        icon: () => null,
+      };
+    }
+
+    if (atual > maximo) {
+      return {
+        label: 'Alto',
+        icon: () => null,
+      };
+    }
+
+    return {
+      label: 'Normal',
+      icon: () => null,
+    };
   }
   function calcularEstatisticas(lista) {
     const baixo = lista.filter(p => (p.current_stock ?? 0) < (p.min_stock ?? 0)).length;
@@ -242,7 +266,7 @@ export default function StockPage() {
     }
   }
   // =============================================
-  // HANDLE SUBMIT COM VALIDAééO
+  // HANDLE SUBMIT COM VALIDAÃ©Ã©O
   // =============================================
   // =============================================
   // HANDLE SUBMIT COM VALIDACAO - SQLITE
@@ -253,13 +277,13 @@ export default function StockPage() {
     setUploading(true);
 
     if (!form.name?.trim()) {
-      setMessage('Nome do produto é obrigatório!');
+      setMessage('Nome do produto Ã© obrigatÃ³rio!');
       setUploading(false);
       return;
     }
 
     if (!form.sku?.trim()) {
-      setMessage('SKU é obrigatório!');
+      setMessage('SKU Ã© obrigatÃ³rio!');
       setUploading(false);
       return;
     }
@@ -273,7 +297,7 @@ export default function StockPage() {
     }
 
     if (validacao.erro) {
-      setMessage(`Erro na validação: ${validacao.erro}`);
+      setMessage(`Erro na validaÃ§Ã£o: ${validacao.erro}`);
       setUploading(false);
       return;
     }
@@ -324,8 +348,8 @@ export default function StockPage() {
 
       const produtoSalvo = resultado.data;
 
-      // As imagens serão migradas para o armazenamento local
-      // em uma etapa separada, sem alterar o layout da página.
+      // As imagens serÃ£o migradas para o armazenamento local
+      // em uma etapa separada, sem alterar o layout da pÃ¡gina.
 
       setMessage(
         editingId
@@ -464,7 +488,7 @@ export default function StockPage() {
       if (!response.ok || !resultado.success || !resultado.data) {
         setBipeProduct(null);
         setBipeStatus('nao-encontrado');
-        setMessage('Produto não encontrado!');
+        setMessage('Produto nÃ£o encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
       }
@@ -521,7 +545,7 @@ export default function StockPage() {
       } else {
         setBipeStatus('saida');
         setMessage(
-          `SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
+          `SAÃDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
         );
       }
 
@@ -574,23 +598,23 @@ export default function StockPage() {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">Módulo</p>
+        <p className="text-sm text-orange-400">MÃ³dulo</p>
         <h1 className="mt-2 text-3xl font-semibold">?? Estoque</h1>
-        <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com armazenamento local.</p>
+        <p className="mt-2 text-sm text-slate-400">Cadastro, ediÃ§Ã£o e controle de estoque com armazenamento local.</p>
       </div>
 
-      {/* ESTATÍSTICAS */}
+      {/* ESTATÃSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="flex items-center gap-2 text-slate-400"><Package size={18} /><span className="text-sm">Total</span></div>
           <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do Ménimo</span></div>
+          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do MÃ©nimo</span></div>
           <p className="mt-1 text-2xl font-bold text-rose-400">{stats.baixo}</p>
         </div>
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do Méximo</span></div>
+          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do MÃ©ximo</span></div>
           <p className="mt-1 text-2xl font-bold text-amber-400">{stats.alto}</p>
         </div>
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
@@ -599,17 +623,17 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* FORMULéRIO */}
+      {/* FORMULÃ©RIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{editingId ? '?? Editar produto' : '?? Novo produto'}</h2>
-          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar edição</button>}
+          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar ediÃ§Ã£o</button>}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peça *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peÃ§a *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="SKU *" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Código de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="CÃ³digo de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
 
           <div className="md:col-span-2 xl:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border border-slate-700 bg-slate-950/50">
@@ -619,11 +643,11 @@ export default function StockPage() {
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="0" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque ménimo</label>
+                <label className="text-xs text-slate-400">Estoque mÃ©nimo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="5" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque méximo</label>
+                <label className="text-xs text-slate-400">Estoque mÃ©ximo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="20" value={form.max_stock} onChange={(e) => setForm({ ...form, max_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
             </div>
@@ -667,7 +691,7 @@ export default function StockPage() {
 
           <div className="flex gap-2 md:col-span-2 xl:col-span-1">
             <button type="submit" disabled={uploading} className="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:cursor-not-allowed disabled:opacity-60">
-              {editingId ? (uploading ? 'Salvando...' : '💾 Salvar') : (uploading ? 'Cadastrando...' : '➕ Cadastrar')}
+              {editingId ? (uploading ? 'Salvando...' : 'ðŸ’¾ Salvar') : (uploading ? 'Cadastrando...' : 'âž• Cadastrar')}
             </button>
             {editingId && <button type="button" onClick={resetForm} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300 hover:bg-slate-800 transition">Cancelar</button>}
           </div>
@@ -699,8 +723,8 @@ export default function StockPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((product) => {
-              const images = product.images ?? [];
-              const firstImage = images[0]?.file_url;
+              const images = Array.isArray(product.files) ? product.files : [];
+              const firstImage = images.find((img) => Number(img?.is_primary) === 1)?.file_url || images[0]?.file_url;
               const imageCount = images.length;
               const stockStatus = getStockStatus(product);
               const StatusIcon = stockStatus.icon;
@@ -728,7 +752,7 @@ export default function StockPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-semibold text-slate-100">{product.name || 'Produto sem nome'}</h3>
-                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU não informado'}</p>
+                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU nÃ£o informado'}</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === 'ativo' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-400'}`}>{product.status}</span>
                     </div>
@@ -739,11 +763,11 @@ export default function StockPage() {
                         <p className={`font-bold ${(product.current_stock ?? 0) < (product.min_stock ?? 0) ? 'text-rose-400' : (product.current_stock ?? 0) > (product.max_stock ?? 99999) ? 'text-amber-400' : 'text-emerald-400'}`}>{product.current_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Ménimo</p>
+                        <p className="text-xs text-slate-500">MÃ©nimo</p>
                         <p className="font-bold text-slate-200">{product.min_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Méximo</p>
+                        <p className="text-xs text-slate-500">MÃ©ximo</p>
                         <p className="font-bold text-slate-200">{product.max_stock ?? 0}</p>
                       </div>
                     </div>
@@ -798,15 +822,15 @@ export default function StockPage() {
                 <QrCode size={32} />
               </div>
               <h2 className="text-xl font-bold text-white">Bipar produto</h2>
-              <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
-              <p className="text-xs text-emerald-400 mt-1">Leitura automática - não precisa de Enter</p>
+              <p className="text-sm text-slate-400">Leia o cÃ³digo de barras ou digite o SKU</p>
+              <p className="text-xs text-emerald-400 mt-1">Leitura automÃ¡tica - nÃ£o precisa de Enter</p>
             </div>
 
             <input
               ref={bipeInputRef}
               type="text"
               className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' : bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' : bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' : 'border-orange-500/50 bg-slate-950 focus:border-orange-500'}`}
-              placeholder="Digite ou leia o código..."
+              placeholder="Digite ou leia o cÃ³digo..."
               value={bipeCode}
               onChange={handleBipeCodeChange}
               autoFocus
@@ -855,12 +879,12 @@ export default function StockPage() {
             {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
               <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
                 <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
-                <span className="text-blue-400 font-bold">Produto não encontrado!</span>
-                <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
+                <span className="text-blue-400 font-bold">Produto nÃ£o encontrado!</span>
+                <p className="text-blue-300/70 text-sm mt-1">Verifique o cÃ³digo digitado</p>
               </div>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">A busca é feita automaticamente após digitar o código</p>
+            <p className="mt-4 text-center text-xs text-slate-500">A busca Ã© feita automaticamente apÃ³s digitar o cÃ³digo</p>
           </div>
         </div>
       )}
@@ -898,6 +922,8 @@ export default function StockPage() {
     </div>
   );
 }
+
+
 
 
 

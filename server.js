@@ -20,6 +20,7 @@ import certificateRoutes from './src/backend/routes/certificateRoutes.js';
 import assinaturaRoutes from './src/backend/routes/assinatura.js';
 import nfeRoutes from './src/backend/routes/nfeRoutes.js';
 import pcpRoutes from './src/backend/routes/pcpRoutes.js';
+import devolucoesRoutes from './src/backend/routes/devolucoesRoutes.js';
 import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js';
 
 
@@ -652,6 +653,11 @@ app.use(
 );
 
 app.use(
+    '/api/devolucoes',
+    devolucoesRoutes
+);
+
+app.use(
     '/api/auth',
     authRoutes
 );
@@ -767,6 +773,8 @@ app.listen(
     }
 );
 }
+
+
 
 
 

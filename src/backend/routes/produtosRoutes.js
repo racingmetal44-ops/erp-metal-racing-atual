@@ -172,14 +172,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
         }
 
         const agora = new Date().toISOString();
-
-        const projetoRoot = path.resolve(__dirname, '../../..');
-
-        const arquivoRelativo = path
-            .relative(projetoRoot, req.file.path)
-            .replace(/\\/g, '/');
-
-        const fileUrl = `/${arquivoRelativo}`;
+        const fileUrl = `/storage/product-files/${produto.id}/${path.basename(req.file.path)}`;
 
         const id = crypto.randomUUID();
 
@@ -692,4 +685,7 @@ router.get('/buscar/:codigo', (req, res) => {
 });
 
 export default router;
+
+
+
 
