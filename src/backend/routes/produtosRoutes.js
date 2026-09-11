@@ -9,7 +9,9 @@ import db from '../database/db.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PRODUCT_FILES_DIR = path.join(__dirname, '../../../storage/product-files');
+const PRODUCT_FILES_DIR = process.env.VERCEL
+    ? path.join('/tmp', 'storage', 'product-files')
+    : path.join(__dirname, '../../../storage/product-files');
 
 fs.mkdirSync(PRODUCT_FILES_DIR, { recursive: true });
 
@@ -690,5 +692,4 @@ router.get('/buscar/:codigo', (req, res) => {
 });
 
 export default router;
-
 
