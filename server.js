@@ -70,7 +70,9 @@ app.use((req, res, next) => {
 // STORAGE LOCAL DE ARQUIVOS
 // ============================================
 
-const STORAGE_DIR = path.join(__dirname, 'storage');
+const STORAGE_DIR = process.env.VERCEL
+    ? path.join('/tmp', 'storage')
+    : path.join(__dirname, 'storage');
 
 if (!fs.existsSync(STORAGE_DIR)) {
     fs.mkdirSync(STORAGE_DIR, {
@@ -765,6 +767,8 @@ app.listen(
     }
 );
 }
+
+
 
 
 
