@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+﻿import { useState, useEffect, useRef } from 'react';
 import JsBarcode from 'jsbarcode';
 
 export default function LabelsPage() {
@@ -26,47 +25,172 @@ export default function LabelsPage() {
 
   async function loadLabels() {
     setLoading(true);
-    const [{ data: savedLabels, error: labelsError }, { data: stockProducts, error: productsError }] = await Promise.all([
-      supabase.from('product_labels').select('*').order('id', { ascending: false }),
-      supabase.from('products').select('id, name, sku, barcode').order('name', { ascending: true })
-    ]);
 
-    if (!labelsError && !productsError) {
-      const existing = savedLabels || [];
-      const covered = new Set(existing.flatMap((label) => [label.barcode, label.sku].filter(Boolean).map(String)));
-      const automaticLabels = (stockProducts || [])
-        .filter((product) => !covered.has(String(product.barcode || '')) && !covered.has(String(product.sku || '')))
-        .map((product) => ({
-          id: `stock-${product.id}`,
-          stockProductId: product.id,
-          automatic: true,
-          product_code: product.sku || product.barcode || String(product.id),
-          product_name: product.name || 'Produto sem nome',
-          sku: product.sku || '',
-          batch: '',
-          barcode: product.barcode || product.sku || String(product.id),
-          image_url: '',
-          status: 'ativo'
-        }));
-      setLabels([...existing, ...automaticLabels]);
-      setProducts(stockProducts || []);
+    try {
+      const [labelsResponse, productsResponse] = await Promise.all([
+        fetch('/api/etiquetas'),
+        fetch('/api/produtos')
+      ]);
+
+      if (!labelsResponse.ok) {
+        throw new Error(`Erro ao carregar etiquetas: HTTP ${labelsResponse.status}`);
+      }
+
+      if (!productsResponse.ok) {
+        throw new Error(`Erro ao carregar produtos: HTTP ${productsResponse.status}`);
+      }
+
+      const labelsResult = await labelsResponse.json();
+      const productsResult = await productsResponse.json();
+
+      if (!labelsResult.success) {
+        throw new Error(
+          labelsResult.message ||
+          labelsResult.error ||
+          'Erro ao carregar etiquetas'
+        );
+      }
+
+      if (!productsResult.success) {
+        throw new Error(
+          productsResult.message ||
+          productsResult.error ||
+          'Erro ao carregar produtos'
+        );
+      }
+
+      const savedLabels =
+        labelsResult.data ||
+        labelsResult.etiquetas ||
+        [];
+
+      const stockProducts =
+        productsResult.data || [];
+
+      const existing = savedLabels.map((label) => ({
+        ...label,
+
+        product_code:
+          label.product_code ||
+          label.codigo ||
+          label.produto_codigo ||
+          '',
+
+        product_name:
+          label.product_name ||
+          label.descricao ||
+          label.produto_nome ||
+          '',
+
+        sku:
+          label.sku ||
+          label.produto_sku ||
+          '',
+
+        barcode:
+          label.barcode ||
+          label.codigo ||
+          label.produto_codigo ||
+          label.sku ||
+          '',
+
+        batch: label.batch || '',
+        image_url: label.image_url || '',
+        status: label.status || 'ativo',
+        automatic: false
+      }));
+
+      const covered = new Set(
+        existing
+          .flatMap((label) => [
+            label.barcode,
+            label.sku,
+            label.product_code
+          ])
+          .filter(Boolean)
+          .map(String)
+      );
+
+      const automaticLabels = stockProducts
+        .filter((product) => {
+          const barcode = String(
+            product.codigo_barras ||
+            product.ean ||
+            product.gtin ||
+            product.codigo ||
+            product.sku ||
+            product.id ||
+            ''
+          );
+
+          const sku = String(product.sku || '');
+
+          return (
+            barcode &&
+            !covered.has(barcode) &&
+            !covered.has(sku)
+          );
+        })
+        .map((product) => {
+          const barcode =
+            product.codigo_barras ||
+            product.ean ||
+            product.gtin ||
+            product.codigo ||
+            product.sku ||
+            String(product.id);
+
+          return {
+            id: `stock-${product.id}`,
+            stockProductId: product.id,
+            automatic: true,
+
+            product_code:
+              product.codigo ||
+              product.sku ||
+              String(product.id),
+
+            product_name:
+              product.nome ||
+              product.descricao ||
+              'Produto sem nome',
+
+            sku: product.sku || '',
+            batch: '',
+            barcode: String(barcode),
+            image_url: '',
+            status: 'ativo'
+          };
+        });
+
+      setLabels([
+        ...existing,
+        ...automaticLabels
+      ]);
+
+      setProducts(stockProducts);
+
+    } catch (error) {
+      console.error(
+        '[ETIQUETAS] Erro ao carregar:',
+        error
+      );
+
+      setMessage(
+        'Erro ao carregar etiquetas: ' +
+        error.message
+      );
+
+      setLabels([]);
+      setProducts([]);
+
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
     loadLabels();
-
-    const channel = supabase
-      .channel('labels-products-sync')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
-        loadLabels();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   async function handleSubmit(e) {
@@ -78,43 +202,97 @@ export default function LabelsPage() {
       return;
     }
 
-    const dataToSave = {
-      product_code: formData.product_code.trim(),
-      product_name: formData.product_name.trim(),
-      sku: formData.sku?.trim() || null,
-      batch: formData.batch?.trim() || null,
-      barcode: formData.barcode.trim(),
-      image_url: formData.image_url?.trim() || null,
-      status: formData.status || 'ativo'
-    };
+    try {
+      const produtoSelecionado = products.find(
+        (product) =>
+          String(product.id) ===
+          String(formData.product_id)
+      );
 
-    if (editingId) {
-      const { error } = await supabase
-        .from('product_labels')
-        .update(dataToSave)
-        .eq('id', editingId);
-      if (error) {
-        setMessage('Erro: ' + error.message);
-      } else {
+      const dataToSave = {
+        produto_id:
+          produtoSelecionado?.id ||
+          formData.product_id ||
+          null,
+
+        product_code:
+          formData.product_code?.trim() ||
+          produtoSelecionado?.codigo ||
+          produtoSelecionado?.sku ||
+          formData.barcode.trim(),
+
+        product_name:
+          formData.product_name?.trim() ||
+          produtoSelecionado?.nome ||
+          produtoSelecionado?.descricao ||
+          '',
+
+        sku:
+          formData.sku?.trim() ||
+          produtoSelecionado?.sku ||
+          '',
+
+        batch:
+          formData.batch?.trim() || '',
+
+        barcode:
+          formData.barcode.trim(),
+
+        image_url:
+          formData.image_url?.trim() || '',
+
+        status:
+          formData.status || 'ativo',
+
+        quantidade: 1
+      };
+
+      const url = editingId
+        ? `/api/etiquetas/${editingId}`
+        : '/api/etiquetas';
+
+      const response = await fetch(url, {
+        method: editingId ? 'PUT' : 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify(dataToSave)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message ||
+          result.error ||
+          'Erro ao salvar etiqueta'
+        );
+      }
+
+      if (editingId) {
         setMessage('Etiqueta atualizada!');
         setEditingId(null);
-        resetForm();
-        loadLabels();
-      }
-    } else {
-      const { error } = await supabase
-        .from('product_labels')
-        .insert(dataToSave);
-      if (error) {
-        setMessage('Erro: ' + error.message);
       } else {
         setMessage('Etiqueta criada!');
-        resetForm();
-        loadLabels();
       }
+
+      resetForm();
+
+      await loadLabels();
+
+    } catch (error) {
+      console.error(
+        '[ETIQUETAS] Erro ao salvar:',
+        error
+      );
+
+      setMessage(
+        'Erro: ' + error.message
+      );
     }
   }
-
   function resetForm() {
     setFormData({
       product_code: '',
@@ -129,7 +307,7 @@ export default function LabelsPage() {
 
   function handleEdit(label) {
     if (label.automatic) {
-      setMessage('Esta etiqueta é gerada automaticamente pelo produto do estoque.');
+      setMessage('Esta etiqueta Ã© gerada automaticamente pelo produto do estoque.');
       return;
     }
     setEditingId(label.id);
@@ -149,23 +327,36 @@ export default function LabelsPage() {
       setMessage('A etiqueta automática acompanha o produto do estoque e não precisa ser excluída.');
       return;
     }
+
     if (!confirm('Tem certeza?')) return;
-    const { error } = await supabase
-      .from('product_labels')
-      .delete()
-      .eq('id', id);
-    if (!error) {
+
+    try {
+      const response = await fetch(`/api/etiquetas/${id}`, {
+        method: 'DELETE'
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message ||
+          result.error ||
+          'Erro ao excluir etiqueta'
+        );
+      }
+
       setMessage('Etiqueta removida!');
-      loadLabels();
-    } else {
+      await loadLabels();
+
+    } catch (error) {
+      console.error('[ETIQUETAS] Erro ao excluir:', error);
       setMessage('Erro: ' + error.message);
     }
   }
-
   function generateBarcodeSVG(code) {
     if (!code) return '';
     try {
-      // Cria um elemento SVG temporário
+      // Cria um elemento SVG temporÃ¡rio
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('id', 'temp-barcode');
       document.body.appendChild(svg);
@@ -183,7 +374,7 @@ export default function LabelsPage() {
       document.body.removeChild(svg);
       return svgContent;
     } catch (error) {
-      console.error('Erro ao gerar código de barras:', error);
+      console.error('Erro ao gerar cÃ³digo de barras:', error);
       return `<div style="font-family: monospace; font-size: 20px; letter-spacing: 4px; padding: 10px; background: #f0f0f0; border-radius: 4px;">${code}</div>`;
     }
   }
@@ -402,9 +593,9 @@ export default function LabelsPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">Operação logística</p>
+        <p className="text-sm text-orange-400">OperaÃ§Ã£o logÃ­stica</p>
         <h1 className="mt-2 text-3xl font-semibold">Etiquetas</h1>
-              <p className="mt-2 text-sm text-slate-400">Produtos do estoque aparecem automaticamente para impressão de etiquetas.</p>
+              <p className="mt-2 text-sm text-slate-400">Produtos do estoque aparecem automaticamente para impressÃ£o de etiquetas.</p>
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -439,7 +630,7 @@ export default function LabelsPage() {
 
           <input
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 placeholder:text-slate-500"
-            placeholder="Código da etiqueta *"
+            placeholder="CÃ³digo da etiqueta *"
             value={formData.product_code}
             onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
             required
@@ -469,7 +660,7 @@ export default function LabelsPage() {
 
           <input
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 placeholder:text-slate-500"
-            placeholder="Código de barras * (ex: 7891234567890)"
+            placeholder="CÃ³digo de barras * (ex: 7891234567890)"
             value={formData.barcode || ''}
             onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
             required
@@ -569,9 +760,9 @@ export default function LabelsPage() {
                   <span className="font-medium">SKU:</span> {label.sku || 'N/D'}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
-                  <span className="font-medium">Cód. Barras:</span> {label.barcode || 'N/D'}
+                  <span className="font-medium">CÃ³d. Barras:</span> {label.barcode || 'N/D'}
                 </p>
-                {label.automatic && <p className="mt-2 text-xs text-emerald-300">Disponível automaticamente pelo estoque</p>}
+                {label.automatic && <p className="mt-2 text-xs text-emerald-300">DisponÃ­vel automaticamente pelo estoque</p>}
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => handleEdit(label)}
@@ -601,9 +792,9 @@ export default function LabelsPage() {
       {showPrint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
           <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h3 className="text-lg font-semibold text-slate-100">Configurar impressão</h3>
+            <h3 className="text-lg font-semibold text-slate-100">Configurar impressÃ£o</h3>
             <p className="mt-2 text-sm text-slate-400">
-              A etiqueta será impressa com código de barras legível por scanner.
+              A etiqueta serÃ¡ impressa com cÃ³digo de barras legÃ­vel por scanner.
             </p>
 
             <div className="mt-4">
@@ -625,15 +816,15 @@ export default function LabelsPage() {
             {selectedImage && (
               <img
                 src={selectedImage}
-                alt="Pré-visualização"
+                alt="PrÃ©-visualizaÃ§Ã£o"
                 className="mt-4 h-32 w-full rounded-xl object-cover border border-slate-700"
               />
             )}
 
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-400">
               {selectedLabel?.id === 'bulk' 
-                ? `Impressão em massa para ${selectedLabelIds.length} etiqueta(s).`
-                : `Impressão para ${selectedLabel?.product_code || 'etiqueta'}.`}
+                ? `ImpressÃ£o em massa para ${selectedLabelIds.length} etiqueta(s).`
+                : `ImpressÃ£o para ${selectedLabel?.product_code || 'etiqueta'}.`}
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
@@ -656,3 +847,6 @@ export default function LabelsPage() {
     </div>
   );
 }
+
+
+

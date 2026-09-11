@@ -1,4 +1,5 @@
-﻿// ============================================
+﻿import etiquetasRoutes from './src/backend/routes/etiquetasRoutes.js';
+// ============================================
 // ERP METAL RACING
 // SERVER PRINCIPAL
 // ============================================
@@ -599,6 +600,8 @@ app.delete('/api/empresas/:id', (req, res) => {
 // NF-e
 // ============================================
 
+app.use('/api/etiquetas', etiquetasRoutes);
+
 app.use('/api/nfe', nfeRoutes);
 
 // PCP - Produção
@@ -774,6 +777,8 @@ app.listen(
     }
 );
 }
+
+
 
 
 
