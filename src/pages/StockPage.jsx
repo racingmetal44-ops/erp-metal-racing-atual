@@ -41,6 +41,7 @@ export default function StockPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [originalForm, setOriginalForm] = useState(emptyForm);
   const [search, setSearch] = useState('');
   const [message, setMessage] = useState('');
   const [pendingFiles, setPendingFiles] = useState([]);
@@ -62,7 +63,9 @@ export default function StockPage() {
     const nome = form.name?.trim();
     const sku = form.sku?.trim();
 
-    if (!nome && !sku) return { duplicado: false };
+    if (!nome && !sku) {
+      return { duplicado: false };
+    }
 
     try {
       const params = new URLSearchParams();
@@ -77,43 +80,78 @@ export default function StockPage() {
       }
 
       const resultado = await response.json();
-      let data = Array.isArray(resultado?.data) ? resultado.data : [];
+      const data = Array.isArray(resultado?.data)
+        ? resultado.data
+        : [];
 
-      // Se estiver editando, excluir o próprio produto
-      if (editingId) {
-        data = data.filter(p => String(p.id) !== String(editingId));
-      }
+      const outros = data.filter(
+        p => String(p.id) !== String(editingId)
+      );
 
-      if (data.length > 0) {
-        const encontrados = [];
+      const nomeOriginal = String(
+        originalForm.name ?? ''
+      ).trim().toLowerCase();
 
-        data.forEach(p => {
-          const pNome = p.name?.toLowerCase();
-          const pSku = p.sku?.toLowerCase();
-          const nomeLower = nome?.toLowerCase();
-          const skuLower = sku?.toLowerCase();
+      const skuOriginal = String(
+        originalForm.sku ?? ''
+      ).trim().toLowerCase();
 
-          if (pNome === nomeLower && pSku === skuLower) {
-            encontrados.push(`"${p.name}" (Nome e SKU exatamente iguais)`);
-          } else if (pNome === nomeLower) {
-            encontrados.push(`"${p.name}" (mesmo NOME)`);
-          } else if (pSku === skuLower) {
-            encontrados.push(`SKU "${p.sku}" (mesmo SKU)`);
-          }
-        });
+      const nomeAtual = String(
+        nome ?? ''
+      ).trim().toLowerCase();
 
-        if (encontrados.length > 0) {
-          return {
-            duplicado: true,
-            mensagem: `Já existe: ${encontrados.join(', ')}`
-          };
+      const skuAtual = String(
+        sku ?? ''
+      ).trim().toLowerCase();
+
+      const mudouNome = nomeAtual !== nomeOriginal;
+      const mudouSku = skuAtual !== skuOriginal;
+
+      const conflitos = [];
+
+      for (const p of outros) {
+        const pNome = String(
+          p.name ?? p.nome ?? ''
+        ).trim().toLowerCase();
+
+        const pSku = String(
+          p.sku ?? ''
+        ).trim().toLowerCase();
+
+        if (mudouNome && nomeAtual && pNome === nomeAtual) {
+          conflitos.push(
+            `"${p.name ?? p.nome}" (mesmo NOME)`
+          );
+        }
+
+        if (mudouSku && skuAtual && pSku === skuAtual) {
+          conflitos.push(
+              `SKU "${p.sku}" (mesmo SKU)`
+            );
         }
       }
 
-      return { duplicado: false };
+      if (conflitos.length > 0) {
+        return {
+          duplicado: true,
+        mensagem: `Já existe: ${conflitos.join(', ')}`
+        };
+      }
+
+      return {
+        duplicado: false
+      };
+
     } catch (error) {
-      console.error('Erro na validação:', error);
-      return { duplicado: false, erro: error.message };
+      console.error(
+        'Erro na validação:',
+        error
+      );
+
+      return {
+        duplicado: false,
+        erro: error.message
+      };
     }
   }
   function getStockStatus(product) {
@@ -231,6 +269,7 @@ export default function StockPage() {
   function resetForm() {
     setEditingId(null);
     setForm(emptyForm);
+    setOriginalForm(emptyForm);
     setPendingFiles([]);
     setGallery([]);
   }
@@ -378,7 +417,8 @@ export default function StockPage() {
 
   function handleEdit(product) {
     setEditingId(product.id);
-    setForm({
+
+    const dadosOriginais = {
       name: product.name ?? '',
       sku: product.sku ?? '',
       barcode: product.barcode ?? '',
@@ -388,7 +428,10 @@ export default function StockPage() {
       status: product.status ?? 'ativo',
       category: product.category ?? '',
       unit: product.unit ?? '',
-    });
+    };
+
+    setForm(dadosOriginais);
+    setOriginalForm(dadosOriginais);
     setGallery(Array.isArray(product.files) ? product.files : (product.images ?? []));
     setPendingFiles([]);
   }
@@ -928,6 +971,11 @@ export default function StockPage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

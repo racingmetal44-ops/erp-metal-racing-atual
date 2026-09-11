@@ -174,17 +174,23 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
 
         const agora = new Date().toISOString();
 
-        const nomeBlob =
-            `produtos/${produto.id}/${Date.now()}-${crypto.randomBytes(4).toString('hex')}-${path.basename(req.file.filename)}`;
+        /*
+         * A imagem já foi gravada pelo multer em:
+         *
+         * storage/product-files/<produto-id>/<arquivo>
+         *
+         * Não usamos Vercel Blob aqui.
+         * O registro da imagem fica no SQLite.
+         */
 
-        const arquivoBuffer = fs.readFileSync(req.file.path);
+        const caminhoRelativo = path
+            .relative(
+                path.join(__dirname, '../../../'),
+                req.file.path
+            )
+            .replace(/\\/g, '/');
 
-        const blob = await put(nomeBlob, arquivoBuffer, {
-            access: 'public',
-            contentType: req.file.mimetype,
-            token: process.env.BLOB_READ_WRITE_TOKEN,
-            
-        });
+        const fileUrl = `/${caminhoRelativo}`;
 
         const id = crypto.randomUUID();
 
@@ -202,7 +208,8 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
             WHERE product_id = ?
         `).get(req.params.id);
 
-        const isPrimary = Number(totalImagens?.total || 0) === 0 ? 1 : 0;
+        const isPrimary =
+            Number(totalImagens?.total || 0) === 0 ? 1 : 0;
 
         db.prepare(`
             INSERT INTO product_files (
@@ -250,7 +257,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
                 produto.ean ||
                 produto.gtin ||
                 '',
-            file_url: blob.url,
+            file_url: fileUrl,
             file_name: req.file.originalname,
             file_type: req.file.mimetype,
             file_size: req.file.size,
@@ -263,10 +270,6 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
             created_date: agora,
             updated_date: agora
         });
-
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
 
         const arquivoSalvo = db.prepare(`
             SELECT *
@@ -290,7 +293,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
 
         return res.status(500).json({
             success: false,
-            error: error.message
+            error: error.message || 'Erro ao salvar arquivo do produto'
         });
     }
 });
@@ -717,6 +720,7 @@ router.get('/buscar/:codigo', (req, res) => {
     }
 });
 export default router;
+
 
 
 
