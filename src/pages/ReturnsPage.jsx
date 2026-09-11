@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+﻿import { useEffect, useState } from 'react';
 
 const emptyForm = {
   return_date: '',
@@ -25,45 +24,83 @@ export default function ReturnsPage() {
 
   async function loadReturns() {
     setLoading(true);
-    const { data, error } = await supabase.from('return_notes').select('*').order('id', { ascending: false });
-    if (!error) setReturns(data ?? []);
-    setLoading(false);
+
+    try {
+      const response = await fetch('/api/devolucoes');
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const resultado = await response.json();
+
+      if (!resultado.success) {
+        throw new Error(resultado.error || 'Falha ao carregar devoluções.');
+      }
+
+      setReturns(Array.isArray(resultado.data) ? resultado.data : []);
+    } catch (error) {
+      console.error('[DEVOLUÇÕES] Erro ao carregar:', error);
+      setMessage(error.message || 'Não foi possível carregar as devoluções.');
+      setReturns([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  useEffect(() => { loadReturns(); }, []);
+  useEffect(() => {
+    loadReturns();
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage('');
-    
-    const formData = {
-      ...form,
-      original_nfe_number: form.original_nfe_number || 'SEM_NFE'
-    };
-    
-    if (editingId) {
-      const { error } = await supabase.from('return_notes').update(formData).eq('id', editingId);
-      if (!error) {
-        setMessage('Devolução atualizada com sucesso.');
-        setEditingId(null);
-        setForm(emptyForm);
-        await loadReturns();
-      } else {
-        setMessage(error.message);
-      }
-      return;
-    }
 
-    const { error } = await supabase.from('return_notes').insert(formData);
-    if (!error) {
-      setMessage('Devolução criada com sucesso.');
+    const payload = {
+      ...form,
+      original_nfe_number: form.original_nfe_number || 'SEM_NFE',
+      product_value: Number(form.product_value || 0),
+      cost: Number(form.cost || 0),
+    };
+
+    try {
+      const response = await fetch(
+        editingId
+          ? `/api/devolucoes/${editingId}`
+          : '/api/devolucoes',
+        {
+          method: editingId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const resultado = await response.json().catch(() => null);
+
+      if (!response.ok || !resultado?.success) {
+        throw new Error(
+          resultado?.error ||
+          `Falha ao salvar devolução. HTTP ${response.status}`
+        );
+      }
+
+      setMessage(
+        editingId
+          ? 'Devolução atualizada com sucesso.'
+          : 'Devolução criada com sucesso.'
+      );
+
+      setEditingId(null);
       setForm(emptyForm);
+
       await loadReturns();
-    } else {
-      setMessage(error.message);
+    } catch (error) {
+      console.error('[DEVOLUÇÕES] Erro ao salvar:', error);
+      setMessage(error.message || 'Não foi possível salvar a devolução.');
     }
   }
-
   function handleEdit(item) {
     setEditingId(item.id);
     setForm({
@@ -82,15 +119,27 @@ export default function ReturnsPage() {
   }
 
   async function handleDelete(id) {
-    const { error } = await supabase.from('return_notes').delete().eq('id', id);
-    if (!error) {
+    try {
+      const response = await fetch(`/api/devolucoes/${id}`, {
+        method: 'DELETE',
+      });
+
+      const resultado = await response.json().catch(() => null);
+
+      if (!response.ok || !resultado?.success) {
+        throw new Error(
+          resultado?.error ||
+          `Falha ao excluir devolução. HTTP ${response.status}`
+        );
+      }
+
       setMessage('Devolução removida com sucesso.');
       await loadReturns();
-    } else {
-      setMessage(error.message);
+    } catch (error) {
+      console.error('[DEVOLUÇÕES] Erro ao excluir:', error);
+      setMessage(error.message || 'Não foi possível excluir a devolução.');
     }
   }
-
   const filtered = returns.filter((item) => {
     const term = search.toLowerCase();
     return [
@@ -107,11 +156,11 @@ export default function ReturnsPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <p className="text-sm text-orange-400">Devoluções</p>
         <h1 className="mt-2 text-3xl font-semibold">Devoluções</h1>
-        <p className="mt-2 text-sm text-slate-400">Gerenciamento de devoluções e notas de retorno.</p>
+        <p className="mt-2 text-sm text-slate-400">Gerenciamento de devoluÃ§Ãµes e notas de retorno.</p>
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <h2 className="text-lg font-semibold">{editingId ? 'Editar devolução' : 'Nova devolução'}</h2>
+        <h2 className="text-lg font-semibold">{editingId ? 'Editar devoluÃ§Ã£o' : 'Nova devoluÃ§Ã£o'}</h2>
         {message && <p className="mt-3 text-sm text-slate-300">{message}</p>}
         <form onSubmit={handleSubmit} className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <input 
@@ -227,7 +276,7 @@ export default function ReturnsPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filtered.length === 0 ? (
               <p className="text-sm text-slate-500 col-span-full text-center py-8">
-                Nenhuma devolução cadastrada.
+                Nenhuma devoluÃ§Ã£o cadastrada.
               </p>
             ) : (
               filtered.map((item) => (
@@ -276,3 +325,6 @@ export default function ReturnsPage() {
     </div>
   );
 }
+
+
+

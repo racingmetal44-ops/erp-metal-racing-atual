@@ -1,11 +1,8 @@
-﻿{
+{
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.js": {
-      "includeFiles": [
-        "public-certs/*.pem",
-        "src/backend/database/metal-racing.db"
-      ]
+      "includeFiles": "src/backend/database/metal-racing.db"
     }
   },
   "rewrites": [

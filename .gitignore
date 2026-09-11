@@ -133,3 +133,4 @@ diff-*.txt
 certificado-base64.txt
 *.key
 
+.env*

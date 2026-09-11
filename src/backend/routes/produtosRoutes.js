@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
+import { put } from '@vercel/blob';
 import { fileURLToPath } from 'url';
 import db from '../database/db.js';
 
@@ -144,8 +145,8 @@ garantirTabelas();
 // ARQUIVOS / IMAGENS DOS PRODUTOS - SQLITE + STORAGE LOCAL
 // ============================================================
 
-// POST /api/produtos/:id/arquivos
-router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
+ // POST /api/produtos/:id/arquivos
+router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) => {
     try {
         const produto = db.prepare(`
             SELECT id, nome, sku, codigo_barras, ean, gtin
@@ -172,7 +173,18 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
         }
 
         const agora = new Date().toISOString();
-        const fileUrl = `/storage/product-files/${produto.id}/${path.basename(req.file.path)}`;
+
+        const nomeBlob =
+            `produtos/${produto.id}/${Date.now()}-${crypto.randomBytes(4).toString('hex')}-${path.basename(req.file.filename)}`;
+
+        const arquivoBuffer = fs.readFileSync(req.file.path);
+
+        const blob = await put(nomeBlob, arquivoBuffer, {
+            access: 'public',
+            contentType: req.file.mimetype,
+            token: process.env.BLOB_READ_WRITE_TOKEN,
+            
+        });
 
         const id = crypto.randomUUID();
 
@@ -183,6 +195,14 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
         `).get(req.params.id);
 
         const sortOrder = Number(ultimo?.maior || 0) + 1;
+
+        const totalImagens = db.prepare(`
+            SELECT COUNT(*) AS total
+            FROM product_files
+            WHERE product_id = ?
+        `).get(req.params.id);
+
+        const isPrimary = Number(totalImagens?.total || 0) === 0 ? 1 : 0;
 
         db.prepare(`
             INSERT INTO product_files (
@@ -230,7 +250,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
                 produto.ean ||
                 produto.gtin ||
                 '',
-            file_url: fileUrl,
+            file_url: blob.url,
             file_name: req.file.originalname,
             file_type: req.file.mimetype,
             file_size: req.file.size,
@@ -239,10 +259,14 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
             sort_order: sortOrder,
             is_ai_training: 0,
             added_by_name: 'sistema',
-            is_primary: sortOrder === 1 ? 1 : 0,
+            is_primary: isPrimary,
             created_date: agora,
             updated_date: agora
         });
+
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
 
         const arquivoSalvo = db.prepare(`
             SELECT *
@@ -250,7 +274,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
             WHERE id = ?
         `).get(id);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             data: arquivoSalvo
         });
@@ -264,13 +288,12 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), (req, res) => {
             } catch {}
         }
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             error: error.message
         });
     }
 });
-
 // DELETE /api/produtos/:id/arquivos/:arquivoId
 router.delete('/:id/arquivos/:arquivoId', (req, res) => {
     try {
@@ -685,6 +708,10 @@ router.get('/buscar/:codigo', (req, res) => {
 });
 
 export default router;
+
+
+
+
 
 
 
