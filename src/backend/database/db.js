@@ -32,7 +32,12 @@ if (!fs.existsSync(databasePath)) {
 
 const db = new Database(databasePath);
 
-db.pragma('journal_mode = WAL');
+if (isVercel) {
+    db.pragma('journal_mode = DELETE');
+} else {
+    db.pragma('journal_mode = WAL');
+}
+
 db.pragma('foreign_keys = ON');
 
 export default db;
