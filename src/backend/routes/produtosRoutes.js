@@ -671,7 +671,7 @@ router.delete('/:id', (req, res) => {
     }
 });
 
-// Busca rápida para bipagem
+ // Busca rápida para bipagem
 router.get('/buscar/:codigo', (req, res) => {
     try {
         const codigo = String(req.params.codigo || '').trim();
@@ -694,9 +694,19 @@ router.get('/buscar/:codigo', (req, res) => {
             });
         }
 
+        const arquivos = db.prepare(`
+            SELECT *
+            FROM product_files
+            WHERE product_id = ?
+            ORDER BY is_primary DESC, sort_order ASC, created_date ASC
+        `).all(produto.id);
+
         res.json({
             success: true,
-            data: normalizarProduto(produto)
+            data: {
+                ...normalizarProduto(produto),
+                files: arquivos
+            }
         });
     } catch (error) {
         console.error('[PRODUTOS] buscar:', error);
@@ -706,8 +716,8 @@ router.get('/buscar/:codigo', (req, res) => {
         });
     }
 });
-
 export default router;
+
 
 
 

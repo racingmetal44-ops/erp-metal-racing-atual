@@ -56,7 +56,7 @@ export default function StockPage() {
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
   // =============================================
-  // VALIDAÃ©Ã©O DE DUPLICIDADE (FUNCIONANDO)
+  // VALIDAÇÃO DE DUPLICIDADE (FUNCIONANDO)
   // =============================================
   async function verificarDuplicado() {
     const nome = form.name?.trim();
@@ -79,7 +79,7 @@ export default function StockPage() {
       const resultado = await response.json();
       let data = Array.isArray(resultado?.data) ? resultado.data : [];
 
-      // Se estiver editando, excluir o prÃ³prio produto
+      // Se estiver editando, excluir o próprio produto
       if (editingId) {
         data = data.filter(p => String(p.id) !== String(editingId));
       }
@@ -105,14 +105,14 @@ export default function StockPage() {
         if (encontrados.length > 0) {
           return {
             duplicado: true,
-            mensagem: `JÃ¡ existe: ${encontrados.join(', ')}`
+            mensagem: `Já existe: ${encontrados.join(', ')}`
           };
         }
       }
 
       return { duplicado: false };
     } catch (error) {
-      console.error('Erro na validaÃ§Ã£o:', error);
+      console.error('Erro na validação:', error);
       return { duplicado: false, erro: error.message };
     }
   }
@@ -266,7 +266,7 @@ export default function StockPage() {
     }
   }
   // =============================================
-  // HANDLE SUBMIT COM VALIDAÃ©Ã©O
+  // HANDLE SUBMIT COM VALIDAÇÃO
   // =============================================
   // =============================================
   // HANDLE SUBMIT COM VALIDACAO - SQLITE
@@ -277,13 +277,13 @@ export default function StockPage() {
     setUploading(true);
 
     if (!form.name?.trim()) {
-      setMessage('Nome do produto Ã© obrigatÃ³rio!');
+      setMessage('Nome do produto e obrigatorio!');
       setUploading(false);
       return;
     }
 
     if (!form.sku?.trim()) {
-      setMessage('SKU Ã© obrigatÃ³rio!');
+      setMessage('SKU e obrigatorio!');
       setUploading(false);
       return;
     }
@@ -297,7 +297,7 @@ export default function StockPage() {
     }
 
     if (validacao.erro) {
-      setMessage(`Erro na validaÃ§Ã£o: ${validacao.erro}`);
+      setMessage(`Erro na validacao: ${validacao.erro}`);
       setUploading(false);
       return;
     }
@@ -348,13 +348,18 @@ export default function StockPage() {
 
       const produtoSalvo = resultado.data;
 
-      // As imagens serÃ£o migradas para o armazenamento local
-      // em uma etapa separada, sem alterar o layout da pÃ¡gina.
+      if (!produtoSalvo?.id) {
+        throw new Error('Produto salvo, mas a API nao retornou o ID.');
+      }
+
+      if (pendingFiles.length > 0) {
+        await uploadProductFiles(produtoSalvo.id);
+      }
 
       setMessage(
         editingId
           ? 'Produto atualizado com sucesso.'
-          : 'Produto criado com sucesso.'
+          : 'Produto cadastrado com sucesso.'
       );
 
       resetForm();
@@ -370,6 +375,7 @@ export default function StockPage() {
       setUploading(false);
     }
   }
+
   function handleEdit(product) {
     setEditingId(product.id);
     setForm({
@@ -383,7 +389,7 @@ export default function StockPage() {
       category: product.category ?? '',
       unit: product.unit ?? '',
     });
-    setGallery(product.images ?? []);
+    setGallery(Array.isArray(product.files) ? product.files : (product.images ?? []));
     setPendingFiles([]);
   }
 
@@ -488,7 +494,7 @@ export default function StockPage() {
       if (!response.ok || !resultado.success || !resultado.data) {
         setBipeProduct(null);
         setBipeStatus('nao-encontrado');
-        setMessage('Produto nÃ£o encontrado!');
+        setMessage('Produto não encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
       }
@@ -545,7 +551,7 @@ export default function StockPage() {
       } else {
         setBipeStatus('saida');
         setMessage(
-          `SAÃDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
+          `SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
         );
       }
 
@@ -598,23 +604,23 @@ export default function StockPage() {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">MÃ³dulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">?? Estoque</h1>
-        <p className="mt-2 text-sm text-slate-400">Cadastro, ediÃ§Ã£o e controle de estoque com armazenamento local.</p>
+        <p className="text-sm text-orange-400">Módulo</p>
+        <h1 className="mt-2 text-3xl font-semibold">Estoque</h1>
+        <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com armazenamento local.</p>
       </div>
 
-      {/* ESTATÃSTICAS */}
+      {/* ESTATÍSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="flex items-center gap-2 text-slate-400"><Package size={18} /><span className="text-sm">Total</span></div>
           <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do MÃ©nimo</span></div>
+          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do Mínimo</span></div>
           <p className="mt-1 text-2xl font-bold text-rose-400">{stats.baixo}</p>
         </div>
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do MÃ©ximo</span></div>
+          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do Máximo</span></div>
           <p className="mt-1 text-2xl font-bold text-amber-400">{stats.alto}</p>
         </div>
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
@@ -623,31 +629,31 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* FORMULÃ©RIO */}
+      {/* FORMULÁRIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{editingId ? '?? Editar produto' : '?? Novo produto'}</h2>
-          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar ediÃ§Ã£o</button>}
+          <h2 className="text-lg font-semibold">{editingId ? 'Editar Produto' : 'Novo Produto'}</h2>
+          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar Edição</button>}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peÃ§a *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peça *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="SKU *" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="CÃ³digo de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Código de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
 
           <div className="md:col-span-2 xl:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border border-slate-700 bg-slate-950/50">
-              <p className="col-span-full text-sm font-semibold text-slate-300 mb-1">?? Controle de Estoque</p>
+              <p className="col-span-full text-sm font-semibold text-slate-300 mb-1">Controle de Estoque</p>
               <div>
                 <label className="text-xs text-slate-400">Quantidade atual</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="0" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque mÃ©nimo</label>
+                <label className="text-xs text-slate-400">Estoque Mínimo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="5" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque mÃ©ximo</label>
+                <label className="text-xs text-slate-400">Estoque Máximo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="20" value={form.max_stock} onChange={(e) => setForm({ ...form, max_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
             </div>
@@ -661,7 +667,7 @@ export default function StockPage() {
           </select>
 
           <div className="md:col-span-2 xl:col-span-3">
-            <label className="mb-2 block text-sm text-slate-400">?? Fotos do produto</label>
+            <label className="mb-2 block text-sm text-slate-400">Fotos do Produto</label>
             <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-700 bg-slate-950/70 px-4 py-3 text-sm text-slate-300 hover:border-orange-500 transition">
               <Upload size={16} /> Selecionar imagens
               <input type="file" accept="image/*" multiple className="hidden" onChange={handleFilesChange} />
@@ -691,7 +697,7 @@ export default function StockPage() {
 
           <div className="flex gap-2 md:col-span-2 xl:col-span-1">
             <button type="submit" disabled={uploading} className="flex-1 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:cursor-not-allowed disabled:opacity-60">
-              {editingId ? (uploading ? 'Salvando...' : 'ðŸ’¾ Salvar') : (uploading ? 'Cadastrando...' : 'âž• Cadastrar')}
+              {editingId ? (uploading ? 'Salvando...' : 'Salvar') : (uploading ? 'Cadastrando...' : 'Cadastrar')}
             </button>
             {editingId && <button type="button" onClick={resetForm} className="rounded-xl border border-slate-700 px-4 py-3 text-slate-300 hover:bg-slate-800 transition">Cancelar</button>}
           </div>
@@ -702,7 +708,7 @@ export default function StockPage() {
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">?? Produtos cadastrados</h2>
+            <h2 className="text-lg font-semibold">Produtos cadastrados</h2>
             <span className="text-sm text-slate-400">({filtered.length})</span>
           </div>
           <div className="flex gap-2 w-full md:w-auto">
@@ -752,7 +758,7 @@ export default function StockPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-semibold text-slate-100">{product.name || 'Produto sem nome'}</h3>
-                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU nÃ£o informado'}</p>
+                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU não informado'}</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === 'ativo' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-400'}`}>{product.status}</span>
                     </div>
@@ -763,11 +769,11 @@ export default function StockPage() {
                         <p className={`font-bold ${(product.current_stock ?? 0) < (product.min_stock ?? 0) ? 'text-rose-400' : (product.current_stock ?? 0) > (product.max_stock ?? 99999) ? 'text-amber-400' : 'text-emerald-400'}`}>{product.current_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">MÃ©nimo</p>
+                        <p className="text-xs text-slate-500">Ménimo</p>
                         <p className="font-bold text-slate-200">{product.min_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">MÃ©ximo</p>
+                        <p className="text-xs text-slate-500">Méximo</p>
                         <p className="font-bold text-slate-200">{product.max_stock ?? 0}</p>
                       </div>
                     </div>
@@ -775,7 +781,7 @@ export default function StockPage() {
                     {product.category && <p className="text-sm text-slate-400"><span className="text-slate-500">Categoria:</span> {product.category}</p>}
 
                     <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">?? Editar</button>
+                      <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">Editar</button>
                       <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10">Excluir</button>
                         <button onClick={async () => {
                           const novaQtd = (product.current_stock ?? 0) + 1;
@@ -822,15 +828,15 @@ export default function StockPage() {
                 <QrCode size={32} />
               </div>
               <h2 className="text-xl font-bold text-white">Bipar produto</h2>
-              <p className="text-sm text-slate-400">Leia o cÃ³digo de barras ou digite o SKU</p>
-              <p className="text-xs text-emerald-400 mt-1">Leitura automÃ¡tica - nÃ£o precisa de Enter</p>
+              <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
+              <p className="text-xs text-emerald-400 mt-1">Leitura automática - não precisa de Enter</p>
             </div>
 
             <input
               ref={bipeInputRef}
               type="text"
               className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' : bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' : bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' : 'border-orange-500/50 bg-slate-950 focus:border-orange-500'}`}
-              placeholder="Digite ou leia o cÃ³digo..."
+              placeholder="Digite ou leia o código..."
               value={bipeCode}
               onChange={handleBipeCodeChange}
               autoFocus
@@ -879,12 +885,12 @@ export default function StockPage() {
             {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
               <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
                 <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
-                <span className="text-blue-400 font-bold">Produto nÃ£o encontrado!</span>
-                <p className="text-blue-300/70 text-sm mt-1">Verifique o cÃ³digo digitado</p>
+                <span className="text-blue-400 font-bold">Produto não encontrado!</span>
+                <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
               </div>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">A busca Ã© feita automaticamente apÃ³s digitar o cÃ³digo</p>
+            <p className="mt-4 text-center text-xs text-slate-500">A busca é feita automaticamente após digitar o código</p>
           </div>
         </div>
       )}
