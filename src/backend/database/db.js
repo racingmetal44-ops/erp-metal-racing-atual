@@ -1,4 +1,4 @@
-﻿import Database from 'better-sqlite3';
+?import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -17,7 +17,7 @@ const databasePath = isVercel
 if (isVercel && !fs.existsSync(databasePath)) {
     if (!fs.existsSync(bundledDatabasePath)) {
         throw new Error(
-            `Banco SQLite não foi incluído na Function. Procurado em: ${bundledDatabasePath}`
+            `Banco SQLite n�o foi inclu�do na Function. Procurado em: ${bundledDatabasePath}`
         );
     }
 
@@ -31,7 +31,7 @@ if (!fs.existsSync(databaseDir)) {
 }
 
 if (!fs.existsSync(databasePath)) {
-    throw new Error(`Banco SQLite não encontrado: ${databasePath}`);
+    throw new Error(`Banco SQLite n�o encontrado: ${databasePath}`);
 }
 
 const db = new Database(databasePath);

@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -404,7 +404,7 @@ async function lerContasAsync() {
 async function salvarContasAsync(contas) {
     if (!Array.isArray(contas)) {
         throw new Error(
-            'Lista de contas inválida para persistência.'
+            'Lista de contas inv�lida para persist�ncia.'
         );
     }
 
@@ -495,7 +495,7 @@ export async function sincronizarContasNfe({ persistir = true } = {}) {
                 fornecedor_nome:
                     nfe?.fornecedor?.razaoSocial ||
                     nfe?.fornecedor?.nomeFantasia ||
-                    'Fornecedor nÃ£o informado',
+                    'Fornecedor n�o informado',
 
                 fornecedor_cnpj:
                     nfe?.fornecedor?.cnpj ||

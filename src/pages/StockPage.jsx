@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   Image as ImageIcon,
   Trash2,
@@ -812,11 +812,11 @@ export default function StockPage() {
                         <p className={`font-bold ${(product.current_stock ?? 0) < (product.min_stock ?? 0) ? 'text-rose-400' : (product.current_stock ?? 0) > (product.max_stock ?? 99999) ? 'text-amber-400' : 'text-emerald-400'}`}>{product.current_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Ménimo</p>
+                        <p className="text-xs text-slate-500">Mínimo</p>
                         <p className="font-bold text-slate-200">{product.min_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Méximo</p>
+                        <p className="text-xs text-slate-500">Máximo</p>
                         <p className="font-bold text-slate-200">{product.max_stock ?? 0}</p>
                       </div>
                     </div>

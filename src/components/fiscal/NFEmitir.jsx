@@ -49,7 +49,7 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
 
     return (
         <div className="space-y-4 p-4 border border-gray-700 rounded-lg bg-gray-800/50">
-            <h3 className="text-lg font-semibold text-white">Emissão NF-e</h3>
+            <h3 className="text-lg font-semibold text-white">Emiss�o NF-e</h3>
 
             {erro && (
                 <div className="p-3 bg-red-900/50 text-red-300 rounded">
@@ -61,9 +61,9 @@ export function NFEmitir({ empresa, cliente, produtos, onEmitirSuccess }) {
                 <div className="p-3 bg-green-900/50 text-green-300 rounded">
                     <h4 className="font-semibold">NF-e emitida!</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm mt-2">
-                        <span className="text-gray-400">Número:</span>
+                        <span className="text-gray-400">N�mero:</span>
                         <span className="text-white">{resultado.numero}</span>
-                        <span className="text-gray-400">Série:</span>
+                        <span className="text-gray-400">S�rie:</span>
                         <span className="text-white">{resultado.serie}</span>
                         <span className="text-gray-400">Chave:</span>
                         <span className="text-white text-xs break-all">{resultado.chave}</span>

@@ -1,4 +1,4 @@
-﻿import { Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Layout from './components/layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -51,7 +51,7 @@ function App() {
         }
       }
     } catch (error) {
-      console.error('[AUTH] Erro ao recuperar sessão local:', error);
+      console.error('[AUTH] Erro ao recuperar sess�o local:', error);
       localStorage.removeItem('metal_racing_user');
     } finally {
       setLoading(false);

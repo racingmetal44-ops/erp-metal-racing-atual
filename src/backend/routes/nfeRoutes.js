@@ -210,7 +210,7 @@ router.post('/emitir', async (req, res) => {
         }
 
         // =====================================================
-        // 6. NºMERO E SÉRIE
+        // 6. NÚMERO E SÉRIE
         // =====================================================
 
         const serieFinal =
@@ -232,7 +232,7 @@ router.post('/emitir', async (req, res) => {
 
         console.log(
             '[NFE] Número informado:',
-            numeroFinalInicial || '(automético)'
+            numeroFinalInicial || '(automático)'
         );
 
         console.log(
@@ -401,11 +401,11 @@ router.post('/emitir', async (req, res) => {
         );
 
         // =====================================================
-        // 10. ENVIAR é SEFAZ
+        // 10. ENVIAR À SEFAZ
         // =====================================================
 
         console.log(
-            '[NFE] Enviando XML assinado é SEFAZ...'
+            '[NFE] Enviando XML assinado à SEFAZ...'
         );
 
         const envio =
@@ -750,7 +750,7 @@ router.post('/emitir', async (req, res) => {
         );
 
         console.error(
-            '? ERRO NO FLUXO DE EMISSéO NF-e'
+            '? ERRO NO FLUXO DE EMISSÃO NF-e'
         );
 
         console.error(
@@ -811,7 +811,7 @@ router.post('/gerar', async (req, res) => {
         if (!cliente) {
             return res.status(400).json({
                 success: false,
-                error: 'Destinatério não informado.'
+                error: 'Destinatário não informado.'
             });
         }
 
@@ -1084,7 +1084,7 @@ router.post('/gerar', async (req, res) => {
             data: nfe,
 
             message:
-                'NF-e gerada e armazenada. Ainda não foi transmitida é SEFAZ.'
+                'NF-e gerada e armazenada. Ainda não foi transmitida à SEFAZ.'
         });
 
     }
@@ -1312,7 +1312,7 @@ router.post('/:id/gerar-danfe', async (req, res) => {
 
 // Abrir XML autorizado/assinado
 // ============================================
-// TESTAR COMUNICAééO REAL COM A SEFAZ
+// TESTAR COMUNICAÇÃO REAL COM A SEFAZ
 // ============================================
 
 router.post('/testar-sefaz', async (req, res) => {
@@ -1340,7 +1340,7 @@ router.post('/testar-sefaz', async (req, res) => {
 
         console.log('');
         console.log('============================================');
-        console.log('[SEFAZ] TESTE REAL DE COMUNICAééO');
+        console.log('[SEFAZ] TESTE REAL DE COMUNICAÇÃO');
         console.log('============================================');
 
         console.log(
@@ -1363,7 +1363,7 @@ router.post('/testar-sefaz', async (req, res) => {
         );
 
         // ----------------------------------------
-        // COMUNICAééO REAL
+        // COMUNICAÇÃO REAL
         // ----------------------------------------
 
         const resultado =
@@ -1445,7 +1445,7 @@ router.post('/testar-sefaz', async (req, res) => {
 
         console.error('');
         console.error('============================================');
-        console.error('[SEFAZ] ERRO NA COMUNICAééO');
+        console.error('[SEFAZ] ERRO NA COMUNICAÇÃO');
         console.error('============================================');
 
         console.error(

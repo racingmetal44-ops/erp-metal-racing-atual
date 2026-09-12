@@ -16,6 +16,10 @@ class NfeDistribuicaoService {
     this.empresaConfig = null;
   }
 
+  somenteNumeros(valor) {
+    return String(valor ?? '').replace(/\D/g, '');
+  }
+
   async getEmpresaConfig(empresaId) {
     const empresa = buscarEmpresa(empresaId);
 
@@ -25,8 +29,8 @@ class NfeDistribuicaoService {
 
     const certPath = resolverCaminhoCertificado(empresa);
     const senha =
-      process.env.CERT_SENHA ||
       process.env.NFE_CERT_SENHA ||
+      process.env.CERT_SENHA ||
       process.env.CERTIFICADO_SENHA ||
       '';
 
@@ -49,34 +53,30 @@ class NfeDistribuicaoService {
   async initialize(empresaId) {
     this.empresaConfig = await this.getEmpresaConfig(empresaId);
 
-    // O Node/OpenSSL consegue carregar este PFX diretamente.
-    // Não usamos node-forge aqui para evitar:
-    // "Unsupported PKCS12 PFX data"
-    const pfx = fs.readFileSync(this.empresaConfig.certPath);
+    // Usa o mesmo carregador de certificado utilizado pelo NfeSoapService.
+    // Isso garante que a senha e o PFX sejam tratados da mesma forma.
+    const certificado = await CertificateLoader.carregarCertificado(empresaId);
 
-    if (!pfx || pfx.length === 0) {
-      throw new Error(
-        `Certificado PFX vazio: ${this.empresaConfig.certPath}`
-      );
+    if (!certificado || !certificado.pfx) {
+      throw new Error('Não foi possível carregar o certificado A1 para a Distribuição DF-e');
     }
 
     this.certificate = {
-      pfx,
-      passphrase: this.empresaConfig.certPassword,
+      cert: certificado.cert,
+      key: certificado.key,
+      pfx: certificado.pfx,
       certPath: this.empresaConfig.certPath
     };
-
     console.log(
-      `[DF-e] Certificado PFX carregado diretamente pelo Node: ${this.empresaConfig.certPath}`
+      `[DF-e] Certificado carregado pelo CertificateLoader: ${this.empresaConfig.certPath}`
     );
 
     console.log(
-      `[DF-e] Tamanho do PFX: ${pfx.length} bytes`
+      `[DF-e] Tamanho do PFX: ${certificado.pfx.length} bytes`
     );
 
     return true;
   }
-
   montarEnvelopeDistribuicao(params) {
 
     const { tpAmb, cUFAutor, cnpj, ultNSU, distNSU, chNFe } = params;
@@ -219,11 +219,11 @@ class NfeDistribuicaoService {
     // CONTROLE CORRETO DO NSU
     // -------------------------------------------------
     //
-    // Sé avanéa o NSU quando a SEFAZ devolver um valor
+    // Só avança o NSU quando a SEFAZ devolver um valor
     // válido superior ao atual.
     //
     // cStat 656 nunca deve avançar o NSU.
-    // cStat 137 significa que não hé documentos novos
+    // cStat 137 significa que não há documentos novos
     // no momento; não devemos inventar um NSU.
     //
     const nsuRecebido =
@@ -275,7 +275,7 @@ class NfeDistribuicaoService {
     } else if (cStat === '656') {
 
       console.warn(
-        `[DF-e] cStat 656. NSU NºO seré alterado.`
+        `[DF-e] cStat 656. NSU NÃO será alterado.`
       );
     }
 
@@ -421,7 +421,7 @@ class NfeDistribuicaoService {
       resultado?.retDistDFeInt ||
       resultado?.['retDistDFeInt'];
 
-    // Alguns parsers/versées podem devolver o XML interno
+    // Alguns parsers/versões podem devolver o XML interno
     // como texto em _ ou #text.
     if (!ret && typeof resultado === 'object') {
       const texto =
@@ -442,7 +442,7 @@ class NfeDistribuicaoService {
             interno?.retDistDFeInt ||
             interno?.['retDistDFeInt'];
         } catch {
-          // Segue para a extraééo por regex.
+          // Segue para a extração por regex.
         }
       }
     }
@@ -516,17 +516,18 @@ class NfeDistribuicaoService {
   }
 
   getHttpsAgent() {
-    if (!this.certificate || !this.certificate.pfx) {
-      throw new Error('Certificado PFX não carregado');
+    if (!this.certificate || !this.certificate.cert || !this.certificate.key) {
+      throw new Error('Certificado PEM não carregado');
     }
 
     return new https.Agent({
-      pfx: this.certificate.pfx,
-      passphrase: this.certificate.passphrase,
+      cert: this.certificate.cert,
+      key: this.certificate.key,
       rejectUnauthorized: true,
       minVersion: 'TLSv1.2'
     });
   }
+
 }
 
 export function salvarNsu(empresaId = 1, ultimoNsu = '000000000000000') {
@@ -605,4 +606,3 @@ export function lerNsu(empresaId = 1) {
 }
 
 export default new NfeDistribuicaoService();
-

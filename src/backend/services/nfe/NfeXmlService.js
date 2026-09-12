@@ -3,7 +3,7 @@
 export class NfeXmlService {
 
     // =========================================================
-    // UTILITéRIOS
+    // UTILITÁRIOS
     // =========================================================
 
     escapeXml(value) {
@@ -170,7 +170,7 @@ export class NfeXmlService {
 
         /*
          * 1 = emissão normal
-         * 2 = contingéncia FS-IA
+         * 2 = contingência FS-IA
          * etc.
          */
         const tpEmis = String(
@@ -383,7 +383,7 @@ export class NfeXmlService {
             }
 
             throw new Error(
-                `CSOSN ${csosn} ainda não possui regra fiscal completa no gerador.`
+                `CSOSN ${csosn} ainda n�o possui regra fiscal completa no gerador.`
             );
         }
 
@@ -485,7 +485,7 @@ export class NfeXmlService {
         }
 
         throw new Error(
-            `CST PIS ${cst} ainda não possui regra fiscal implementada.`
+            `CST PIS ${cst} ainda n�o possui regra fiscal implementada.`
         );
     }
     // =========================================================
@@ -548,7 +548,7 @@ export class NfeXmlService {
         }
 
         throw new Error(
-            `CST COFINS ${cst} ainda não possui regra fiscal implementada.`
+            `CST COFINS ${cst} ainda n�o possui regra fiscal implementada.`
         );
     }
     // =========================================================
@@ -668,7 +668,7 @@ export class NfeXmlService {
     }
 
     // =========================================================
-    // VALIDAééO FISCAL ANTES DA GERAééO
+    // VALIDAÇÃO FISCAL ANTES DA GERAÇÃO
     // =========================================================
     validarDadosFiscais(
         empresa,
@@ -837,7 +837,7 @@ export class NfeXmlService {
 
                     if (cfopInterno !== '5101') {
                         erros.push(
-                            `${identificacao}: para produção prépria dentro de SC, o CFOP esperado é 5101.`
+                            `${identificacao}: para produção própria dentro de SC, o CFOP esperado é 5101.`
                         );
                     }
 
@@ -913,7 +913,7 @@ export class NfeXmlService {
         }
 
         if (!cliente) {
-            throw new Error('Destinatério não informado.');
+            throw new Error('Destinatário não informado.');
         }
 
         if (!Array.isArray(produtos) || produtos.length === 0) {

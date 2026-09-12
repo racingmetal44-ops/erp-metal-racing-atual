@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import JsBarcode from 'jsbarcode';
 
 export default function LabelsPage() {
@@ -307,7 +307,7 @@ export default function LabelsPage() {
 
   function handleEdit(label) {
     if (label.automatic) {
-      setMessage('Esta etiqueta Ã© gerada automaticamente pelo produto do estoque.');
+      setMessage('Esta etiqueta é gerada automaticamente pelo produto do estoque.');
       return;
     }
     setEditingId(label.id);
@@ -356,7 +356,7 @@ export default function LabelsPage() {
   function generateBarcodeSVG(code) {
     if (!code) return '';
     try {
-      // Cria um elemento SVG temporÃ¡rio
+      // Cria um elemento SVG temporário
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('id', 'temp-barcode');
       document.body.appendChild(svg);
@@ -374,7 +374,7 @@ export default function LabelsPage() {
       document.body.removeChild(svg);
       return svgContent;
     } catch (error) {
-      console.error('Erro ao gerar cÃ³digo de barras:', error);
+      console.error('Erro ao gerar código de barras:', error);
       return `<div style="font-family: monospace; font-size: 20px; letter-spacing: 4px; padding: 10px; background: #f0f0f0; border-radius: 4px;">${code}</div>`;
     }
   }
@@ -593,9 +593,9 @@ export default function LabelsPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">OperaÃ§Ã£o logÃ­stica</p>
+        <p className="text-sm text-orange-400">Operação logística</p>
         <h1 className="mt-2 text-3xl font-semibold">Etiquetas</h1>
-              <p className="mt-2 text-sm text-slate-400">Produtos do estoque aparecem automaticamente para impressÃ£o de etiquetas.</p>
+              <p className="mt-2 text-sm text-slate-400">Produtos do estoque aparecem automaticamente para impressão de etiquetas.</p>
       </div>
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
@@ -630,7 +630,7 @@ export default function LabelsPage() {
 
           <input
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 placeholder:text-slate-500"
-            placeholder="CÃ³digo da etiqueta *"
+            placeholder="Código da etiqueta *"
             value={formData.product_code}
             onChange={(e) => setFormData({ ...formData, product_code: e.target.value })}
             required
@@ -660,7 +660,7 @@ export default function LabelsPage() {
 
           <input
             className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-slate-100 placeholder:text-slate-500"
-            placeholder="CÃ³digo de barras * (ex: 7891234567890)"
+            placeholder="Código de barras * (ex: 7891234567890)"
             value={formData.barcode || ''}
             onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
             required
@@ -760,9 +760,9 @@ export default function LabelsPage() {
                   <span className="font-medium">SKU:</span> {label.sku || 'N/D'}
                 </p>
                 <p className="mt-1 text-sm text-slate-500">
-                  <span className="font-medium">CÃ³d. Barras:</span> {label.barcode || 'N/D'}
+                  <span className="font-medium">Cód. Barras:</span> {label.barcode || 'N/D'}
                 </p>
-                {label.automatic && <p className="mt-2 text-xs text-emerald-300">DisponÃ­vel automaticamente pelo estoque</p>}
+                {label.automatic && <p className="mt-2 text-xs text-emerald-300">Disponível automaticamente pelo estoque</p>}
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => handleEdit(label)}
@@ -792,9 +792,9 @@ export default function LabelsPage() {
       {showPrint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
           <div className="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h3 className="text-lg font-semibold text-slate-100">Configurar impressÃ£o</h3>
+            <h3 className="text-lg font-semibold text-slate-100">Configurar impressão</h3>
             <p className="mt-2 text-sm text-slate-400">
-              A etiqueta serÃ¡ impressa com cÃ³digo de barras legÃ­vel por scanner.
+              A etiqueta será impressa com código de barras legível por scanner.
             </p>
 
             <div className="mt-4">
@@ -816,15 +816,15 @@ export default function LabelsPage() {
             {selectedImage && (
               <img
                 src={selectedImage}
-                alt="PrÃ©-visualizaÃ§Ã£o"
+                alt="Pré-visualização"
                 className="mt-4 h-32 w-full rounded-xl object-cover border border-slate-700"
               />
             )}
 
             <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-sm text-slate-400">
               {selectedLabel?.id === 'bulk' 
-                ? `ImpressÃ£o em massa para ${selectedLabelIds.length} etiqueta(s).`
-                : `ImpressÃ£o para ${selectedLabel?.product_code || 'etiqueta'}.`}
+                ? `Impressão em massa para ${selectedLabelIds.length} etiqueta(s).`
+                : `Impressão para ${selectedLabel?.product_code || 'etiqueta'}.`}
             </div>
 
             <div className="mt-6 flex justify-end gap-2">

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+﻿import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Metal Racing ERP',
         short_name: 'MetalERP',
-        description: 'ERP para gestáo comercial e operacional',
+        description: 'ERP para gestÃ£o comercial e operacional',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
@@ -39,6 +39,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
+
+    allowedHosts: [
+      'massive-masculine-demotion.ngrok-free.dev'
+    ],
+
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

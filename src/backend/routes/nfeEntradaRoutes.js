@@ -1,4 +1,4 @@
-﻿import express from 'express';
+import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
@@ -227,7 +227,7 @@ function validarProdutoXml(produto) {
         quantidade <= 0
     ) {
         throw new Error(
-            `Quantidade invÃ¡lida para o produto "${produto.descricao}".`
+            `Quantidade inv?lida para o produto "${produto.descricao}".`
         );
     }
 
@@ -236,7 +236,7 @@ function validarProdutoXml(produto) {
         unitario < 0
     ) {
         throw new Error(
-            `Valor unitÃ¡rio invÃ¡lido para o produto "${produto.descricao}".`
+            `Valor unit?rio inv?lido para o produto "${produto.descricao}".`
         );
     }
 
@@ -245,14 +245,14 @@ function validarProdutoXml(produto) {
         totalInformado < 0
     ) {
         throw new Error(
-            `Valor total invÃ¡lido para o produto "${produto.descricao}".`
+            `Valor total inv?lido para o produto "${produto.descricao}".`
         );
     }
 
     // IMPORTANTE:
-    // O XML pode trazer valor unitÃ¡rio com atÃ© 4 ou mais casas.
+    // O XML pode trazer valor unit?rio com at? 4 ou mais casas.
     // Ex.: 32,074 x 50 = 1.603,70.
-    // NÃ£o arredondar o unitÃ¡rio antes da multiplicaÃ§Ã£o.
+    // N?o arredondar o unit?rio antes da multiplica??o.
     const totalCalculado =
         Math.round(
             (quantidade * unitario + Number.EPSILON) * 100
@@ -3345,7 +3345,7 @@ router.get(
 
 // =====================================================
 // CONFIRMAR ENTRADA
-// Estoque + manifestaÃ§Ã£o 210200
+// Estoque + manifesta??o 210200
 // =====================================================
 
 router.post(
@@ -3366,7 +3366,7 @@ router.post(
 
                 return res.status(404).json({
                     success: false,
-                    error: 'Entrada nÃ£o encontrada.'
+                    error: 'Entrada n?o encontrada.'
                 });
 
             }
@@ -3374,7 +3374,7 @@ router.post(
             const entrada = entradas[index];
 
             // -------------------------------------------------
-            // PROTEÃ‡ÃƒO CONTRA DUPLA ENTRADA
+            // PROTE??O CONTRA DUPLA ENTRADA
             // -------------------------------------------------
 
             if (
@@ -3384,7 +3384,7 @@ router.post(
 
                 return res.status(400).json({
                     success: false,
-                    error: 'Esta NF-e jÃ¡ possui entrada de estoque.'
+                    error: 'Esta NF-e j? possui entrada de estoque.'
                 });
 
             }
@@ -3406,16 +3406,16 @@ router.post(
                 return res.status(400).json({
                     success: false,
                     error:
-                        'A quantidade de itens enviados nÃ£o corresponde Ã  quantidade de itens da NF-e.'
+                        'A quantidade de itens enviados n?o corresponde � quantidade de itens da NF-e.'
                 });
 
             }
 
             // -------------------------------------------------
-            // RETENTATIVA DE MANIFESTAÃ‡ÃƒO
+            // RETENTATIVA DE MANIFESTA??O
             //
             // Usado para entradas antigas que tiveram estoque
-            // confirmado e ficaram com manifestaÃ§Ã£o rejeitada.
+            // confirmado e ficaram com manifesta??o rejeitada.
             // Nunca altera novamente o estoque.
             // -------------------------------------------------
 
@@ -3438,7 +3438,7 @@ router.post(
 
                 entrada.manifestacao = {
                     ...sefazRetry,
-                    descricao: 'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
+                    descricao: 'Confirma??o da Opera??o',
                     dataHora: new Date().toISOString()
                 };
 
@@ -3467,7 +3467,7 @@ router.post(
                         success: true,
                         entradaConfirmada: true,
                         message:
-                            'ManifestaÃ§Ã£o aceita pelo SEFAZ. Entrada confirmada.',
+                            'Manifesta??o aceita pelo SEFAZ. Entrada confirmada.',
                         entrada,
                         resumo: {},
                         sefaz: sefazRetry
@@ -3479,7 +3479,7 @@ router.post(
                 entrada.statusSefaz = 'REJEITADA';
                 entrada.motivoSefaz =
                     sefazRetry.xMotivo ||
-                    'ManifestaÃ§Ã£o rejeitada pelo SEFAZ.';
+                    'Manifesta??o rejeitada pelo SEFAZ.';
                 entrada.updatedAt =
                     new Date().toISOString();
 
@@ -3487,7 +3487,7 @@ router.post(
 
                 await saveEntradasAsync(entradas);
 
-                // NÃƒO cria Financeiro
+                // N�O cria Financeiro
                 return res.status(422).json({
                     success: false,
                     rejected: true,
@@ -3526,7 +3526,7 @@ router.post(
             await saveEntradasAsync(entradas);
 
             // =================================================
-            // 2. MANIFESTAÃ‡ÃƒO SEFAZ
+            // 2. MANIFESTA??O SEFAZ
             // =================================================
 
             let sefaz = {
@@ -3607,7 +3607,7 @@ router.post(
                         tipoEvento: '210200',
 
                         descricao:
-                            'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
+                            'Confirma??o da Opera??o',
 
                         success:
                             Boolean(resultado.success),
@@ -3639,7 +3639,7 @@ router.post(
 
                     entradaAtualizada.motivoSefaz =
                         resultado.dryRun
-                            ? 'Manifestação simulada em DRY_RUN. Nenhum evento oficial foi enviado ao SEFAZ.'
+                            ? 'Manifesta??o simulada em DRY_RUN. Nenhum evento oficial foi enviado ao SEFAZ.'
                             : (
                                 resultado.xMotivo ||
                                 ''
@@ -3652,7 +3652,7 @@ router.post(
                 } catch (error) {
 
                     console.error(
-                        '[ENTRADA] Erro ao enviar confirmaÃ§Ã£o para SEFAZ:',
+                        '[ENTRADA] Erro ao enviar confirma??o para SEFAZ:',
                         error
                     );
 
@@ -3678,7 +3678,7 @@ router.post(
                         tipoEvento: '210200',
 
                         descricao:
-                            'ConfirmaÃ§Ã£o da OperaÃ§Ã£o',
+                            'Confirma??o da Opera??o',
 
                         success: false,
 
@@ -3709,8 +3709,8 @@ router.post(
                 // ENTRADA SEM CHAVE
                 //
                 // ESTOQUE: SIM
-                // SEFAZ: NÃƒO
-                // FINANCEIRO POR MANIFESTAÃ‡ÃƒO: NÃƒO
+                // SEFAZ: N�O
+                // FINANCEIRO POR MANIFESTA??O: N�O
                 // =================================================
 
                 sefaz = {
@@ -3722,7 +3722,7 @@ router.post(
                     cStat: null,
 
                     xMotivo:
-                        'Entrada sem chave de acesso. ManifestaÃ§Ã£o SEFAZ nÃ£o enviada.',
+                        'Entrada sem chave de acesso. Manifesta??o SEFAZ n?o enviada.',
 
                     protocolo: null,
 
@@ -3740,7 +3740,7 @@ router.post(
             }
 
             // =================================================
-            // SALVAR RESULTADO DA MANIFESTAÃ‡ÃƒO
+            // SALVAR RESULTADO DA MANIFESTA??O
             // =================================================
 
             entradaAtualizada.updatedAt =
@@ -3757,7 +3757,7 @@ router.post(
             // 3. FINANCEIRO
             //
             // REGRA:
-            // SOMENTE manifestaÃ§Ã£o oficial aceita.
+            // SOMENTE manifesta??o oficial aceita.
             // =================================================
 
             if (sefaz.success) {
@@ -3767,13 +3767,13 @@ router.post(
                     await sincronizarContasNfe();
 
                     console.log(
-                        `[FINANCEIRO] NF-e ${entradaAtualizada.numero || entradaAtualizada.chave} sincronizada apÃ³s SEFAZ autorizado.`
+                        `[FINANCEIRO] NF-e ${entradaAtualizada.numero || entradaAtualizada.chave} sincronizada ap?s SEFAZ autorizado.`
                     );
 
                 } catch (financeiroError) {
 
                     console.error(
-                        '[FINANCEIRO] Falha ao sincronizar tÃ­tulo:',
+                        '[FINANCEIRO] Falha ao sincronizar t?tulo:',
                         financeiroError
                     );
 
@@ -3791,7 +3791,7 @@ router.post(
                         resumo,
 
                         error:
-                            'Entrada e manifestaÃ§Ã£o SEFAZ concluÃ­das, mas houve falha ao sincronizar o Financeiro: ' +
+                            'Entrada e manifesta??o SEFAZ conclu?das, mas houve falha ao sincronizar o Financeiro: ' +
                             financeiroError.message
                     });
 
@@ -3806,7 +3806,7 @@ router.post(
                     financeiroSincronizado: true,
 
                     message:
-                        'Entrada realizada com sucesso. Estoque atualizado, manifestaÃ§Ã£o SEFAZ aceita e tÃ­tulo financeiro sincronizado.',
+                        'Entrada realizada com sucesso. Estoque atualizado, manifesta??o SEFAZ aceita e t?tulo financeiro sincronizado.',
 
                     entrada:
                         entradaAtualizada,
@@ -3822,7 +3822,7 @@ router.post(
             // 4. SEFAZ PENDENTE / REJEITADO / SEM CHAVE
             //
             // ESTOQUE CONTINUA CONFIRMADO.
-            // NÃƒO CRIA TÃTULO FINANCEIRO.
+            // N�O CRIA T?TULO FINANCEIRO.
             // =================================================
 
             entradaAtualizada.status =
@@ -3837,7 +3837,7 @@ router.post(
                 sefaz.xMotivo ||
                 (
                     sefaz.enviada
-                        ? 'ManifestaÃ§Ã£o SEFAZ pendente.'
+                        ? 'Manifesta??o SEFAZ pendente.'
                         : 'Entrada sem chave de acesso.'
                 );
 
@@ -3859,7 +3859,7 @@ router.post(
             );
 
             // MUITO IMPORTANTE:
-            // NÃƒO chamar sincronizarContasNfe() aqui.
+            // N�O chamar sincronizarContasNfe() aqui.
 
             return res.json({
 
@@ -3875,8 +3875,8 @@ router.post(
 
                 message:
                     sefaz.enviada
-                        ? 'Entrada de estoque confirmada. ManifestaÃ§Ã£o SEFAZ pendente. TÃ­tulo financeiro nÃ£o foi criado.'
-                        : 'Entrada de estoque confirmada. NÃ£o houve manifestaÃ§Ã£o SEFAZ porque a entrada nÃ£o possui chave de acesso. TÃ­tulo financeiro nÃ£o foi criado.',
+                        ? 'Entrada de estoque confirmada. Manifesta??o SEFAZ pendente. T?tulo financeiro n?o foi criado.'
+                        : 'Entrada de estoque confirmada. N?o houve manifesta??o SEFAZ porque a entrada n?o possui chave de acesso. T?tulo financeiro n?o foi criado.',
 
                 error:
                     sefaz.xMotivo ||

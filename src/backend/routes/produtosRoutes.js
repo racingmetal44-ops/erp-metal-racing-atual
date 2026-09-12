@@ -1,4 +1,4 @@
-﻿import express from 'express';
+?import express from 'express';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -62,7 +62,7 @@ const uploadProductFile = multer({
         if (!permitidos.includes(file.mimetype)) {
             return cb(
                 new Error(
-                    'Formato de imagem não permitido. Use JPG, PNG, WEBP ou GIF.'
+                    'Formato de imagem n�o permitido. Use JPG, PNG, WEBP ou GIF.'
                 )
             );
         }
@@ -161,7 +161,7 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
 
             return res.status(404).json({
                 success: false,
-                error: 'Produto não encontrado'
+                error: 'Produto n�o encontrado'
             });
         }
 
@@ -175,11 +175,11 @@ router.post('/:id/arquivos', uploadProductFile.single('file'), async (req, res) 
         const agora = new Date().toISOString();
 
         /*
-         * A imagem já foi gravada pelo multer em:
+         * A imagem j� foi gravada pelo multer em:
          *
          * storage/product-files/<produto-id>/<arquivo>
          *
-         * Não usamos Vercel Blob aqui.
+         * N�o usamos Vercel Blob aqui.
          * O registro da imagem fica no SQLite.
          */
 
@@ -310,7 +310,7 @@ router.delete('/:id/arquivos/:arquivoId', (req, res) => {
         if (!arquivo) {
             return res.status(404).json({
                 success: false,
-                error: 'Arquivo não encontrado'
+                error: 'Arquivo n�o encontrado'
             });
         }
 
@@ -338,7 +338,7 @@ router.delete('/:id/arquivos/:arquivoId', (req, res) => {
 
         res.json({
             success: true,
-            message: 'Arquivo excluído com sucesso'
+            message: 'Arquivo exclu�do com sucesso'
         });
 
     } catch (error) {
@@ -421,7 +421,7 @@ router.get('/:id', (req, res) => {
         if (!produto) {
             return res.status(404).json({
                 success: false,
-                error: 'Produto não encontrado'
+                error: 'Produto n�o encontrado'
             });
         }
 
@@ -458,7 +458,7 @@ router.post('/', (req, res) => {
         if (!nome) {
             return res.status(400).json({
                 success: false,
-                error: 'Nome do produto é obrigatório'
+                error: 'Nome do produto � obrigat�rio'
             });
         }
 
@@ -559,7 +559,7 @@ router.put('/:id', (req, res) => {
         if (!existente) {
             return res.status(404).json({
                 success: false,
-                error: 'Produto não encontrado'
+                error: 'Produto n�o encontrado'
             });
         }
 
@@ -643,7 +643,7 @@ router.delete('/:id', (req, res) => {
         if (!existe) {
             return res.status(404).json({
                 success: false,
-                error: 'Produto não encontrado'
+                error: 'Produto n�o encontrado'
             });
         }
 
@@ -663,7 +663,7 @@ router.delete('/:id', (req, res) => {
 
         res.json({
             success: true,
-            message: 'Produto excluído com sucesso'
+            message: 'Produto exclu�do com sucesso'
         });
     } catch (error) {
         console.error('[PRODUTOS] DELETE /:id:', error);
@@ -674,7 +674,7 @@ router.delete('/:id', (req, res) => {
     }
 });
 
- // Busca rápida para bipagem
+ // Busca r�pida para bipagem
 router.get('/buscar/:codigo', (req, res) => {
     try {
         const codigo = String(req.params.codigo || '').trim();
@@ -693,7 +693,7 @@ router.get('/buscar/:codigo', (req, res) => {
         if (!produto) {
             return res.status(404).json({
                 success: false,
-                error: 'Produto não encontrado'
+                error: 'Produto n�o encontrado'
             });
         }
 

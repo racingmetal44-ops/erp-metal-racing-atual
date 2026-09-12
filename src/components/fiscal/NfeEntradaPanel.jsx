@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -158,7 +158,7 @@ export function NfeEntradaPanel({ empresaId }) {
             String(produto?.ean || '')
                 .replace(/\D/g, '');
 
-        // 1 - Correspondéncia exata pelo SKU
+        // 1 - Correspondência exata pelo SKU
         if (codigoNFe) {
 
             const porSku =
@@ -174,7 +174,7 @@ export function NfeEntradaPanel({ empresaId }) {
             }
         }
 
-        // 2 - Correspondéncia pelo EAN/barcode
+        // 2 - Correspondência pelo EAN/barcode
         if (
             eanNFe &&
             eanNFe !== 'SEM GTIN' &&

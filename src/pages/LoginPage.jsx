@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage() {
@@ -29,7 +29,7 @@ export default function LoginPage() {
       setLoading(false);
 
       if (!response.ok || !data.success) {
-        setMessage(data.error || 'E-mail ou senha inválidos.');
+        setMessage(data.error || 'E-mail ou senha inv�lidos.');
         return;
       }
 
@@ -43,7 +43,7 @@ export default function LoginPage() {
     } catch (error) {
       setLoading(false);
       console.error('[LOGIN] Erro:', error);
-      setMessage('Não foi possível conectar ao servidor.');
+      setMessage('N�o foi poss�vel conectar ao servidor.');
     }
   }
 

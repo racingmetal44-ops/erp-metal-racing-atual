@@ -1,4 +1,4 @@
-﻿import express from 'express';
+?import express from 'express';
 import db from '../database/db.js';
 
 const router = express.Router();
@@ -88,7 +88,7 @@ router.get('/:id', (req, res) => {
         if (!etiqueta) {
             return res.status(404).json({
                 success: false,
-                error: 'Etiqueta não encontrada'
+                error: 'Etiqueta n�o encontrada'
             });
         }
 
@@ -143,7 +143,7 @@ router.post('/', (req, res) => {
         if (!codigoFinal && !produto_id) {
             return res.status(400).json({
                 success: false,
-                error: 'Informe o código ou produto_id'
+                error: 'Informe o c�digo ou produto_id'
             });
         }
 
@@ -255,7 +255,7 @@ router.put('/:id', (req, res) => {
         if (!existente) {
             return res.status(404).json({
                 success: false,
-                error: 'Etiqueta não encontrada'
+                error: 'Etiqueta n�o encontrada'
             });
         }
 
@@ -367,7 +367,7 @@ router.delete('/:id', (req, res) => {
         if (!existente) {
             return res.status(404).json({
                 success: false,
-                error: 'Etiqueta não encontrada'
+                error: 'Etiqueta n�o encontrada'
             });
         }
 

@@ -1,23 +1,23 @@
-﻿// src/backend/services/nfe/NfeEntradaService.js
+// src/backend/services/nfe/NfeEntradaService.js
 // =========================================================
-// SERVIÃ©O DE ENTRADA DE NF-e (ESTOQUE TRANSACIONAL)
+// SERVIÇO DE ENTRADA DE NF-e (ESTOQUE TRANSACIONAL)
 // ---------------------------------------------------------
 // Responsabilidades:
 //  - identificar/criar fornecedor por CNPJ (sem duplicar);
-//  - identificar produto por EAN/cÃ³digo/SKU;
-//  - confirmar entrada com validaÃ§Ã£o completa;
+//  - identificar produto por EAN/código/SKU;
+//  - confirmar entrada com validação completa;
 //  - atualizar estoque no Supabase de forma transacional
 //    (rollback manual em caso de erro parcial);
-//  - registrar movimentaÃ©Ã©o (bipagem_history);
+//  - registrar movimentação (bipagem_history);
 //  - bloquear duplicidade por chave de acesso.
 //
 // O estoque vive no Supabase (products / bipagem_history).
-// Como o Supabase JS client nÃ£o expÃ©e transaÃ§Ã£oes SQL
-// diretamente, aplicamos o padrÃ£o "compensating actions":
-//  1. lÃ© estoque atual de todos os itens ANTES;
+// Como o Supabase JS client não expõe transações SQL
+// diretamente, aplicamos o padrão "compensating actions":
+//  1. lê estoque atual de todos os itens ANTES;
 //  2. aplica updates;
-//  3. se QUALQUER update falhar, reverte os jÃ¡ aplicados;
-//  4. sÃ© entÃ©o registra movimentaÃ§Ãµes e marca a NF-e.
+//  3. se QUALQUER update falhar, reverte os já aplicados;
+//  4. só então registra movimentações e marca a NF-e.
 // =========================================================
 
 import fs from 'fs-extra';
@@ -610,7 +610,7 @@ export async function saveEntradasAsync(lista) {
 // =========================================================
 // FORNECEDORES
 // =========================================================// =========================================================
-// FORNECEDORES (normalizaÃ©Ã©o de CNPJ, sem duplicar)
+// FORNECEDORES (normalização de CNPJ, sem duplicar)
 // =========================================================
 
 function normalizarCnpj(valor) {
@@ -634,7 +634,7 @@ function salvarFornecedores(lista) {
 
 /**
  * Localiza fornecedor pelo CNPJ normalizado.
- * Cria apenas se `criarSeNaoExistir` e os dados mÃ©nimos existirem.
+ * Cria apenas se `criarSeNaoExistir` e os dados mínimos existirem.
  */
 export function vincularFornecedor(dadosFornecedor, { criarSeNaoExistir = true } = {}) {
 
@@ -686,12 +686,12 @@ export function listarFornecedores() {
 }
 
 // =========================================================
-// IDENTIFICAÃ‡ÃƒO DE PRODUTO
+// IDENTIFICAÇÃO DE PRODUTO
 // =========================================================
 
 /**
  * Tenta identificar o produto do ERP para um item da NF-e.
- * Ordem: EAN -> cÃ³digo interno -> SKU -> vÃ©nculo salvo.
+ * Ordem: EAN -> código interno -> SKU -> vínculo salvo.
  */
 export async function identificarProduto(itemNfe, empresaId) {
 
@@ -975,7 +975,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
 
     if (!produto) {
         throw new Error(
-            `Não foi possível criar automaticamente o produto "${descricao}".`
+            `Não foi possóvel criar automaticamente o produto "${descricao}".`
         );
     }
 
@@ -995,7 +995,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     } catch (erroVinculo) {
 
         console.warn(
-            '[ENTRADA] Produto criado, mas não foi possível salvar vínculo:',
+            '[ENTRADA] Produto criado, mas não foi possóvel salvar vínculo:',
             erroVinculo.message
         );
     }
@@ -1062,13 +1062,13 @@ export function salvarVinculoProduto({ empresaId, codigoFornecedor, ean, produto
 }
 
 // =========================================================
-// VALIDAÃ©Ã©O DO XML / NF-e
+// VALIDAÇÃO DO XML / NF-e
 // =========================================================
 
 export function validarChaveAcesso(chave) {
     if (!/^\d{44}$/.test(chave)) {
         throw new Error(
-            `Chave de acesso invÃ¡lida (44 dÃ­gitos esperados). Recebida: ${chave}`
+            `Chave de acesso inválida (44 dígitos esperados). Recebida: ${chave}`
         );
     }
 
@@ -1087,7 +1087,7 @@ export function validarChaveAcesso(chave) {
 
     if (calculado !== informado) {
         throw new Error(
-            `DÃ­gito verificador da chave invÃ¡lido. Informado: ${informado}; calculado: ${calculado}.`
+            `Dígito verificador da chave inválido. Informado: ${informado}; calculado: ${calculado}.`
         );
     }
 
@@ -1110,29 +1110,29 @@ export function verificarDuplicidade(empresaId, chave) {
     if (existente.status === 'CONFIRMADA' || existente.status === 'PROCESSADA') {
         return {
             duplicada: true,
-            motivo: 'Esta NF-e jÃ¡ possui entrada de estoque.',
+            motivo: 'Esta NF-e já possui entrada de estoque.',
             entrada: existente
         };
     }
 
     return {
         duplicada: true,
-        motivo: 'Esta NF-e jÃ¡ foi importada.',
+        motivo: 'Esta NF-e já foi importada.',
         entrada: existente
     };
 }
 
 // =========================================================
-// CONFIRMAÃ‡ÃƒO DA ENTRADA (TRANSAÃ‡ÃƒO COM ROLLBACK)
+// CONFIRMAÇÃO DA ENTRADA (TRANSAÇÃO COM ROLLBACK)
 // =========================================================
 
 /**
  * Confirma a entrada da NF-e:
  *  1. valida NF-e, itens, produtos e quantidades;
- *  2. lÃ© estoque atual (snapshot);
+ *  2. lê estoque atual (snapshot);
  *  3. aplica updates de estoque;
- *  4. em erro: REVERTE updates jÃ¡ aplicados (rollback);
- *  5. registra movimentaÃ§Ãµes;
+ *  4. em erro: REVERTE updates já aplicados (rollback);
+ *  5. registra movimentações;
  *  6. marca NF-e como CONFIRMADA.
  */
 export async function reverterEstoqueEntrada(aplicados = []) {
@@ -1317,7 +1317,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
 
             if (!criado?.produto?.id) {
                 throw new Error(
-                    `Não foi possível criar o produto automaticamente: ` +
+                    `Não foi possóvel criar o produto automaticamente: ` +
                     `${itemCompleto.descricao || itemCompleto.codigo || 'item sem descrição'}`
                 );
             }

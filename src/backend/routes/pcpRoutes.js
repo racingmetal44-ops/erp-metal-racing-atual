@@ -1,4 +1,4 @@
-﻿import express from 'express';
+?import express from 'express';
 import crypto from 'crypto';
 import db from '../database/db.js';
 
@@ -115,12 +115,12 @@ function obterEtapas() {
         'Dobra',
         'Solda',
         'Lixamento',
-        'Químico',
+        'Qu�mico',
         'Pintura',
         'Montagem',
-        'Inspeção de Qualidade',
+        'Inspe��o de Qualidade',
         'Embalagem',
-        'Expedição',
+        'Expedi��o',
         'Entregue'
     ];
 }
@@ -190,7 +190,7 @@ function normalizarOrdem(row) {
                 : (row.current_stage || 'Recebido'),
 
         status:
-            row.status || 'Aguardando Produção',
+            row.status || 'Aguardando Produ��o',
 
         expected_delivery:
             row.data_prevista || null,
@@ -258,7 +258,7 @@ router.get('/orders/:id', (req, res) => {
         if (!row) {
             return res.status(404).json({
                 success: false,
-                error: 'Ordem de produção não encontrada'
+                error: 'Ordem de produ��o n�o encontrada'
             });
         }
 
@@ -295,7 +295,7 @@ router.get('/stats', (req, res) => {
         const inProduction = db.prepare(`
             SELECT COUNT(*) AS total
             FROM ordens_producao
-            WHERE status = 'Em Produção'
+            WHERE status = 'Em Produ��o'
         `).get().total;
 
         const completed = db.prepare(`
@@ -367,7 +367,7 @@ router.patch('/orders/:id/stage', (req, res) => {
         if (!stage) {
             return res.status(400).json({
                 success: false,
-                error: 'Etapa não informada'
+                error: 'Etapa n�o informada'
             });
         }
 
@@ -382,7 +382,7 @@ router.patch('/orders/:id/stage', (req, res) => {
         if (!order) {
             return res.status(404).json({
                 success: false,
-                error: 'Ordem de produção não encontrada'
+                error: 'Ordem de produ��o n�o encontrada'
             });
         }
 
@@ -391,7 +391,7 @@ router.patch('/orders/:id/stage', (req, res) => {
         if (!stages.includes(stage)) {
             return res.status(400).json({
                 success: false,
-                error: `Etapa inválida: ${stage}`,
+                error: `Etapa inv�lida: ${stage}`,
                 stages
             });
         }
@@ -399,7 +399,7 @@ router.patch('/orders/:id/stage', (req, res) => {
         const stageFinal = stages[stages.length - 1];
         const statusFinal = stage === stageFinal
             ? 'Finalizado'
-            : (stage === stages[0] ? 'Aguardando Produção' : 'Em Produção');
+            : (stage === stages[0] ? 'Aguardando Produ��o' : 'Em Produ��o');
 
         const dataAtual = agora();
 
@@ -448,7 +448,7 @@ router.patch('/orders/:id/stage', (req, res) => {
                 stage,
                 `Movido para: ${stage}`,
                 null,
-                'Usuário',
+                'Usu�rio',
                 dataAtual
             );
         });
@@ -493,7 +493,7 @@ router.patch('/orders/:id', (req, res) => {
         if (!order) {
             return res.status(404).json({
                 success: false,
-                error: 'Ordem de produção não encontrada'
+                error: 'Ordem de produ��o n�o encontrada'
             });
         }
 
@@ -655,7 +655,7 @@ router.post('/orders', (req, res) => {
         if (!stages.includes(currentStage)) {
             return res.status(400).json({
                 success: false,
-                error: `Etapa inválida: ${currentStage}`,
+                error: `Etapa inv�lida: ${currentStage}`,
                 stages
             });
         }
@@ -690,8 +690,8 @@ router.post('/orders', (req, res) => {
             currentStage === stages[stages.length - 1]
                 ? 'Finalizado'
                 : (currentStage === stages[0]
-                    ? 'Aguardando Produção'
-                    : 'Em Produção'),
+                    ? 'Aguardando Produ��o'
+                    : 'Em Produ��o'),
             priority,
             expectedDelivery,
             observations,
@@ -718,7 +718,7 @@ router.post('/orders', (req, res) => {
             currentStage,
             `Ordem criada em: ${currentStage}`,
             null,
-            'Usuário',
+            'Usu�rio',
             dataAtual
         );
 
@@ -759,7 +759,7 @@ router.delete('/orders/:id', (req, res) => {
         if (!order) {
             return res.status(404).json({
                 success: false,
-                error: 'Ordem de produção não encontrada'
+                error: 'Ordem de produ��o n�o encontrada'
             });
         }
 
@@ -789,7 +789,7 @@ router.delete('/orders/:id', (req, res) => {
 
         res.json({
             success: true,
-            message: 'Ordem de produção excluída com sucesso'
+            message: 'Ordem de produ��o exclu�da com sucesso'
         });
     } catch (error) {
         console.error('[PCP] DELETE /orders/:id:', error);
@@ -908,7 +908,7 @@ router.post('/apontamentos', (req, res) => {
         if (!orderId) {
             return res.status(400).json({
                 success: false,
-                error: 'order_id não informado'
+                error: 'order_id n�o informado'
             });
         }
 
@@ -921,7 +921,7 @@ router.post('/apontamentos', (req, res) => {
         if (!order) {
             return res.status(404).json({
                 success: false,
-                error: 'Ordem de produção não encontrada'
+                error: 'Ordem de produ��o n�o encontrada'
             });
         }
 
@@ -1052,7 +1052,7 @@ router.patch('/apontamentos/:id', (req, res) => {
         if (!atual) {
             return res.status(404).json({
                 success: false,
-                error: 'Apontamento não encontrado'
+                error: 'Apontamento n�o encontrado'
             });
         }
 
@@ -1137,7 +1137,7 @@ router.patch('/stages/config', (req, res) => {
         if (!Array.isArray(stages) || stages.length === 0) {
             return res.status(400).json({
                 success: false,
-                error: 'Lista de etapas inválida'
+                error: 'Lista de etapas inv�lida'
             });
         }
 

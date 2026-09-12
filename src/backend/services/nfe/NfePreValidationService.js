@@ -15,7 +15,7 @@ export class NfePreValidationService {
         const rt = empresa?.responsavelTecnico;
 
         exigir(this.numeros(empresa?.cnpj).length === 14, 'empresa.cnpj', 'CNPJ do emitente deve ter 14 dígitos.');
-        exigir(ie.length >= 2, 'empresa.ie', 'IE do emitente é obrigatéria.');
+        exigir(ie.length >= 2, 'empresa.ie', 'IE do emitente é obrigatória.');
         exigir(['1', '2', '3'].includes(String(empresa?.crt || empresa?.CRT || '')), 'empresa.crt', 'CRT deve ser informado.');
         exigir(empresa?.uf && (empresa?.codigoIbge || empresa?.codigo_ibge), 'empresa.endereco', 'UF e código IBGE do emitente são obrigatórios.');
 
@@ -24,7 +24,7 @@ export class NfePreValidationService {
             opcoes.serie !== null &&
             String(opcoes.serie).trim() !== '',
             'serie',
-            'Série da NF-e é obrigatéria.'
+            'Série da NF-e é obrigatória.'
         );
         exigir(
             rt?.cnpj && rt?.xContato && rt?.email && rt?.fone,
@@ -61,7 +61,7 @@ export class NfePreValidationService {
                 produto?.cfopInterestadual ||
                 produto?.cfopNaoContribuinte;
 
-            exigir(produto?.descricao || produto?.xProd, `${campo}.descricao`, 'Descrição do produto é obrigatéria.');
+            exigir(produto?.descricao || produto?.xProd, `${campo}.descricao`, 'Descrição do produto é obrigatória.');
             exigir(/^\d{8}$/.test(this.numeros(produto?.ncm)), `${campo}.ncm`, 'NCM deve ter 8 dígitos.');
             exigir(/^\d{4}$/.test(this.numeros(cfop)), `${campo}.cfop`, 'CFOP deve ter 4 dígitos ou ser derivado da regra fiscal.');
             exigir(Number(produto?.quantidade) > 0, `${campo}.quantidade`, 'Quantidade deve ser maior que zero.');

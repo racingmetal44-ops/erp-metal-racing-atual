@@ -469,12 +469,12 @@ export default function NfeFiscalPage() {
               </div>
             </div>
             <div className="nf-card">
-              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saéda</h2>
+              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saída</h2>
               <div className="nf-fields">
                 {input('Número reservado *', 'numero', 'Ex.: 18128')}
                 {input('Série *', 'serie')}
                 {input('Código IBGE destinatário *', 'ibge', '4209102')}
-                {input('Nome / razão social *', 'nome', 'Destinatério')}
+                {input('Nome / razão social *', 'nome', 'Destinatário')}
                 {input('CPF ou CNPJ *', 'documento', '11144477735')}
                 {input('Descrição do item *', 'descricao', 'Produto ou serviço')}
               </div>

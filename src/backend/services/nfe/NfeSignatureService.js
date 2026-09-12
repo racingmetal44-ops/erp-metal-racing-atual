@@ -27,13 +27,13 @@ class NfeSignatureService {
                 senha
             );
 
-        // A SEFAZ não aceita caracteres de edição
-        // (espaços/quebras de linha) entre elementos
+        // A SEFAZ n�o aceita caracteres de edi��o
+        // (espa�os/quebras de linha) entre elementos
         // dentro do NFe/enviNFe.
         //
-        // A compactaééo acontece ANTES da assinatura,
+        // A compacta��o acontece ANTES da assinatura,
         // para que o DigestValue seja calculado sobre
-        // exatamente o XML que seré transmitido.
+        // exatamente o XML que ser� transmitido.
         const xmlCompactado =
             String(xml)
                 .replace(/>\s+</g, '><')
@@ -50,7 +50,7 @@ class NfeSignatureService {
 
         if (infNFeInicio < 0) {
             throw new Error(
-                'Tag <infNFe> não encontrada no XML para assinatura.'
+                'Tag <infNFe> n�o encontrada no XML para assinatura.'
             );
         }
 
@@ -59,7 +59,7 @@ class NfeSignatureService {
 
         if (infNFeFim < 0) {
             throw new Error(
-                'Tag <infNFe> inválida no XML para assinatura.'
+                'Tag <infNFe> inv�lida no XML para assinatura.'
             );
         }
 
@@ -74,7 +74,7 @@ class NfeSignatureService {
 
         if (idInicio < 0) {
             throw new Error(
-                'Atributo Id da NF-e não encontrado na tag <infNFe>.'
+                'Atributo Id da NF-e n�o encontrado na tag <infNFe>.'
             );
         }
 
@@ -86,7 +86,7 @@ class NfeSignatureService {
 
         if (idValorFim < 0) {
             throw new Error(
-                'Valor do Id da NF-e não foi encerrado corretamente.'
+                'Valor do Id da NF-e n�o foi encerrado corretamente.'
             );
         }
 
@@ -98,7 +98,7 @@ class NfeSignatureService {
 
         if (!/^\d{44}$/.test(idNFe)) {
             throw new Error(
-                `Id da NF-e inválido. Chave encontrada: ${idNFe}`
+                `Id da NF-e inv�lido. Chave encontrada: ${idNFe}`
             );
         }
 
@@ -144,7 +144,7 @@ class NfeSignatureService {
 
         if (!empresa) {
             throw new Error(
-                `Empresa ${empresaId} não encontrada`
+                `Empresa ${empresaId} n�o encontrada`
             );
         }
 
@@ -159,7 +159,7 @@ class NfeSignatureService {
 
         if (!fs.existsSync(certPath)) {
             throw new Error(
-                `Certificado não encontrado: ${certPath}`
+                `Certificado n�o encontrado: ${certPath}`
             );
         }
 
@@ -178,7 +178,7 @@ class NfeSignatureService {
             ) {
                 return {
                     valido: false,
-                    mensagem: 'XML não informado.'
+                    mensagem: 'XML n�o informado.'
                 };
             }
 
@@ -188,7 +188,7 @@ class NfeSignatureService {
             ) {
                 return {
                     valido: false,
-                    mensagem: 'Assinatura digital não encontrada no XML.'
+                    mensagem: 'Assinatura digital n�o encontrada no XML.'
                 };
             }
 

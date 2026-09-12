@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
@@ -29,10 +29,10 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Não foi possível criar a conta.');
+        throw new Error(data.error || 'N�o foi poss�vel criar a conta.');
       }
 
-      setMessage('Conta criada com sucesso. Faça login para acessar o ERP.');
+      setMessage('Conta criada com sucesso. Fa�a login para acessar o ERP.');
       navigate('/login');
     } catch (error) {
       console.error('[AUTH] Erro no cadastro:', error);
