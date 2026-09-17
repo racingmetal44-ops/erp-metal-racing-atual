@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+﻿import { useEffect, useState, useRef } from 'react';
 import {
   Image as ImageIcon,
   Trash2,
@@ -57,7 +57,7 @@ export default function StockPage() {
   const [bipeTimeout, setBipeTimeout] = useState(null);
 
   // =============================================
-  // VALIDAÇÃO DE DUPLICIDADE (FUNCIONANDO)
+  // VALIDAÃ‡ÃƒO DE DUPLICIDADE (FUNCIONANDO)
   // =============================================
   async function verificarDuplicado() {
     const nome = form.name?.trim();
@@ -134,7 +134,7 @@ export default function StockPage() {
       if (conflitos.length > 0) {
         return {
           duplicado: true,
-        mensagem: `Já existe: ${conflitos.join(', ')}`
+        mensagem: `JÃ¡ existe: ${conflitos.join(', ')}`
         };
       }
 
@@ -144,7 +144,7 @@ export default function StockPage() {
 
     } catch (error) {
       console.error(
-        'Erro na validação:',
+        'Erro na validaÃ§Ã£o:',
         error
       );
 
@@ -274,6 +274,24 @@ export default function StockPage() {
     setGallery([]);
   }
 
+  function handleFileChange(event) {
+    const files = Array.from(event.target.files || []);
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+
+    if (!imageFiles.length) {
+      return;
+    }
+
+    const previews = imageFiles.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+
+    setPendingFiles((current) => [...current, ...previews]);
+
+    // Permite selecionar novamente o mesmo arquivo depois.
+    event.target.value = '';
+  }
   async function uploadProductFiles(productId) {
     if (!pendingFiles.length) return;
 
@@ -305,7 +323,7 @@ export default function StockPage() {
     }
   }
   // =============================================
-  // HANDLE SUBMIT COM VALIDAÇÃO
+  // HANDLE SUBMIT COM VALIDAÃ‡ÃƒO
   // =============================================
   // =============================================
   // HANDLE SUBMIT COM VALIDACAO - SQLITE
@@ -472,6 +490,46 @@ export default function StockPage() {
     setPendingFiles((current) => [...current, ...previews]);
   }
 
+  async function handleDeleteProductFile(productId, arquivoId) {
+    if (!confirm('Excluir esta foto do produto?')) return;
+
+    try {
+      const response = await fetch(
+        `/api/produtos/${productId}/arquivos/${arquivoId}`,
+        { method: 'DELETE' }
+      );
+
+      const resultado = await response.json();
+
+      if (!response.ok || resultado.success === false) {
+        throw new Error(resultado.error || 'Falha ao excluir a foto.');
+      }
+
+      setGallery((current) =>
+        current.filter((image) => String(image.id) !== String(arquivoId))
+      );
+
+      setProducts((current) =>
+        current.map((product) =>
+          String(product.id) === String(productId)
+            ? {
+                ...product,
+                files: Array.isArray(product.files)
+                  ? product.files.filter(
+                      (image) => String(image.id) !== String(arquivoId)
+                    )
+                  : []
+              }
+            : product
+        )
+      );
+
+      setMessage('Foto excluída com sucesso.');
+    } catch (error) {
+      console.error('[ESTOQUE] Erro ao excluir foto:', error);
+      setMessage(error.message || 'Falha ao excluir a foto.');
+    }
+  }
   function removePendingFile(index) {
     setPendingFiles((current) => {
       const next = [...current];
@@ -537,7 +595,7 @@ export default function StockPage() {
       if (!response.ok || !resultado.success || !resultado.data) {
         setBipeProduct(null);
         setBipeStatus('nao-encontrado');
-        setMessage('Produto não encontrado!');
+        setMessage('Produto nÃ£o encontrado!');
         setTimeout(() => setMessage(''), 3000);
         return;
       }
@@ -594,7 +652,7 @@ export default function StockPage() {
       } else {
         setBipeStatus('saida');
         setMessage(
-          `SAÍDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
+          `SAÃDA: ${bipeProduct.name} -1 (Total: ${novaQuantidade})`
         );
       }
 
@@ -647,23 +705,23 @@ export default function StockPage() {
     <div className="space-y-6">
       {/* HEADER */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">Módulo</p>
+        <p className="text-sm text-orange-400">MÃ³dulo</p>
         <h1 className="mt-2 text-3xl font-semibold">Estoque</h1>
-        <p className="mt-2 text-sm text-slate-400">Cadastro, edição e controle de estoque com armazenamento local.</p>
+        <p className="mt-2 text-sm text-slate-400">Cadastro, ediÃ§Ã£o e controle de estoque com armazenamento local.</p>
       </div>
 
-      {/* ESTATÍSTICAS */}
+      {/* ESTATÃSTICAS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="flex items-center gap-2 text-slate-400"><Package size={18} /><span className="text-sm">Total</span></div>
           <p className="mt-1 text-2xl font-bold text-white">{stats.total}</p>
         </div>
         <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
-          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do Mínimo</span></div>
+          <div className="flex items-center gap-2 text-rose-400"><TrendingDown size={18} /><span className="text-sm">Abaixo do MÃ­nimo</span></div>
           <p className="mt-1 text-2xl font-bold text-rose-400">{stats.baixo}</p>
         </div>
         <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do Máximo</span></div>
+          <div className="flex items-center gap-2 text-amber-400"><TrendingUp size={18} /><span className="text-sm">Acima do MÃ¡ximo</span></div>
           <p className="mt-1 text-2xl font-bold text-amber-400">{stats.alto}</p>
         </div>
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
@@ -672,17 +730,17 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* FORMULÁRIO */}
+      {/* FORMULÃRIO */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{editingId ? 'Editar Produto' : 'Novo Produto'}</h2>
-          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar Edição</button>}
+          {editingId && <button onClick={resetForm} className="text-sm text-slate-400 hover:text-white">Cancelar EdiÃ§Ã£o</button>}
         </div>
 
         <form onSubmit={handleSubmit} className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peça *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Nome da peÃ§a *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="SKU *" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
-          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="Código de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+          <input className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="CÃ³digo de barras" value={form.barcode} onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
 
           <div className="md:col-span-2 xl:col-span-3">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl border border-slate-700 bg-slate-950/50">
@@ -692,11 +750,11 @@ export default function StockPage() {
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="0" value={form.current_stock} onChange={(e) => setForm({ ...form, current_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque Mínimo</label>
+                <label className="text-xs text-slate-400">Estoque MÃ­nimo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="5" value={form.min_stock} onChange={(e) => setForm({ ...form, min_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
               <div>
-                <label className="text-xs text-slate-400">Estoque Máximo</label>
+                <label className="text-xs text-slate-400">Estoque MÃ¡ximo</label>
                 <input type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none" placeholder="20" value={form.max_stock} onChange={(e) => setForm({ ...form, max_stock: Number(e.target.value) || 0 })} min="0" />
               </div>
             </div>
@@ -801,7 +859,7 @@ export default function StockPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-semibold text-slate-100">{product.name || 'Produto sem nome'}</h3>
-                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU não informado'}</p>
+                        <p className="text-sm text-slate-500">{product.sku ? `SKU ${product.sku}` : 'SKU nÃ£o informado'}</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === 'ativo' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-slate-500/15 text-slate-400'}`}>{product.status}</span>
                     </div>
@@ -812,46 +870,321 @@ export default function StockPage() {
                         <p className={`font-bold ${(product.current_stock ?? 0) < (product.min_stock ?? 0) ? 'text-rose-400' : (product.current_stock ?? 0) > (product.max_stock ?? 99999) ? 'text-amber-400' : 'text-emerald-400'}`}>{product.current_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Mínimo</p>
+                        <p className="text-xs text-slate-500">MÃ­nimo</p>
                         <p className="font-bold text-slate-200">{product.min_stock ?? 0}</p>
                       </div>
                       <div className="rounded-xl bg-slate-900/50 p-2 text-center">
-                        <p className="text-xs text-slate-500">Máximo</p>
+                        <p className="text-xs text-slate-500">MÃ¡ximo</p>
                         <p className="font-bold text-slate-200">{product.max_stock ?? 0}</p>
                       </div>
                     </div>
 
                     {product.category && <p className="text-sm text-slate-400"><span className="text-slate-500">Categoria:</span> {product.category}</p>}
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button onClick={() => handleEdit(product)} className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300">Editar</button>
-                      <button onClick={() => handleDelete(product.id)} className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10">Excluir</button>
-                        <button onClick={async () => {
-                          const novaQtd = (product.current_stock ?? 0) + 1;
-                          try {
-                            const response = await fetch(`/api/produtos/${product.id}`, {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                current_stock: novaQtd,
-                                estoque_atual: novaQtd
-                              })
-                            });
+                    {editingId === product.id ? (
+                      <div className="mt-4 rounded-2xl border border-orange-500/30 bg-slate-900/80 p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <h4 className="font-semibold text-orange-400">
+                            Editando produto
+                          </h4>
 
-                            const resultado = await response.json();
+                          <button
+                            type="button"
+                            onClick={resetForm}
+                            className="text-xs text-slate-400 hover:text-white"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
 
-                            if (!response.ok || !resultado.success) {
-                              throw new Error(resultado.error || `Erro HTTP ${response.status}`);
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Nome da peça
+                            </label>
+                            <input
+                              type="text"
+                              value={form.name}
+                              onChange={(e) =>
+                                setForm({ ...form, name: e.target.value })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              SKU
+                            </label>
+                            <input
+                              type="text"
+                              value={form.sku}
+                              onChange={(e) =>
+                                setForm({ ...form, sku: e.target.value })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Código de barras
+                            </label>
+                            <input
+                              type="text"
+                              value={form.barcode}
+                              onChange={(e) =>
+                                setForm({ ...form, barcode: e.target.value })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Categoria
+                            </label>
+                            <input
+                              type="text"
+                              value={form.category}
+                              onChange={(e) =>
+                                setForm({ ...form, category: e.target.value })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Estoque atual
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={form.current_stock}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  current_stock: Number(e.target.value) || 0
+                                })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Estoque mínimo
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={form.min_stock}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  min_stock: Number(e.target.value) || 0
+                                })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Estoque máximo
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={form.max_stock}
+                              onChange={(e) =>
+                                setForm({
+                                  ...form,
+                                  max_stock: Number(e.target.value) || 0
+                                })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs text-slate-400">
+                              Unidade
+                            </label>
+                            <input
+                              type="text"
+                              value={form.unit}
+                              onChange={(e) =>
+                                setForm({ ...form, unit: e.target.value })
+                              }
+                              className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white focus:border-orange-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-950/70 p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-slate-200">
+                                Fotos do produto
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                Adicione uma ou mais fotos e salve as alterações.
+                              </p>
+                            </div>
+
+                            <label className="cursor-pointer rounded-xl border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-xs font-semibold text-orange-300 transition hover:bg-orange-500/20">
+                              <Upload size={14} className="mr-1 inline" />
+                              Adicionar foto
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={handleFileChange}
+                              />
+                            </label>
+                          </div>
+
+                          {(pendingFiles.length > 0 || gallery.length > 0) && (
+                            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                              {gallery.map((image) => (
+                                <div
+                                  key={image.id}
+                                  className="relative overflow-hidden rounded-xl border border-slate-700 bg-slate-900"
+                                >
+                                  <img
+                                    src={image.file_url}
+                                    alt={image.file_name || 'Foto do produto'}
+                                    className="h-24 w-full object-contain"
+                                  />
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleDeleteProductFile(product.id, image.id)
+                                    }
+                                    className="absolute right-1 top-1 rounded-full bg-rose-500/90 p-1.5 text-white shadow-lg transition hover:bg-rose-600"
+                                    title="Excluir foto"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+
+                                  <p className="truncate px-2 py-1 text-[10px] text-slate-500">
+                                    Foto salva
+                                  </p>
+                                </div>
+                              ))}
+
+                              {pendingFiles.map((image, index) => (
+                                <div
+                                  key={index}
+                                  className="relative overflow-hidden rounded-xl border border-orange-500/40 bg-slate-900"
+                                >
+                                  <img
+                                    src={image.preview}
+                                    alt={image.file?.name || 'Nova foto'}
+                                    className="h-24 w-full object-contain"
+                                  />
+
+                                  <button
+                                    type="button"
+                                    onClick={() => removePendingFile(index)}
+                                    className="absolute right-1 top-1 rounded-full bg-rose-500/90 p-1 text-white hover:bg-rose-600"
+                                    title="Remover foto"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+
+                                  <p className="truncate px-2 py-1 text-[10px] text-orange-300">
+                                    Nova foto
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            type="button"
+                            disabled={uploading}
+                            onClick={handleSubmit}
+                            className="flex-1 rounded-xl bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {uploading ? 'Salvando...' : 'Salvar alterações'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={resetForm}
+                            className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm text-slate-300 transition hover:bg-slate-800"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleEdit(product)}
+                          className="rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-orange-500/60 hover:text-orange-300"
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="rounded-2xl border border-rose-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/10"
+                        >
+                          Excluir
+                        </button>
+
+                        <button
+                          onClick={async () => {
+                            const novaQtd = (product.current_stock ?? 0) + 1;
+
+                            try {
+                              const response = await fetch(`/api/produtos/${product.id}`, {
+                                method: 'PUT',
+                                headers: {
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                  current_stock: novaQtd,
+                                  estoque_atual: novaQtd
+                                })
+                              });
+
+                              const resultado = await response.json();
+
+                              if (!response.ok || !resultado.success) {
+                                throw new Error(
+                                  resultado.error || `Erro HTTP ${response.status}`
+                                );
+                              }
+
+                              await loadProducts();
+                              setMessage('Estoque atualizado com sucesso.');
+                            } catch (error) {
+                              console.error(
+                                '[ESTOQUE] Erro ao adicionar estoque:',
+                                error
+                              );
+
+                              setMessage(
+                                error.message ||
+                                'Falha ao atualizar estoque.'
+                              );
                             }
-
-                            await loadProducts();
-                            setMessage('Estoque atualizado com sucesso.');
-                          } catch (error) {
-                            console.error('[ESTOQUE] Erro ao adicionar estoque:', error);
-                            setMessage(error.message || 'Falha ao atualizar estoque.');
-                          }
-                        }} className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"><Plus size={14} className="inline mr-1" />+1</button>
-                    </div>
+                          }}
+                          className="rounded-2xl border border-emerald-500/30 bg-slate-900 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"
+                        >
+                          <Plus size={14} className="inline mr-1" />
+                          +1
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -871,15 +1204,15 @@ export default function StockPage() {
                 <QrCode size={32} />
               </div>
               <h2 className="text-xl font-bold text-white">Bipar produto</h2>
-              <p className="text-sm text-slate-400">Leia o código de barras ou digite o SKU</p>
-              <p className="text-xs text-emerald-400 mt-1">Leitura automática - não precisa de Enter</p>
+              <p className="text-sm text-slate-400">Leia o cÃ³digo de barras ou digite o SKU</p>
+              <p className="text-xs text-emerald-400 mt-1">Leitura automÃ¡tica - nÃ£o precisa de Enter</p>
             </div>
 
             <input
               ref={bipeInputRef}
               type="text"
               className={`w-full rounded-xl border-2 px-4 py-4 text-center text-2xl font-mono text-white placeholder:text-slate-600 focus:outline-none transition-all duration-300 ${bipeStatus === 'entrada' ? 'border-emerald-500 bg-emerald-500/10' : bipeStatus === 'saida' ? 'border-rose-500 bg-rose-500/10' : bipeStatus === 'nao-encontrado' ? 'border-blue-500 bg-blue-500/10' : 'border-orange-500/50 bg-slate-950 focus:border-orange-500'}`}
-              placeholder="Digite ou leia o código..."
+              placeholder="Digite ou leia o cÃ³digo..."
               value={bipeCode}
               onChange={handleBipeCodeChange}
               autoFocus
@@ -928,12 +1261,12 @@ export default function StockPage() {
             {!bipeProduct && !bipeLoading && bipeCode && bipeStatus === 'nao-encontrado' && (
               <div className="mt-4 rounded-xl border-2 border-blue-500/50 bg-blue-500/10 p-4 text-center transition-all duration-300">
                 <AlertTriangle size={24} className="inline mr-2 text-blue-400" />
-                <span className="text-blue-400 font-bold">Produto não encontrado!</span>
-                <p className="text-blue-300/70 text-sm mt-1">Verifique o código digitado</p>
+                <span className="text-blue-400 font-bold">Produto nÃ£o encontrado!</span>
+                <p className="text-blue-300/70 text-sm mt-1">Verifique o cÃ³digo digitado</p>
               </div>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">A busca é feita automaticamente após digitar o código</p>
+            <p className="mt-4 text-center text-xs text-slate-500">A busca Ã© feita automaticamente apÃ³s digitar o cÃ³digo</p>
           </div>
         </div>
       )}
@@ -971,6 +1304,11 @@ export default function StockPage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

@@ -1,165 +1,274 @@
-import { supabase } from '../../lib/supabase';
+﻿const API = '/api/pcp';
+
+const DEFAULT_STAGES = [
+  'Recebido',
+  'Corte a Laser',
+  'Dobra',
+  'Solda',
+  'Lixamento',
+  'QuÃ­mico',
+  'Pintura',
+  'Montagem',
+  'InspeÃ§Ã£o de Qualidade',
+  'Embalagem',
+  'ExpediÃ§Ã£o',
+  'Entregue'
+];
+
+async function request(url, options = {}) {
+  const response = await fetch(`${API}${url}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    ...options
+  });
+
+  const text = await response.text();
+
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!response.ok || data.success === false) {
+    throw new Error(
+      data.error ||
+      data.message ||
+      data.xMotivo ||
+      `Erro HTTP ${response.status}`
+    );
+  }
+
+  return data;
+}
 
 export const pcpService = {
-  // Buscar todas as OP
+
+  stages: DEFAULT_STAGES,
+
   async getOrders() {
-    const { data, error } = await supabase
-      .from('production_orders')
-      .select(
-        *,
-        product:product_id (*),
-        stages:production_stages (*),
-        movements:production_movements (*)
-      )
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data;
+    const data = await request('/orders');
+    return data.orders || data.data || [];
   },
 
-  // Buscar estatésticas
   async getStats() {
-    const { data, error } = await supabase
-      .from('production_stats')
-      .select('*')
-      .single();
-    
-    if (error) throw error;
-    return data;
+    const data = await request('/stats');
+    return data.stats || data.data || data || {};
   },
 
-  // Criar nova OP
-  async createOrder(orderData) {
-    // Gerar número da OP automaticamente
-    const { data: lastOrder } = await supabase
-      .from('production_orders')
-      .select('order_number')
-      .order('order_number', { ascending: false })
-      .limit(1);
-    
-    const nextNumber = lastOrder && lastOrder.length > 0 
-      ? parseInt(lastOrder[0].order_number) + 1 
-      : 1000;
-    
-    const newOrder = {
-      ...orderData,
-      order_number: nextNumber.toString(),
-      status: 'Aguardando Produção',
-      current_stage: 'Recebido',
-      created_at: new Date().toISOString()
-    };
-
-    const { data, error } = await supabase
-      .from('production_orders')
-      .insert([newOrder])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    // Registrar movimento inicial
-    await this.addMovement(data.id, 'Recebido', 'Início da produção');
-    
-    return data;
-  },
-
-  // Atualizar OP
-  async updateOrder(orderId, updateData) {
-    const { data, error } = await supabase
-      .from('production_orders')
-      .update(updateData)
-      .eq('id', orderId)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  // Avançar etapa
-  async advanceStage(orderId, stage) {
-    const { data: order } = await supabase
-      .from('production_orders')
-      .select('*')
-      .eq('id', orderId)
-      .single();
-    
-    const stageIndex = this.stages.indexOf(stage);
-    const nextStage = this.stages[stageIndex + 1];
-    
-    // Registrar movimento
-    await this.addMovement(orderId, stage, Finalizado: );
-    
-    // Atualizar ordem
-    const updateData = {
-      current_stage: nextStage || 'Finalizado',
-      status: nextStage ? 'Em Produção' : 'Finalizado',
-      updated_at: new Date().toISOString()
-    };
-    
-    if (!nextStage) {
-      updateData.completed_at = new Date().toISOString();
-    }
-    
-    const { data, error } = await supabase
-      .from('production_orders')
-      .update(updateData)
-      .eq('id', orderId)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-
-  // Adicionar movimento
-  async addMovement(orderId, stage, description) {
-    const movement = {
-      order_id: orderId,
-      stage,
-      description,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      created_at: new Date().toISOString()
-    };
-    
-    const { error } = await supabase
-      .from('production_movements')
-      .insert([movement]);
-    
-    if (error) throw error;
-  },
-
-  // Atualizar configuração de etapas
-  async updateStageConfig(newStages) {
-    const { error } = await supabase
-      .from('system_config')
-      .update({ value: newStages })
-      .eq('key', 'production_stages');
-    
-    if (error) throw error;
-  },
-
-  // Buscar etapas
   async getStages() {
-    const { data, error } = await supabase
-      .from('system_config')
-      .select('value')
-      .eq('key', 'production_stages')
-      .single();
-    
-    if (error) return [
-      'Recebido', 'Corte a Laser', 'Dobra', 'Solda', 'Lixamento',
-      'Químico', 'Pintura', 'Montagem', 'Inspeção de Qualidade',
-      'Embalagem', 'Expedição', 'Entregue'
-    ];
-    
-    return data?.value || [];
-  }
+    try {
+      const data = await request('/stages');
+      const stages = data.stages || data.data || [];
+
+      if (Array.isArray(stages) && stages.length > 0) {
+        this.stages = stages;
+        return stages;
+      }
+    } catch (error) {
+      console.warn('NÃ£o foi possÃ­vel carregar etapas:', error.message);
+    }
+
+    return this.stages;
+  },
+
+  async createOrder(orderData) {
+    const payload = {
+      ...orderData,
+      product_name:
+        orderData.product_name ||
+        orderData.productName ||
+        orderData.produto_nome ||
+        '',
+      sku:
+        orderData.sku ||
+        '',
+      client:
+        orderData.client ||
+        '',
+      quantity:
+        Number(
+          orderData.quantity ??
+          orderData.quantidade ??
+          0
+        ),
+      priority:
+        orderData.priority ||
+        orderData.prioridade ||
+        'Media',
+      current_stage:
+        orderData.current_stage ||
+        orderData.currentStage ||
+        orderData.setor_inicial ||
+        this.stages[0],
+      expected_delivery:
+        orderData.expected_delivery ||
+        orderData.expectedDelivery ||
+        orderData.data_prevista ||
+        null,
+      observations:
+        orderData.observations ??
+        orderData.observacao ??
+        orderData.observacoes ??
+        '',
+      product_id:
+        orderData.product_id ||
+        orderData.productId ||
+        orderData.produto_id ||
+        null
+    };
+
+    const data = await request('/orders', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    return data.order || data.data || data;
+  },
+
+  async updateOrder(orderId, updateData) {
+    const data = await request(`/orders/${encodeURIComponent(orderId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updateData)
+    });
+
+    return data.order || data.data || data;
+  },
+
+  async updateStage(orderId, stage) {
+    const data = await request(
+      `/orders/${encodeURIComponent(orderId)}/stage`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          stage,
+          current_stage: stage
+        })
+      }
+    );
+
+    return data.order || data.data || data;
+  },
+
+  async advanceStage(orderId, stage) {
+    const index = this.stages.indexOf(stage);
+
+    if (index < 0) {
+      throw new Error(`Etapa invÃ¡lida: ${stage}`);
+    }
+
+    const nextStage =
+      this.stages[index + 1] ||
+      'Entregue';
+
+    return this.updateStage(orderId, nextStage);
+  },
+
+  async addMovement(orderId, stage, description) {
+    const data = await request(
+      `/orders/${encodeURIComponent(orderId)}/movements`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          stage,
+          description
+        })
+      }
+    );
+
+    return data.movement || data.data || data;
+  },
+
+  async getMovements(orderId) {
+    const data = await request(
+      `/orders/${encodeURIComponent(orderId)}/movements`
+    );
+
+    return data.movements || data.data || [];
+  },
+
+  async getApontamentos(orderId) {
+    const data = await request(
+      `/orders/${encodeURIComponent(orderId)}/apontamentos`
+    );
+
+    return data.apontamentos || data.data || [];
+  },
+
+  async addApontamento(apontamento) {
+    const data = await request('/apontamentos', {
+      method: 'POST',
+      body: JSON.stringify(apontamento)
+    });
+
+    return data.apontamento || data.data || data;
+  },
+
+  async updateApontamento(id, payload) {
+    const data = await request(
+      `/apontamentos/${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload)
+      }
+    );
+
+    return data.apontamento || data.data || data;
+  },
+
+  async deleteOrder(orderId) {
+    const data = await request(
+      `/orders/${encodeURIComponent(orderId)}`,
+      {
+        method: 'DELETE'
+      }
+    );
+
+    return data;
+  },
+
+  async getOperators() {
+    const data = await request('/operadores');
+    return data.operadores || data.operators || data.data || [];
+  },
+  // ============================================================
+  // CRUD DE SETORES - METAL RACING
+  // ============================================================
+
+  async getStagesFull() {
+    const data = await request('/stages/full');
+    return data.stages || data.data || [];
+  },
+
+  async criarSetor({ nome, cor, ordem, icone }) {
+    const data = await request('/stages', {
+      method: 'POST',
+      body: JSON.stringify({ nome, cor, ordem, icone })
+    });
+    return data.stage || data.data || data;
+  },
+
+  async editarSetor(id, { nome, cor, ordem, icone, ativo }) {
+    const data = await request(`/stages/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ nome, cor, ordem, icone, ativo })
+    });
+    return data.stage || data.data || data;
+  },
+
+  async excluirSetor(id) {
+    const data = await request(`/stages/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    return data;
+  },
+
+  // ============================================================
+  // FIM CRUD DE SETORES
+  // ============================================================
 };
 
-// Constante de etapas padrão
-pcpService.stages = [
-  'Recebido', 'Corte a Laser', 'Dobra', 'Solda', 'Lixamento',
-  'Químico', 'Pintura', 'Montagem', 'Inspeção de Qualidade',
-  'Embalagem', 'Expedição', 'Entregue'
-];
+export default pcpService;

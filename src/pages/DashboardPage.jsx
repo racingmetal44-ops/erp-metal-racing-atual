@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import {
   Package,
   ShoppingCart,
@@ -172,14 +172,14 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-slate-950/30 backdrop-blur">
-        <p className="text-sm text-orange-400">Visão geral</p>
+        <p className="text-sm text-orange-400">VisÃ£o geral</p>
 
         <h1 className="mt-2 text-3xl font-semibold">
           Dashboard
         </h1>
 
         <p className="mt-2 text-sm text-slate-400">
-          Painel executivo com métricas principais do ERP.
+          Painel executivo com mÃ©tricas principais do ERP.
         </p>
       </div>
 
@@ -219,7 +219,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/20">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">
-              Movimentações recentes
+              MovimentaÃ§Ãµes recentes
             </h2>
 
             <button className="text-sm text-orange-400">
@@ -230,7 +230,7 @@ export default function DashboardPage() {
           <div className="mt-4 space-y-3">
             {items.length === 0 ? (
               <p className="text-sm text-slate-500">
-                Nenhuma movimentação encontrada.
+                Nenhuma movimentaÃ§Ã£o encontrada.
               </p>
             ) : (
               items.map((item) => {
@@ -290,8 +290,8 @@ export default function DashboardPage() {
 
           <div className="mt-4 space-y-3">
             {[
+              { label: 'Quadro de Produção', path: '/quadro-producao' },
               { label: 'Bipagem', path: '/bipagem' },
-              { label: 'Produção', path: '/producao' },
               { label: 'NF-e', path: '/nfe' },
               { label: 'Estoque', path: '/estoque' },
               { label: 'Ranking', path: '/ranking' },
@@ -312,3 +312,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

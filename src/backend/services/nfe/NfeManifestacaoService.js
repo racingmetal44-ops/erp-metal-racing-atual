@@ -1,4 +1,4 @@
-?import 'dotenv/config';
+﻿import 'dotenv/config';
 import axios from 'axios';
 import fs from 'fs-extra';
 import path from 'path';
@@ -33,7 +33,7 @@ export const DESCRICOES_EVENTO = {
 };
 
 const X_COND_USO =
-    'O autor deste evento declara ter ciência de que a utilização indevida do evento poderá sujeitá-lo às sanções previstas na legislação tributária.';
+    'O autor deste evento declara ter ciÃªncia de que a utilizaÃ§Ã£o indevida do evento poderÃ¡ sujeitÃ¡-lo Ã s sanÃ§Ãµes previstas na legislaÃ§Ã£o tributÃ¡ria.';
 
 function lerEventos() {
     try {
@@ -95,7 +95,7 @@ function validarChave(chNFe) {
 
     if (!/^\d{44}$/.test(chave)) {
         throw new Error(
-            'Chave da NF-e inválida. Deve possuir 44 dígitos.'
+            'Chave da NF-e invÃ¡lida. Deve possuir 44 dÃ­gitos.'
         );
     }
 
@@ -109,7 +109,7 @@ function validarCnpj(cnpj) {
 
     if (!/^\d{14}$/.test(valor)) {
         throw new Error(
-            'CNPJ do destinatário inválido.'
+            'CNPJ do destinatÃ¡rio invÃ¡lido.'
         );
     }
 
@@ -117,9 +117,9 @@ function validarCnpj(cnpj) {
 }
 
 /*
- * XML ESPECÍFICO DA MANIFESTAÇÃO DO DESTINATÁRIO
+ * XML ESPECÃFICO DA MANIFESTAÃ‡ÃƒO DO DESTINATÃRIO
  *
- * 210200 - Confirmação da Operação
+ * 210200 - ConfirmaÃ§Ã£o da OperaÃ§Ã£o
  *
  * Estrutura:
  *
@@ -138,7 +138,7 @@ function validarCnpj(cnpj) {
  *       descEvento
  *       xCondUso
  *
- * A assinatura fica como irmã de infEvento
+ * A assinatura fica como irmÃ£ de infEvento
  * dentro de evento.
  */
 function montarXmlEvento({ tpAmb, cnpj, chNFe, tipoEvento, sequencia, justificativa }) {
@@ -252,7 +252,7 @@ function assinarEvento(
 
     if (!match) {
         throw new Error(
-            'Id do infEvento não encontrado.'
+            'Id do infEvento nÃ£o encontrado.'
         );
     }
 
@@ -345,7 +345,7 @@ function analisarResposta(xmlResposta) {
 
     /*
      * Ignora o 128 para encontrar
-     * o cStat específico do evento.
+     * o cStat especÃ­fico do evento.
      */
     const indiceEvento =
         cStatTags.findIndex(
@@ -402,7 +402,7 @@ export class NfeManifestacaoService {
 
         if (!empresaId) {
             throw new Error(
-                'Empresa não informada.'
+                'Empresa nÃ£o informada.'
             );
         }
 
@@ -431,7 +431,7 @@ export class NfeManifestacaoService {
 
         if (!url) {
             throw new Error(
-                'URL do serviço RecepcaoEvento não encontrada.'
+                'URL do serviÃ§o RecepcaoEvento nÃ£o encontrada.'
             );
         }
 
@@ -440,7 +440,7 @@ export class NfeManifestacaoService {
             '============================================'
         );
         console.log(
-            'MANIFESTAÇÃO DO DESTINATÁRIO'
+            'MANIFESTAÃ‡ÃƒO DO DESTINATÃRIO'
         );
         console.log(
             '============================================'
@@ -503,7 +503,7 @@ export class NfeManifestacaoService {
             );
 
         /*
-         * Lote de um único evento.
+         * Lote de um Ãºnico evento.
          */
         const idLote =
             String(Date.now())
@@ -669,7 +669,7 @@ export class NfeManifestacaoService {
             );
 
             console.error(
-                '[MANIFESTACAO] ? ERRO DE CONEXÃO:',
+                '[MANIFESTACAO] ? ERRO DE CONEXÃƒO:',
                 error.code || '',
                 error.message
             );
@@ -858,7 +858,7 @@ export class NfeManifestacaoService {
         console.log(
             resultado.sucesso
                 ? ' ? EVENTO VINCULADO'
-                : 'EVENTO NÃO VINCULADO'
+                : 'EVENTO NÃƒO VINCULADO'
         );
 
         console.log(

@@ -1,4 +1,4 @@
-?import express from 'express';
+﻿import express from 'express';
 import db from '../database/db.js';
 
 const router = express.Router();
@@ -205,7 +205,7 @@ router.put('/:id', (req, res) => {
         if (!existente) {
             return res.status(404).json({
                 success: false,
-                error: 'Devolu��o n�o encontrada.'
+                error: 'Devoluï¿½ï¿½o nï¿½o encontrada.'
             });
         }
 
@@ -282,7 +282,7 @@ router.delete('/:id', (req, res) => {
         if (!result.changes) {
             return res.status(404).json({
                 success: false,
-                error: 'Devolu��o n�o encontrada.'
+                error: 'Devoluï¿½ï¿½o nï¿½o encontrada.'
             });
         }
 

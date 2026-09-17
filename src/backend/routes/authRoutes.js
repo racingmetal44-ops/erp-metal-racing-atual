@@ -1,4 +1,4 @@
-?import express from 'express';
+﻿import express from 'express';
 import bcrypt from 'bcrypt';
 import db from '../database/db.js';
 
@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
         if (!nome || !email || !password) {
             return res.status(400).json({
                 success: false,
-                error: 'Nome, e-mail e senha s�o obrigat�rios.'
+                error: 'Nome, e-mail e senha sï¿½o obrigatï¿½rios.'
             });
         }
 
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
         if (usuarioExistente) {
             return res.status(409).json({
                 success: false,
-                error: 'Este e-mail j� est� cadastrado.'
+                error: 'Este e-mail jï¿½ estï¿½ cadastrado.'
             });
         }
 
@@ -92,7 +92,7 @@ router.post('/login', async (req, res) => {
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
-                error: 'E-mail e senha s�o obrigat�rios.'
+                error: 'E-mail e senha sï¿½o obrigatï¿½rios.'
             });
         }
 
@@ -113,14 +113,14 @@ router.post('/login', async (req, res) => {
         if (!usuario || !Number(usuario.ativo)) {
             return res.status(401).json({
                 success: false,
-                error: 'E-mail ou senha inv�lidos.'
+                error: 'E-mail ou senha invï¿½lidos.'
             });
         }
 
         if (!usuario.senha_hash) {
             return res.status(401).json({
                 success: false,
-                error: 'Este usu�rio ainda n�o possui uma senha local cadastrada.'
+                error: 'Este usuï¿½rio ainda nï¿½o possui uma senha local cadastrada.'
             });
         }
 
@@ -129,7 +129,7 @@ router.post('/login', async (req, res) => {
         if (!senhaValida) {
             return res.status(401).json({
                 success: false,
-                error: 'E-mail ou senha inv�lidos.'
+                error: 'E-mail ou senha invï¿½lidos.'
             });
         }
 

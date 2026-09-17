@@ -1,4 +1,4 @@
-?import db from './db.js';
+﻿import db from './db.js';
 
 db.exec(`
 PRAGMA foreign_keys = ON;
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS produto_localizacao (
 );
 
 -- =========================================================
--- MOVIMENTAÇÃO DE ESTOQUE
+-- MOVIMENTAÃ‡ÃƒO DE ESTOQUE
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS movimentacoes_estoque (
@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS pedido_itens (
 );
 
 -- =========================================================
--- DEVOLUÇÕES
+-- DEVOLUÃ‡Ã•ES
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS devolucoes (
@@ -249,7 +249,7 @@ CREATE TABLE IF NOT EXISTS devolucoes (
 );
 
 -- =========================================================
--- PRODUÇÃO / PCP
+-- PRODUÃ‡ÃƒO / PCP
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS ordens_producao (
@@ -282,7 +282,7 @@ CREATE TABLE IF NOT EXISTS ordem_producao_itens (
 );
 
 -- =========================================================
--- EXPEDIÇÃO
+-- EXPEDIÃ‡ÃƒO
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS expedicoes (
@@ -502,7 +502,7 @@ CREATE TABLE IF NOT EXISTS pagamentos (
 );
 
 -- =========================================================
--- INTEGRAÇÕES / MARKETPLACES
+-- INTEGRAÃ‡Ã•ES / MARKETPLACES
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS integracoes (
@@ -587,7 +587,7 @@ CREATE TABLE IF NOT EXISTS ranking (
 );
 
 -- =========================================================
--- SUGESTÕES
+-- SUGESTÃ•ES
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS sugestoes (
@@ -639,7 +639,7 @@ CREATE TABLE IF NOT EXISTS planilhas (
 );
 
 -- =========================================================
--- CONFIGURAÇÕES
+-- CONFIGURAÃ‡Ã•ES
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS configuracoes (
@@ -668,7 +668,7 @@ CREATE TABLE IF NOT EXISTS analises_ia (
 );
 
 -- =========================================================
--- ÍNDICES
+-- ÃNDICES
 -- =========================================================
 
 CREATE INDEX IF NOT EXISTS idx_pedidos_status
@@ -706,17 +706,17 @@ console.log('================================================');
 console.log('');
 console.log('Banco SQLite inicializado com sucesso!');
 console.log('');
-console.log('Módulos preparados:');
+console.log('MÃ³dulos preparados:');
 console.log('  ? Empresas');
-console.log('  ? Usuários');
+console.log('  ? UsuÃ¡rios');
 console.log('  ? Produtos');
 console.log('  ? Arquivos de produtos');
 console.log('  ? Estoque');
 console.log('  ? Mapa de estoque');
 console.log('  ? Pedidos');
-console.log('  ? Devoluções');
-console.log('  ? Produção / PCP');
-console.log('  ? Expedição');
+console.log('  ? DevoluÃ§Ãµes');
+console.log('  ? ProduÃ§Ã£o / PCP');
+console.log('  ? ExpediÃ§Ã£o');
 console.log('  ? Bipagem');
 console.log('  ? NF-e');
 console.log('  ? NF-e Entrada');
@@ -725,10 +725,10 @@ console.log('  ? Shopee / Mercado Livre / Tray');
 console.log('  ? Alertas');
 console.log('  ? Auditoria');
 console.log('  ? Ranking');
-console.log('  ? Sugestões');
+console.log('  ? SugestÃµes');
 console.log('  ? Etiquetas');
 console.log('  ? Planilhas');
-console.log('  ? Configurações');
+console.log('  ? ConfiguraÃ§Ãµes');
 console.log('  ? IA Executiva');
 console.log('');
 

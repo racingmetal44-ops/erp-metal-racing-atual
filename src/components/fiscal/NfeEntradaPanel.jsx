@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -289,7 +289,7 @@ export function NfeEntradaPanel({ empresaId }) {
             );
 
             setErro(
-                'A consulta à SEFAZ está temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
+                'A consulta Í  SEFAZ está temporariamente bloqueada por consumo indevido (cStat 656). Aguarde 1 hora antes de consultar novamente.'
             );
 
             return;
@@ -378,7 +378,7 @@ export function NfeEntradaPanel({ empresaId }) {
     }
 
     // =========================================
-    // MANIFESTAÇÃO DO DESTINATÁRIO
+    // MANIFESTAÇÍO DO DESTINATÍRIO
     // =========================================
     async function manifestar(entrada, tipoEvento) {
 
@@ -780,7 +780,7 @@ export function NfeEntradaPanel({ empresaId }) {
         }
 
         const confirmado = window.confirm(
-            'ESTA OPERAÇÃO IRÁ ALTERAR O ESTOQUE.\n\n' +
+            'ESTA OPERAÇÍO IRÍ ALTERAR O ESTOQUE.\n\n' +
             `NF-e ${entrada.numero || '-'} - ` +
             `${entrada.fornecedor?.razaoSocial || 'fornecedor'}\n` +
             `${produtos.length} item(ns) receberão entrada de estoque.\n\n` +
@@ -946,7 +946,7 @@ export function NfeEntradaPanel({ empresaId }) {
 
                 mensagemSefaz =
                     '\nEntrada realizada no ERP' +
-                    '\nManifestação não enviada à SEFAZ' +
+                    '\nManifestação não enviada Í  SEFAZ' +
                     `\nMotivo: ${sefaz.xMotivo || '-'}`;
             }
 
@@ -1046,7 +1046,7 @@ export function NfeEntradaPanel({ empresaId }) {
             )}
 
             {/* =========================================
-                ABA SEFAZ - DISTRIBUIÇÃO DF-e
+                ABA SEFAZ - DISTRIBUIÇÍO DF-e
             ========================================== */}
             {aba === 'sefaz' && (
 
@@ -1411,6 +1411,48 @@ export function NfeEntradaPanel({ empresaId }) {
 
                                     </div>
 
+                                    {/* SEFAZ-STATUS-BADGE */}
+                                    {entrada.cstat && (
+                                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                                            <span className={`inline-flex items-center gap-1 rounded px-2 py-1 font-bold ${
+                                                String(entrada.cstat) === '100' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-700/50' :
+                                                String(entrada.cstat) === '101' || String(entrada.cstat) === '102' ? 'bg-red-500/20 text-red-400 border border-red-700/50' :
+                                                String(entrada.cstat) === '110' || String(entrada.cstat) === '301' || String(entrada.cstat) === '302' ? 'bg-amber-500/20 text-amber-400 border border-amber-700/50' :
+                                                'bg-slate-500/20 text-slate-400 border border-slate-700/50'
+                                            }`}>
+                                                {String(entrada.cstat) === '100' ? '✅ Autorizada' :
+                                                 String(entrada.cstat) === '101' ? '❌ Cancelada' :
+                                                 String(entrada.cstat) === '102' ? '❌ Inutilizada' :
+                                                 String(entrada.cstat) === '110' ? '⚠️ Denegada' :
+                                                 String(entrada.cstat) === '301' ? '⚠️ Uso Denegado' :
+                                                 String(entrada.cstat) === '302' ? '⚠️ Uso Denegado' :
+                                                 `Status ${entrada.cstat}`}
+                                            </span>
+
+                                            {entrada.nprot && (
+                                                <span className="text-slate-400">
+                                                    Protocolo: <b className="text-slate-200">{entrada.nprot}</b>
+                                                </span>
+                                            )}
+
+                                            {entrada.ambiente && (
+                                                <span className={`px-2 py-0.5 rounded ${
+                                                    String(entrada.ambiente) === '1'
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-700/30'
+                                                        : 'bg-yellow-500/10 text-yellow-400 border border-yellow-700/30'
+                                                }`}>
+                                                    {String(entrada.ambiente) === '1' ? '🏢 Produção' : '🧪 Homologação'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {entrada.xmotivo && (
+                                        <div className="mt-1.5 text-xs text-slate-400 italic">
+                                            {entrada.xmotivo}
+                                        </div>
+                                    )}
+
                                     {entrada.chave && (
                                         <div className="mt-2 text-xs text-slate-500 break-all">
                                             Chave: {entrada.chave}
@@ -1634,4 +1676,5 @@ export function NfeEntradaPanel({ empresaId }) {
 
 
 export default NfeEntradaPanel;
+
 

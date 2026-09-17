@@ -1,32 +1,33 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+﻿import { useEffect, useState } from 'react';
 
 export default function AuditPage() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [{ data: auditLogs }, { data: bipagens }, auditoriaLocal] = await Promise.all([
-        supabase.from('audit_logs').select('*').order('id', { ascending: false }),
-        supabase.from('bipagem_history').select('*').order('created_at', { ascending: false }).limit(500),
-        fetch('/api/nfe-entradas/auditoria-bipagens').then((response) => response.ok ? response.json() : { registros: [] }).catch(() => ({ registros: [] })),
-      ]);
+      try {
+        const res = await fetch('/api/pcp/auditoria-frontend?limite=200');
+        const data = await res.json();
 
-      const bipagemLogs = (bipagens ?? []).map((item) => ({
-        id: `bipagem-${item.id}`,
-        action: `Bipagem - ${String(item.tipo || 'evento').toUpperCase()}`,
-        created_at: item.created_at,
-        details: `${item.usuario_nome || 'Sistema'} bipou ${item.product_name || 'produto não encontrado'} | Código: ${item.product_sku || '-'} | Quantidade: ${item.quantidade ?? 0} | Estoque: ${item.quantidade_anterior ?? 0} -> ${item.quantidade_nova ?? 0}`,
-      }));
+        if (!data.sucesso) throw new Error(data.erro || 'Erro');
 
-      const registrosLocais = (auditoriaLocal?.registros ?? []).map((item, index) => ({
-        id: `auditoria-local-${index}-${item.created_at}`,
-        action: `Bipagem - ${String(item.tipo || 'evento').toUpperCase()}`,
-        created_at: item.created_at,
-        details: `${item.usuario_nome || 'Sistema'} bipou ${item.product_name || 'produto'} | Código: ${item.product_sku || '-'} | Quantidade: ${item.quantidade ?? 0} | Estoque: ${item.quantidade_anterior ?? 0} -> ${item.quantidade_nova ?? 0}`,
-      }));
+        const registros = (data.registros || []).map((item) => ({
+          id: item.id,
+          action: item.action,
+          created_at: item.created_at,
+          details: item.details
+        }));
 
-      setLogs([...((auditLogs ?? [])), ...bipagemLogs, ...registrosLocais].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)));
+        // Ordena por data desc
+        registros.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        setLogs(registros);
+      } catch (error) {
+        console.error('Erro ao carregar auditoria:', error);
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
@@ -39,18 +40,29 @@ export default function AuditPage() {
         <p className="mt-2 text-sm text-slate-400">Registro histórico de operações e eventos do sistema.</p>
       </div>
 
-      <div className="space-y-3">
-        {logs.map((log) => (
-          <div key={log.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-semibold">{log.action || 'Evento'}</h2>
-              <span className="text-sm text-slate-400">{new Date(log.created_at).toLocaleString()}</span>
+      {loading ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-center text-slate-400">
+          Carregando auditoria...
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-12 text-center">
+          <p className="text-slate-400">Nenhum registro de auditoria encontrado.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {logs.map((log) => (
+            <div key={log.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold">{log.action || 'Evento'}</h2>
+                <span className="text-sm text-slate-400">
+                  {new Date(log.created_at).toLocaleString('pt-BR')}
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-slate-400">{log.details || 'Detalhes não informados'}</p>
             </div>
-            <p className="mt-2 text-sm text-slate-400">{log.details || 'Detalhes não informados'}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
-

@@ -1,23 +1,23 @@
-// src/backend/services/nfe/NfeEntradaService.js
+﻿// src/backend/services/nfe/NfeEntradaService.js
 // =========================================================
-// SERVIÇO DE ENTRADA DE NF-e (ESTOQUE TRANSACIONAL)
+// SERVIÃ‡O DE ENTRADA DE NF-e (ESTOQUE TRANSACIONAL)
 // ---------------------------------------------------------
 // Responsabilidades:
 //  - identificar/criar fornecedor por CNPJ (sem duplicar);
-//  - identificar produto por EAN/código/SKU;
-//  - confirmar entrada com validação completa;
+//  - identificar produto por EAN/cÃ³digo/SKU;
+//  - confirmar entrada com validaÃ§Ã£o completa;
 //  - atualizar estoque no Supabase de forma transacional
 //    (rollback manual em caso de erro parcial);
-//  - registrar movimentação (bipagem_history);
+//  - registrar movimentaÃ§Ã£o (bipagem_history);
 //  - bloquear duplicidade por chave de acesso.
 //
 // O estoque vive no Supabase (products / bipagem_history).
-// Como o Supabase JS client não expõe transações SQL
-// diretamente, aplicamos o padrão "compensating actions":
-//  1. lê estoque atual de todos os itens ANTES;
+// Como o Supabase JS client nÃ£o expÃµe transaÃ§Ãµes SQL
+// diretamente, aplicamos o padrÃ£o "compensating actions":
+//  1. lÃª estoque atual de todos os itens ANTES;
 //  2. aplica updates;
-//  3. se QUALQUER update falhar, reverte os já aplicados;
-//  4. só então registra movimentações e marca a NF-e.
+//  3. se QUALQUER update falhar, reverte os jÃ¡ aplicados;
+//  4. sÃ³ entÃ£o registra movimentaÃ§Ãµes e marca a NF-e.
 // =========================================================
 
 import fs from 'fs-extra';
@@ -30,7 +30,7 @@ const FORNECEDORES_FILE = path.join(DATA_DIR, 'fornecedores.json');
 const AUDITORIA_FILE = path.join(DATA_DIR, 'auditoria-bipagens.json');
 
 // =========================================================
-// PERSISTÊNCIA SQLITE
+// PERSISTÃŠNCIA SQLITE
 // =========================================================
 
 function garantirTabelasNfeEntrada() {
@@ -234,6 +234,11 @@ function normalizarEntradaBanco(registro) {
             registro.ambiente ??
             original.ambiente,
 
+        // ALIASES-MINUSCULOS (para o frontend consumir)
+        cstat: registro.cstat ?? original.cStat ?? original.cstat,
+        nprot: registro.nprot ?? original.nProt ?? original.nprot,
+        xmotivo: registro.xmotivo ?? original.xMotivo ?? original.xmotivo,
+
         dataEmissao:
             registro.data_emissao ??
             original.dataEmissao,
@@ -358,10 +363,71 @@ export function getEntradas() {
         };
     });
 }
+// SANITIZE-UNDEFINED-NULL
+// Converte recursivamente undefined → null (SQLite não aceita undefined)
+function sanitizarParaSqlite(obj) {
+    if (obj === undefined) return null;
+    if (obj === null) return null;
+    if (Array.isArray(obj)) return JSON.stringify(obj.map(sanitizarParaSqlite));
+    if (typeof obj === 'object') {
+        const limpo = {};
+        for (const k of Object.keys(obj)) {
+            limpo[k] = sanitizarParaSqlite(obj[k]);
+        }
+        return JSON.stringify(limpo);
+    }
+    return obj;
+}
+
+function sanitizarValor(v) {
+    if (v === undefined) return null;
+    if (typeof v === 'object' && v !== null) return JSON.stringify(v);
+    return v;
+}
+
 export function saveEntradas(lista) {
     garantirTabelasNfeEntrada();
 
-    const entradas = Array.isArray(lista) ? lista : [];
+    let entradas = Array.isArray(lista) ? lista : [];
+
+    // Sanitiza cada entrada para evitar undefined no SQLite
+    entradas = entradas.map(e => {
+        if (!e) return null;
+        const limpo = { ...e };
+        for (const k of Object.keys(limpo)) {
+            limpo[k] = sanitizarValor(limpo[k]);
+        }
+        return limpo;
+    }).filter(Boolean);
+
+    // AUTO-EXTRAI-SEFAZ-DO-XML
+    // Extrai cStat, xMotivo, nProt e tpAmb direto do XML da NF-e
+    for (const entrada of entradas) {
+        if (!entrada) continue;
+
+        const xml = String(
+            entrada.xml ||
+            entrada.xmlOriginal ||
+            entrada.xml_original ||
+            entrada.xml_autorizado ||
+            ''
+        );
+
+        if (!xml) continue;
+
+        const cStatM   = xml.match(/<cStat>([^<]+)<\/cStat>/);
+        const xMotivoM = xml.match(/<xMotivo>([^<]+)<\/xMotivo>/);
+        const nProtM   = xml.match(/<nProt>([^<]+)<\/nProt>/);
+        const tpAmbM   = xml.match(/<tpAmb>([^<]+)<\/tpAmb>/);
+
+        if (cStatM)   entrada.cStat   = cStatM[1].trim();
+        if (xMotivoM) entrada.xMotivo = xMotivoM[1].trim();
+        if (nProtM) {
+            entrada.nProt = nProtM[1].trim();
+            if (!entrada.protocolo) entrada.protocolo = nProtM[1].trim();
+        }
+        if (tpAmbM && !entrada.ambiente) entrada.ambiente = tpAmbM[1].trim();
+    }
 
     const inserir = db.prepare(`
         INSERT INTO nfe_entradas (
@@ -610,7 +676,7 @@ export async function saveEntradasAsync(lista) {
 // =========================================================
 // FORNECEDORES
 // =========================================================// =========================================================
-// FORNECEDORES (normalização de CNPJ, sem duplicar)
+// FORNECEDORES (normalizaÃ§Ã£o de CNPJ, sem duplicar)
 // =========================================================
 
 function normalizarCnpj(valor) {
@@ -634,7 +700,7 @@ function salvarFornecedores(lista) {
 
 /**
  * Localiza fornecedor pelo CNPJ normalizado.
- * Cria apenas se `criarSeNaoExistir` e os dados mínimos existirem.
+ * Cria apenas se `criarSeNaoExistir` e os dados mÃ­nimos existirem.
  */
 export function vincularFornecedor(dadosFornecedor, { criarSeNaoExistir = true } = {}) {
 
@@ -686,12 +752,12 @@ export function listarFornecedores() {
 }
 
 // =========================================================
-// IDENTIFICAÇÃO DE PRODUTO
+// IDENTIFICAÃ‡ÃƒO DE PRODUTO
 // =========================================================
 
 /**
  * Tenta identificar o produto do ERP para um item da NF-e.
- * Ordem: EAN -> código interno -> SKU -> vínculo salvo.
+ * Ordem: EAN -> cÃ³digo interno -> SKU -> vÃ­nculo salvo.
  */
 export async function identificarProduto(itemNfe, empresaId) {
 
@@ -723,7 +789,7 @@ export async function identificarProduto(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 2. CÓDIGO / SKU
+    // 2. CÃ“DIGO / SKU
     // =====================================================
     if (codigo) {
         const produto = db.prepare(`
@@ -746,7 +812,7 @@ export async function identificarProduto(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 3. VÍNCULO PREVIAMENTE SALVO
+    // 3. VÃNCULO PREVIAMENTE SALVO
     // =====================================================
     const vinculo = buscarVinculoSalvo({
         empresaId,
@@ -782,7 +848,7 @@ export async function identificarProduto(itemNfe, empresaId) {
 
 /**
  * Cria automaticamente um produto do ERP a partir de um item da NF-e.
- * O produto somente é criado quando não foi encontrado por EAN, SKU ou vínculo.
+ * O produto somente Ã© criado quando nÃ£o foi encontrado por EAN, SKU ou vÃ­nculo.
  */
 async function criarProdutoAutomaticamente(itemNfe, empresaId) {
 
@@ -828,7 +894,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 2. TENTA NOVAMENTE LOCALIZAR POR SKU / CÓDIGO
+    // 2. TENTA NOVAMENTE LOCALIZAR POR SKU / CÃ“DIGO
     // =====================================================
     if (codigo) {
 
@@ -856,7 +922,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 3. GERA SKU CASO A NF-e NÃO TENHA CÓDIGO
+    // 3. GERA SKU CASO A NF-e NÃƒO TENHA CÃ“DIGO
     // =====================================================
     let sku = codigo;
 
@@ -866,7 +932,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 4. GERA CÓDIGO DE BARRAS CASO NÃO EXISTA EAN
+    // 4. GERA CÃ“DIGO DE BARRAS CASO NÃƒO EXISTA EAN
     // =====================================================
     let barcode = ean;
 
@@ -877,7 +943,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 5. GARANTE SKU ÚNICO
+    // 5. GARANTE SKU ÃšNICO
     // =====================================================
     const skuBase = sku;
     let contadorSku = 1;
@@ -895,7 +961,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     }
 
     // =====================================================
-    // 6. GARANTE BARCODE ÚNICO
+    // 6. GARANTE BARCODE ÃšNICO
     // =====================================================
     const barcodeBase = barcode;
     let contadorBarcode = 1;
@@ -975,12 +1041,12 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
 
     if (!produto) {
         throw new Error(
-            `Não foi possóvel criar automaticamente o produto "${descricao}".`
+            `NÃ£o foi possÃ³vel criar automaticamente o produto "${descricao}".`
         );
     }
 
     // =====================================================
-    // 8. SALVA VÍNCULO COM A NF-e / FORNECEDOR
+    // 8. SALVA VÃNCULO COM A NF-e / FORNECEDOR
     // =====================================================
     try {
 
@@ -995,7 +1061,7 @@ async function criarProdutoAutomaticamente(itemNfe, empresaId) {
     } catch (erroVinculo) {
 
         console.warn(
-            '[ENTRADA] Produto criado, mas não foi possóvel salvar vínculo:',
+            '[ENTRADA] Produto criado, mas nÃ£o foi possÃ³vel salvar vÃ­nculo:',
             erroVinculo.message
         );
     }
@@ -1062,13 +1128,13 @@ export function salvarVinculoProduto({ empresaId, codigoFornecedor, ean, produto
 }
 
 // =========================================================
-// VALIDAÇÃO DO XML / NF-e
+// VALIDAÃ‡ÃƒO DO XML / NF-e
 // =========================================================
 
 export function validarChaveAcesso(chave) {
     if (!/^\d{44}$/.test(chave)) {
         throw new Error(
-            `Chave de acesso inválida (44 dígitos esperados). Recebida: ${chave}`
+            `Chave de acesso invÃ¡lida (44 dÃ­gitos esperados). Recebida: ${chave}`
         );
     }
 
@@ -1087,7 +1153,7 @@ export function validarChaveAcesso(chave) {
 
     if (calculado !== informado) {
         throw new Error(
-            `Dígito verificador da chave inválido. Informado: ${informado}; calculado: ${calculado}.`
+            `DÃ­gito verificador da chave invÃ¡lido. Informado: ${informado}; calculado: ${calculado}.`
         );
     }
 
@@ -1110,29 +1176,29 @@ export function verificarDuplicidade(empresaId, chave) {
     if (existente.status === 'CONFIRMADA' || existente.status === 'PROCESSADA') {
         return {
             duplicada: true,
-            motivo: 'Esta NF-e já possui entrada de estoque.',
+            motivo: 'Esta NF-e jÃ¡ possui entrada de estoque.',
             entrada: existente
         };
     }
 
     return {
         duplicada: true,
-        motivo: 'Esta NF-e já foi importada.',
+        motivo: 'Esta NF-e jÃ¡ foi importada.',
         entrada: existente
     };
 }
 
 // =========================================================
-// CONFIRMAÇÃO DA ENTRADA (TRANSAÇÃO COM ROLLBACK)
+// CONFIRMAÃ‡ÃƒO DA ENTRADA (TRANSAÃ‡ÃƒO COM ROLLBACK)
 // =========================================================
 
 /**
  * Confirma a entrada da NF-e:
  *  1. valida NF-e, itens, produtos e quantidades;
- *  2. lê estoque atual (snapshot);
+ *  2. lÃª estoque atual (snapshot);
  *  3. aplica updates de estoque;
- *  4. em erro: REVERTE updates já aplicados (rollback);
- *  5. registra movimentações;
+ *  4. em erro: REVERTE updates jÃ¡ aplicados (rollback);
+ *  5. registra movimentaÃ§Ãµes;
  *  6. marca NF-e como CONFIRMADA.
  */
 export async function reverterEstoqueEntrada(aplicados = []) {
@@ -1167,7 +1233,7 @@ export async function reverterEstoqueEntrada(aplicados = []) {
 
             if (resultado.changes === 0) {
                 throw new Error(
-                    `Produto ${aplicado.produtoId} não encontrado ao reverter estoque.`
+                    `Produto ${aplicado.produtoId} nÃ£o encontrado ao reverter estoque.`
                 );
             }
         }
@@ -1192,20 +1258,20 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
     );
 
     if (index === -1) {
-        throw new Error('Entrada não encontrada.');
+        throw new Error('Entrada nÃ£o encontrada.');
     }
 
     const entrada = entradas[index];
 
     // ---------------------------------------------
-    // 1. VALIDAÇÕES
+    // 1. VALIDAÃ‡Ã•ES
     // ---------------------------------------------
     if (
         entrada.status === 'CONFIRMADA' ||
         entrada.status === 'PROCESSADA'
     ) {
         throw new Error(
-            'Esta NF-e já possui entrada de estoque.'
+            'Esta NF-e jÃ¡ possui entrada de estoque.'
         );
     }
 
@@ -1280,7 +1346,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 2. PROCURA AUTOMÁTICA
+        // 2. PROCURA AUTOMÃTICA
         // -------------------------------------------------
         if (!produtoEncontrado) {
 
@@ -1305,7 +1371,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // -------------------------------------------------
-        // 3. CRIAÇÃO AUTOMÁTICA
+        // 3. CRIAÃ‡ÃƒO AUTOMÃTICA
         // -------------------------------------------------
         if (!produtoEncontrado) {
 
@@ -1317,8 +1383,8 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
 
             if (!criado?.produto?.id) {
                 throw new Error(
-                    `Não foi possóvel criar o produto automaticamente: ` +
-                    `${itemCompleto.descricao || itemCompleto.codigo || 'item sem descrição'}`
+                    `NÃ£o foi possÃ³vel criar o produto automaticamente: ` +
+                    `${itemCompleto.descricao || itemCompleto.codigo || 'item sem descriÃ§Ã£o'}`
                 );
             }
 
@@ -1362,13 +1428,13 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
             quantidade <= 0
         ) {
             throw new Error(
-                `Quantidade inválida para o produto ` +
+                `Quantidade invÃ¡lida para o produto ` +
                 `"${itemCompleto.descricao || produtoEncontrado.name}".`
             );
         }
 
         // -------------------------------------------------
-        // 5. SALVA VÍNCULO
+        // 5. SALVA VÃNCULO
         // -------------------------------------------------
         try {
 
@@ -1394,7 +1460,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         } catch (erroVinculo) {
 
             console.warn(
-                '[ENTRADA] Não foi possível salvar vínculo automático:',
+                '[ENTRADA] NÃ£o foi possÃ­vel salvar vÃ­nculo automÃ¡tico:',
                 erroVinculo.message
             );
         }
@@ -1432,7 +1498,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
     }
 
     // =====================================================
-    // TRANSAÇÃO SQLITE
+    // TRANSAÃ‡ÃƒO SQLITE
     // =====================================================
     const confirmarTransacao = db.transaction(() => {
 
@@ -1459,7 +1525,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
 
             if (!produto) {
                 throw new Error(
-                    `Produto ${item.produtoId} não encontrado no ERP.`
+                    `Produto ${item.produtoId} nÃ£o encontrado no ERP.`
                 );
             }
 
@@ -1523,7 +1589,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
 
             if (!antes) {
                 throw new Error(
-                    `Snapshot não encontrado para o produto ${item.produtoId}.`
+                    `Snapshot nÃ£o encontrado para o produto ${item.produtoId}.`
                 );
             }
 
@@ -1578,7 +1644,7 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         // ---------------------------------------------
-        // 8. HISTÓRICO / AUDITORIA
+        // 8. HISTÃ“RICO / AUDITORIA
         // ---------------------------------------------
         const inserirAuditoria =
             db.prepare(`
@@ -1641,14 +1707,14 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
             );
 
             console.log(
-                `[ENTRADA] HISTÓRICO REGISTRADO | ` +
+                `[ENTRADA] HISTÃ“RICO REGISTRADO | ` +
                 `SKU ${antes.sku} | ` +
                 `quantidade ${item.quantidade}`
             );
         }
 
         // ---------------------------------------------
-        // 9. ATUALIZA ITENS DA NF-e COM OS VÍNCULOS
+        // 9. ATUALIZA ITENS DA NF-e COM OS VÃNCULOS
         // ---------------------------------------------
         const atualizarItemNfe =
             db.prepare(`
@@ -1778,21 +1844,21 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
     } catch (erro) {
 
         console.error(
-            '[ENTRADA] ERRO NA CONFIRMAÇÃO SQLITE. ' +
-            'TRANSAÇÃO DESFEITA:',
+            '[ENTRADA] ERRO NA CONFIRMAÃ‡ÃƒO SQLITE. ' +
+            'TRANSAÃ‡ÃƒO DESFEITA:',
             erro.message
         );
 
-        // A transação SQLite desfaz automaticamente:
-        // - alterações de estoque
-        // - movimentações
+        // A transaÃ§Ã£o SQLite desfaz automaticamente:
+        // - alteraÃ§Ãµes de estoque
+        // - movimentaÃ§Ãµes
         // - auditoria
-        // - vínculo dos itens da NF-e
-        // - alteração da NF-e
+        // - vÃ­nculo dos itens da NF-e
+        // - alteraÃ§Ã£o da NF-e
         //
         // Produtos criados automaticamente precisam
         // ser removidos separadamente, pois foram
-        // criados antes da transação de estoque.
+        // criados antes da transaÃ§Ã£o de estoque.
 
         for (
             const produtoCriado of produtosCriados
@@ -1824,12 +1890,15 @@ export async function confirmarEntrada({ entradaId, itens, usuario }) {
         }
 
         throw new Error(
-            `Entrada não confirmada. ` +
-            `Estoque revertido pela transação SQLite. ` +
+            `Entrada nÃ£o confirmada. ` +
+            `Estoque revertido pela transaÃ§Ã£o SQLite. ` +
             `Motivo: ${erro.message}`
         );
     }
 }
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import fs from 'fs-extra';
 import path from 'path';
 import multer from 'multer';
@@ -3192,6 +3192,21 @@ router.post(
                 entradas[index].updatedAt =
                     new Date().toISOString();
 
+                // LOG para debug do erro SQLite
+                const entradaParaLog = entradas[index];
+                console.log('=== DEBUG manifestacao ===');
+                console.log('tipoEvento:', typeof entradaParaLog.manifestacao?.tipoEvento, entradaParaLog.manifestacao?.tipoEvento);
+                console.log('cStat:', typeof entradaParaLog.manifestacao?.cStat, entradaParaLog.manifestacao?.cStat);
+                console.log('xMotivo:', typeof entradaParaLog.manifestacao?.xMotivo, entradaParaLog.manifestacao?.xMotivo);
+                console.log('protocolo:', typeof entradaParaLog.manifestacao?.protocolo, entradaParaLog.manifestacao?.protocolo);
+                console.log('success:', typeof entradaParaLog.manifestacao?.success, entradaParaLog.manifestacao?.success);
+                console.log('dataHora:', typeof entradaParaLog.manifestacao?.dataHora, entradaParaLog.manifestacao?.dataHora);
+                console.log('updatedAt:', typeof entradaParaLog.updatedAt, entradaParaLog.updatedAt);
+                console.log('todos os campos de manifestacao:');
+                Object.entries(entradaParaLog.manifestacao || {}).forEach(([k, v]) => {
+                    console.log(`   ${k}: ${typeof v} = ${JSON.stringify(v)}`);
+                });
+
                 await saveEntradasAsync(
                     entradas
                 );
@@ -3406,7 +3421,7 @@ router.post(
                 return res.status(400).json({
                     success: false,
                     error:
-                        'A quantidade de itens enviados n?o corresponde � quantidade de itens da NF-e.'
+                        'A quantidade de itens enviados n?o corresponde ï¿½ quantidade de itens da NF-e.'
                 });
 
             }
@@ -3487,7 +3502,7 @@ router.post(
 
                 await saveEntradasAsync(entradas);
 
-                // N�O cria Financeiro
+                // Nï¿½O cria Financeiro
                 return res.status(422).json({
                     success: false,
                     rejected: true,
@@ -3709,8 +3724,8 @@ router.post(
                 // ENTRADA SEM CHAVE
                 //
                 // ESTOQUE: SIM
-                // SEFAZ: N�O
-                // FINANCEIRO POR MANIFESTA??O: N�O
+                // SEFAZ: Nï¿½O
+                // FINANCEIRO POR MANIFESTA??O: Nï¿½O
                 // =================================================
 
                 sefaz = {
@@ -3822,7 +3837,7 @@ router.post(
             // 4. SEFAZ PENDENTE / REJEITADO / SEM CHAVE
             //
             // ESTOQUE CONTINUA CONFIRMADO.
-            // N�O CRIA T?TULO FINANCEIRO.
+            // Nï¿½O CRIA T?TULO FINANCEIRO.
             // =================================================
 
             entradaAtualizada.status =
@@ -3859,7 +3874,7 @@ router.post(
             );
 
             // MUITO IMPORTANTE:
-            // N�O chamar sincronizarContasNfe() aqui.
+            // Nï¿½O chamar sincronizarContasNfe() aqui.
 
             return res.json({
 
@@ -3913,6 +3928,7 @@ router.post(
 // =====================================================
 
 export default router;
+
 
 
 

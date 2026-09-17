@@ -134,3 +134,84 @@ certificado-base64.txt
 *.key
 
 .env*
+
+# ===== Adicionado em 2026-09-17 =====
+# Dados sensíveis que NÃO devem ir pro GitHub
+
+# Banco de dados (tem dados de clientes, estoque, NF-e)
+*.db
+*.db-shm
+*.db-wal
+src/backend/database/*.db
+src/backend/database/*.db-*
+
+# Storage (fotos de produtos, PDFs de etiquetas, XMLs de NF-e)
+storage/
+
+# Arquivos de ambiente (senhas, tokens, certificados)
+.env.local
+.env.production
+.env.development
+
+# Backups locais
+*.backup-*
+*backup-*
+backup-*/
+src_BACKUP/
+src_backup_antes_correcao/
+
+# Pasta Qoder (editor)
+Qoder CN/
+
+# Temps
+temp-*/
+temp-schema-manifestacao/
+claude-diagnostico/
+
+# Logs
+*.log
+npm-debug.log*
+
+# ===== Adicionado em 2026-09-17 (limpeza) =====
+# Scripts temporários que criamos durante as melhorias
+*.mjs
+*.tmp
+*.patch
+*-atual.txt
+*-atual.js
+*-atual.jsx
+
+# Backups de código
+*ANTES-*
+*antes-*
+*.antes-*
+*-ANTES-*
+*-backup-*
+*.backup-*
+*.antes-correcao-*
+
+# Textos temporários
+robo_log.txt
+pedidos_impressos.txt
+teste-metal-racing.txt
+funcao-etiqueta-atual.txt
+
+# Pastas de backup
+backup-*/
+backup-antes-*/
+backup-correcao-*/
+backup-nfe-*/
+backup-banco-*/
+backup-supabase/
+backup-implementacao-*/
+
+# Arquivos temporários das raízes
+*_atual.txt
+*.tmp
+tmp-*.mjs
+
+# Pastas de dados sensíveis (reforço)
+data/
+storage/
+certificados/
+public-certs/

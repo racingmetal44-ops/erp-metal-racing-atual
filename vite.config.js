@@ -8,26 +8,23 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      devOptions: {
+        enabled: false,              // <-- NÃO gera Service Worker em dev
+        type: 'module',
+        navigateFallback: 'index.html'
+      },
       manifest: {
         name: 'Metal Racing ERP',
         short_name: 'MetalERP',
-        description: 'ERP para gestÃ£o comercial e operacional',
+        description: 'ERP para gestão comercial e operacional',
         theme_color: '#0f172a',
         background_color: '#0f172a',
         display: 'standalone',
         scope: '/',
         start_url: '/',
         icons: [
-          {
-            src: '/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png'
-          },
-          {
-            src: '/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png'
-          }
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' }
         ]
       },
       workbox: {
@@ -38,12 +35,10 @@ export default defineConfig({
   ],
   server: {
     host: '0.0.0.0',
-    port: 3000,
-
+    port: 3002,
     allowedHosts: [
       'massive-masculine-demotion.ngrok-free.dev'
     ],
-
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -51,5 +46,5 @@ export default defineConfig({
         secure: false,
       }
     }
-  },
+  }
 });
