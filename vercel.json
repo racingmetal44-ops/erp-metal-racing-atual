@@ -1,11 +1,9 @@
-﻿{
+{
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "src/backend/database/banco-template.db"
-    }
-  },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://massive-masculine-demotion.ngrok-free.dev/api/:path*"
+    }
   ]
 }
