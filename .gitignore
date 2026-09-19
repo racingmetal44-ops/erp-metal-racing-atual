@@ -215,3 +215,7 @@ data/
 storage/
 certificados/
 public-certs/
+
+# Backups locais (dados sensiveis)
+backups/
+
