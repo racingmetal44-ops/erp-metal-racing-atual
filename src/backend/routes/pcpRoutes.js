@@ -8,6 +8,31 @@ import printer from 'pdf-to-printer';
 import bwipjs from 'bwip-js';
 import db from '../database/db.js';
 
+// ============================================
+// FUNÇÃO AUXILIAR: Gravar auditoria
+// ============================================
+function gravarAuditoria({ usuario_id, modulo, acao, entidade, entidade_id, dados_anteriores, dados_novos, req }) {
+    try {
+        const ip = req?.ip || req?.headers?.['x-forwarded-for'] || null;
+        db.prepare(`
+            INSERT INTO auditoria (usuario_id, modulo, acao, entidade, entidade_id, dados_anteriores, dados_novos, ip, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            usuario_id || null,
+            modulo || 'PCP',
+            acao || 'ACAO',
+            entidade || null,
+            entidade_id ? String(entidade_id) : null,
+            dados_anteriores ? JSON.stringify(dados_anteriores) : null,
+            dados_novos ? JSON.stringify(dados_novos) : null,
+            ip,
+            new Date().toISOString()
+        );
+    } catch (e) {
+        console.error('[AUDITORIA] Erro:', e.message);
+    }
+}
+
 const router = express.Router();
 async function detectarImpressora(nomeConfigurado) {
     try {
@@ -777,10 +802,10 @@ router.get('/orders/:id/label-preview', async (req, res) => {
             });
         }
 
-        if (String(ordem.current_stage || '').trim() !== 'Embalagem') {
+        if (String(ordem.current_stage || '').trim() !== 'Pronto' && String(ordem.current_stage || '').trim() !== 'Embalagem') {
             return res.status(400).json({
                 success: false,
-                error: 'A etiqueta só pode ser impressa quando a ordem estiver em Embalagem.'
+                error: 'A etiqueta só pode ser impressa quando a ordem estiver em Pronto.'
             });
         }
 
@@ -1028,13 +1053,7 @@ router.patch('/orders/:id/stage', async (req, res) => {
 
         const stages = obterEtapas();
 
-        if (!stages.includes(stage)) {
-            return res.status(400).json({
-                success: false,
-                error: `Etapa invÃƒÂ¡lida: ${stage}`,
-                stages
-            });
-        }
+        // Validação removida: aceita qualquer etapa
 
         const stageAnterior =
             order.status === 'Finalizado'
@@ -1285,7 +1304,7 @@ router.patch('/orders/:id/stage', async (req, res) => {
 
         // ETIQUETA-AUTOMATICA-EMBALAGEM
         let impressaoAutomatica = null;
-        if (String(stage).toLowerCase() === 'embalagem') {
+        if (String(stage).toLowerCase() === 'pronto' || String(stage).toLowerCase() === 'embalagem') {
             try {
                 const resultado = await imprimirEtiquetaProducao(updated);
                 impressaoAutomatica = { sucesso: true, ...resultado };
@@ -1571,13 +1590,7 @@ router.post('/orders', (req, res) => {
 
         const stages = obterEtapas();
 
-        if (!stages.includes(currentStage)) {
-            return res.status(400).json({
-                success: false,
-                error: `Etapa invÃƒÂ¯Ã‚Â¿Ã‚Â½lida: ${currentStage}`,
-                stages
-            });
-        }
+        // Validação removida: aceita qualquer etapa
 
         db.prepare(`
             INSERT INTO ordens_producao (
@@ -1826,7 +1839,6 @@ router.get('/operadores', (req, res) => {
                 ativo
             FROM usuarios
             WHERE ativo = 1
-              AND perfil = 'Operador'
             ORDER BY nome ASC
         `).all();
 
@@ -2981,6 +2993,10 @@ router.patch('/stages/:id/mover', (req, res) => {
 
 
 export default router;
+
+
+
+
 
 
 

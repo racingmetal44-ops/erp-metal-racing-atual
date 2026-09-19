@@ -1,0 +1,171 @@
+(node:5108) Warning: Setting the NODE_TLS_REJECT_UNAUTHORIZED environment variable to '0' makes TLS connections and HTTPS requests insecure by disabling certificate verification.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[NFE] Erro na consulta SEFAZ: Error: Cannot parse response
+    at finish (C:\Users\User\Downloads\erp metal racing 4.0\node_modules\soap\lib\client.js:290:31)
+    at parseSync (C:\Users\User\Downloads\erp metal racing 4.0\node_modules\soap\lib\client.js:332:20)
+    at C:\Users\User\Downloads\erp metal racing 4.0\node_modules\soap\lib\client.js:542:24
+    at handleBody (C:\Users\User\Downloads\erp metal racing 4.0\node_modules\soap\lib\http.js:253:17)
+    at C:\Users\User\Downloads\erp metal racing 4.0\node_modules\soap\lib\http.js:287:24
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  response: {
+    status: 403,
+    statusText: 'Forbidden',
+    headers: Object [AxiosHeaders] {
+      'content-type': 'text/html',
+      server: 'Microsoft-IIS/10.0',
+      'x-powered-by': 'ASP.NET',
+      date: 'Sat, 19 Sep 2026 12:18:16 GMT',
+      'content-length': '1233'
+    },
+    config: [Object: null prototype] {
+      transitional: [Object],
+      adapter: [Array],
+      transformRequest: [Array],
+      transformResponse: [Function: transformResponse],
+      timeout: 0,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+      maxContentLength: -1,
+      maxBodyLength: -1,
+      env: [Object],
+      validateStatus: null,
+      headers: [Object [AxiosHeaders]],
+      url: 'https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx',
+      method: 'post',
+      data: '<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xmlns:tns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeConsultaProtocolo4" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/"><soap:Body><nfeDadosMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeConsultaProtocolo4"><nfeDadosMsg>&lt;consSitNFe versao=&quot;4.00&quot; xmlns=&quot;http://www.portalfiscal.inf.br/nfe&quot;&gt;\n' +
+        '          &lt;tpAmb&gt;2&lt;/tpAmb&gt;\n' +
+        '          &lt;xServ&gt;CONSULTAR&lt;/xServ&gt;\n' +
+        '          &lt;chNFe&gt;42260913862162000180550010000000011000000010&lt;/chNFe&gt;\n' +
+        '        &lt;/consSitNFe&gt;</nfeDadosMsg></nfeDadosMsg></soap:Body></soap:Envelope>',
+      allowAbsoluteUrls: true
+    },
+    request: ClientRequest {
+      _events: [Object: null prototype],
+      _eventsCount: 7,
+      _maxListeners: undefined,
+      outputData: [],
+      outputSize: 0,
+      writable: true,
+      destroyed: true,
+      _last: false,
+      chunkedEncoding: false,
+      shouldKeepAlive: true,
+      maxRequestsOnConnectionReached: false,
+      _defaultKeepAlive: true,
+      useChunkedEncodingByDefault: true,
+      sendDate: false,
+      _removedConnection: false,
+      _removedContLen: false,
+      _removedTE: false,
+      strictContentLength: false,
+      _contentLength: 747,
+      _hasBody: true,
+      _trailer: '',
+      finished: true,
+      _headerSent: true,
+      _closed: true,
+      _header: 'POST /ws/NfeConsulta/NfeConsulta4.asmx HTTP/1.1\r\n' +
+        'Accept: text/html,application/xhtml+xml,application/xml,text/xml;q=0.9,*/*;q=0.8\r\n' +
+        'Content-Type: text/xml; charset=utf-8\r\n' +
+        'User-Agent: node-soap/1.10.0\r\n' +
+        'Accept-Encoding: none\r\n' +
+        'Accept-Charset: utf-8\r\n' +
+        'Host: nfe-homologacao.svrs.rs.gov.br\r\n' +
+        'Content-Length: 747\r\n' +
+        'SOAPAction: "http://www.portalfiscal.inf.br/nfe/wsdl/NFeConsultaProtocolo4/nfeConsultaNF"\r\n' +
+        'Connection: keep-alive\r\n' +
+        '\r\n',
+      _keepAliveTimeout: 0,
+      _onPendingData: [Function: nop],
+      agent: [Agent],
+      socketPath: undefined,
+      method: 'POST',
+      maxHeaderSize: undefined,
+      insecureHTTPParser: false,
+      joinDuplicateHeaders: undefined,
+      _ended: true,
+      res: [IncomingMessage],
+      aborted: false,
+      timeoutCb: null,
+      upgradeOrConnect: false,
+      parser: null,
+      maxHeadersCount: null,
+      reusedSocket: false,
+      host: 'nfe-homologacao.svrs.rs.gov.br',
+      protocol: 'https:',
+      _redirectable: [Writable],
+      Symbol(shapeMode): false,
+      Symbol(kCapture): false,
+      Symbol(kBytesWritten): 0,
+      Symbol(kNeedDrain): false,
+      Symbol(corked): 0,
+      Symbol(kChunkedBuffer): [],
+      Symbol(kChunkedLength): 0,
+      Symbol(kSocket): [TLSSocket],
+      Symbol(kOutHeaders): [Object: null prototype],
+      Symbol(errored): null,
+      Symbol(kHighWaterMark): 16384,
+      Symbol(kRejectNonStandardBodyWrites): false,
+      Symbol(kPath): '/ws/NfeConsulta/NfeConsulta4.asmx',
+      Symbol(kUniqueHeaders): null
+    },
+    data: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\r\n' +
+      '<html xmlns="http://www.w3.org/1999/xhtml">\r\n' +
+      '<head>\r\n' +
+      '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>\r\n' +
+      '<title>403 - Forbidden: Access is denied.</title>\r\n' +
+      '<style type="text/css">\r\n' +
+      '<!--\r\n' +
+      'body{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\n' +
+      'fieldset{padding:0 15px 10px 15px;} \r\n' +
+      'h1{font-size:2.4em;margin:0;color:#FFF;}\r\n' +
+      'h2{font-size:1.7em;margin:0;color:#CC0000;} \r\n' +
+      'h3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n' +
+      '#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:"trebuchet MS", Verdana, sans-serif;color:#FFF;\r\n' +
+      'background-color:#555555;}\r\n' +
+      '#content{margin:0 0 0 2%;position:relative;}\r\n' +
+      '.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n' +
+      '-->\r\n' +
+      '</style>\r\n' +
+      '</head>\r\n' +
+      '<body>\r\n' +
+      '<div id="header"><h1>Server Error</h1></div>\r\n' +
+      '<div id="content">\r\n' +
+      ' <div class="content-container"><fieldset>\r\n' +
+      '  <h2>403 - Forbidden: Access is denied.</h2>\r\n' +
+      '  <h3>You do not have permission to view this directory or page using the credentials that you supplied.</h3>\r\n' +
+      ' </fieldset></div>\r\n' +
+      '</div>\r\n' +
+      '</body>\r\n' +
+      '</html>\r\n'
+  },
+  body: '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">\r\n' +
+    '<html xmlns="http://www.w3.org/1999/xhtml">\r\n' +
+    '<head>\r\n' +
+    '<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>\r\n' +
+    '<title>403 - Forbidden: Access is denied.</title>\r\n' +
+    '<style type="text/css">\r\n' +
+    '<!--\r\n' +
+    'body{margin:0;font-size:.7em;font-family:Verdana, Arial, Helvetica, sans-serif;background:#EEEEEE;}\r\n' +
+    'fieldset{padding:0 15px 10px 15px;} \r\n' +
+    'h1{font-size:2.4em;margin:0;color:#FFF;}\r\n' +
+    'h2{font-size:1.7em;margin:0;color:#CC0000;} \r\n' +
+    'h3{font-size:1.2em;margin:10px 0 0 0;color:#000000;} \r\n' +
+    '#header{width:96%;margin:0 0 0 0;padding:6px 2% 6px 2%;font-family:"trebuchet MS", Verdana, sans-serif;color:#FFF;\r\n' +
+    'background-color:#555555;}\r\n' +
+    '#content{margin:0 0 0 2%;position:relative;}\r\n' +
+    '.content-container{background:#FFF;width:96%;margin-top:8px;padding:10px;position:relative;}\r\n' +
+    '-->\r\n' +
+    '</style>\r\n' +
+    '</head>\r\n' +
+    '<body>\r\n' +
+    '<div id="header"><h1>Server Error</h1></div>\r\n' +
+    '<div id="content">\r\n' +
+    ' <div class="content-container"><fieldset>\r\n' +
+    '  <h2>403 - Forbidden: Access is denied.</h2>\r\n' +
+    '  <h3>You do not have permission to view this directory or page using the credentials that you supplied.</h3>\r\n' +
+    ' </fieldset></div>\r\n' +
+    '</div>\r\n' +
+    '</body>\r\n' +
+    '</html>\r\n'
+}

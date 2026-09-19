@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Plus, RefreshCw, Trash2, Edit3, X, Package, GripVertical,
-  ChevronRight, Upload, Clock3, UserRound, Search, Factory, Printer
+  ChevronRight, ChevronLeft, Upload, Clock3, UserRound, Search, Factory, Printer
 } from 'lucide-react';
 
 const ETAPAS_VISUAIS = [
@@ -20,13 +20,16 @@ const ETAPAS_VISUAIS = [
 const ETAPA_BACKEND_ALIASES = {};
 
 const ORIGENS = [
-  { id: 'shopee', label: 'SHOPEE', color: 'orange', icon: 'S' },
-  { id: 'correios', label: 'CORREIOS', color: 'yellow', icon: '◆' },
+  { id: 'venda_nova', label: 'VENDA NOVA', color: 'green', icon: 'V' },
+  { id: 'venda_adiantada', label: 'VENDA ADIANTADA', color: 'pink', icon: '📅' },
   { id: 'coleta', label: 'COLETA', color: 'blue', icon: 'M' },
   { id: 'agencia', label: 'AGÊNCIA', color: 'blue', icon: 'A' },
-  { id: 'garantia', label: 'GARANTIA', color: 'green', icon: '🛡️' },
+  { id: 'shopee', label: 'SHOPEE', color: 'orange', icon: 'S' },
   { id: 'tiktok', label: 'TIKTOK', color: 'black', icon: '♪' },
-  { id: 'site', label: 'SITE', color: 'slate', icon: '🌐' }
+  { id: 'correios', label: 'CORREIOS', color: 'yellow', icon: '◆' },
+  { id: 'site', label: 'SITE', color: 'slate', icon: '🌐' },
+  { id: 'personalizado', label: 'PERSONALIZADO', color: 'purple', icon: '★' },
+  { id: 'garantia', label: 'GARANTIA', color: 'green', icon: '🛡️' }
 ];
 
 const FORM_INICIAL = {
@@ -42,6 +45,7 @@ const FORM_INICIAL = {
   expected_delivery: '',
   observations: '',
   origem: 'shopee',
+  data_prevista: '',
   image_url: ''
 };
 
@@ -91,6 +95,23 @@ function originInfo(value) {
   return ORIGENS.find(o => o.id === key) || ORIGENS[0];
 }
 
+// ============ CORES POR ORIGEM ============
+function corOrigemBg(id) {
+  const mapa = {
+    coleta:        'bg-blue-400',
+    agencia:       'bg-blue-700',
+    shopee:        'bg-orange-500',
+    tiktok:        'bg-black',
+    correios:      'bg-yellow-400 text-slate-900',
+    site:          'bg-red-600',
+    personalizado: 'bg-purple-600',
+    garantia:      'bg-amber-800',
+    venda_nova:    'bg-emerald-600',
+    venda_adiantada: 'bg-pink-600'
+  };
+  return mapa[(id || '').toLowerCase()] || 'bg-slate-700';
+}
+
 function formatElapsed(value) {
   if (!value) return '0h';
   const start = new Date(value);
@@ -108,12 +129,12 @@ function ProductThumb({ order, large = false }) {
       <img
         src={src}
         alt=""
-        className={`${large ? 'h-36 w-36' : 'h-16 w-16'} rounded-lg object-cover border border-slate-700 bg-slate-900`}
+        className={`${large ? 'h-36 w-36' : 'h-28 w-28'} rounded-lg object-cover border border-slate-700 bg-slate-900`}
       />
     );
   }
   return (
-    <div className={`${large ? 'h-36 w-36' : 'h-16 w-16'} flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900`}>
+    <div className={`${large ? 'h-36 w-36' : 'h-28 w-28'} flex items-center justify-center rounded-lg border border-slate-700 bg-slate-900`}>
       <Package size={large ? 42 : 25} className="text-slate-500" />
     </div>
   );
@@ -128,14 +149,17 @@ export default function ProductionBoardPage() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(FORM_INICIAL);
   const [dragged, setDragged] = useState(null);
+  const [menuMover, setMenuMover] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [bipagem, setBipagem] = useState('');
   const [operadores, setOperadores] = useState([]);
+  const [selecionados, setSelecionados] = useState(new Set());
   const [operadorSelecionado, setOperadorSelecionado] = useState(null);
   const [responsavelCadastro, setResponsavelCadastro] = useState(null);
   const [operadoresPorEtapa, setOperadoresPorEtapa] = useState({});
   const [fotoOrdem, setFotoOrdem] = useState(null);
-  const [larguraColuna, setLarguraColuna] = useState(145);
+  const [larguraColuna, setLarguraColuna] = useState(220);
+  const [origemAberta, setOrigemAberta] = useState(null);
   const [message, setMessage] = useState('');
 
   const [showStageModal, setShowStageModal] = useState(false);
@@ -152,60 +176,7 @@ export default function ProductionBoardPage() {
   const [carregandoImpressao, setCarregandoImpressao] = useState(false);
   const [imprimindoEtiqueta, setImprimindoEtiqueta] = useState(false);
   const bipRef = useRef(null);
-  // AUTO-SKU-IMAGEM
-  useEffect(() => {
-    const sku = String(form.sku || '').trim();
-
-    if (!sku) return;
-
-    const timer = setTimeout(async () => {
-      try {
-        const response = await fetch(
-          `/api/produtos/buscar/${encodeURIComponent(sku)}`
-        );
-
-        const resultado = await response.json();
-
-        if (!response.ok || !resultado?.data) {
-          return;
-        }
-
-        const produto = resultado.data;
-
-        const arquivos = Array.isArray(produto.files)
-          ? produto.files
-          : [];
-
-        const imagemPrincipal =
-          arquivos.find(
-            arquivo => Number(arquivo?.is_primary) === 1
-          )?.file_url ||
-          arquivos[0]?.file_url ||
-          produto.imagem_url ||
-          produto.image_url ||
-          '';
-
-        setForm(current => ({
-          ...current,
-          product_id: produto.id || '',
-          product_name: produto.nome || produto.name || '',
-          sku: produto.sku || produto.codigo || sku,
-          image_url: imagemPrincipal
-        }));
-
-        setMessage(
-          imagemPrincipal
-            ? 'Produto e imagem identificados pelo SKU.'
-            : 'Produto identificado, mas não possui imagem cadastrada.'
-        );
-
-      } catch (error) {
-        console.error('[PRODUÇÃO] Erro ao buscar SKU:', error);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [form.sku]);
+  // AUTO-SKU-IMAGEM REMOVIDO
 
 
   async function api(url, options = {}) {
@@ -365,9 +336,9 @@ export default function ProductionBoardPage() {
     }));
   }, [pedidos, bipagem]);
 
-  function abrirNovo() {
+  function abrirNovo(origem = 'shopee') {
     setEditing(null);
-    setForm({ ...FORM_INICIAL, current_stage: 'Recebido' });
+    setForm({ ...FORM_INICIAL, origem, current_stage: 'Recebido' });
     setShowModal(true);
   }
 
@@ -520,7 +491,6 @@ export default function ProductionBoardPage() {
       setMessage('Selecione o responsável pelo cadastro antes de criar a ordem.');
       return;
     }
-    if (!form.product_name.trim()) return setMessage('Informe o nome da peça.');
     if (Number(form.quantity) <= 0) return setMessage('Informe uma quantidade válida.');
     setSaving(true);
     try {
@@ -537,7 +507,8 @@ export default function ProductionBoardPage() {
         quantity: Number(form.quantity),
         prioridade: form.prioridade,
         current_stage: stage,
-        expected_delivery: form.expected_delivery || null,
+        expected_delivery: form.expected_delivery || form.data_prevista || null,
+        data_prevista: form.data_prevista || null,
         observations: String(form.observations || '').trim(),
         origem: form.origem || null,
         image_url: form.image_url || null,
@@ -576,7 +547,113 @@ export default function ProductionBoardPage() {
     }
   }
 
-  async function moverOrdem(pedido, visualStage) {
+async function toggleSel(id) {
+    setSelecionados(prev => {
+      const novo = new Set(prev);
+      if (novo.has(id)) novo.delete(id);
+      else novo.add(id);
+      return novo;
+    });
+  }
+
+  function selecionarTodos(lista) {
+    setSelecionados(prev => {
+      const novo = new Set(prev);
+      lista.forEach(p => novo.add(p.id));
+      return novo;
+    });
+  }
+
+  function limparSelecao() {
+    setSelecionados(new Set());
+  }
+
+  async function deletarSelecionados() {
+    const ids = Array.from(selecionados);
+    if (ids.length === 0) return;
+    if (!window.confirm(`⚠️ Tem certeza que deseja DELETAR ${ids.length} ordem(ns) selecionada(s)?\n\nEssa ação NÃO pode ser desfeita!`)) return;
+    
+    setSaving(true);
+    let sucesso = 0;
+    let erro = 0;
+    
+    for (const id of ids) {
+      try {
+        await api(`/api/pcp/orders/${id}`, { method: 'DELETE' });
+        sucesso++;
+      } catch (e) {
+        console.warn('Erro ao deletar', id, e.message);
+        erro++;
+      }
+    }
+    
+    setMessage(`${sucesso} ordem(ns) deletada(s).${erro > 0 ? ` ${erro} falharam.` : ''}`);
+    setSelecionados(new Set());
+    setSaving(false);
+    await carregarTudo();
+  }
+
+  async function selecionarTodas() {
+    const todosIds = pedidos.map(p => p.id);
+    setSelecionados(new Set(todosIds));
+    setMessage(`${todosIds.length} ordem(ns) selecionada(s).`);
+  }
+
+  async function moverSelecionados(destino) {
+    const ids = Array.from(selecionados);
+    if (ids.length === 0) return;
+    for (const id of ids) {
+      const pedido = pedidos.find(p => p.id === id);
+      if (pedido) {
+        try {
+          await api("/api/pcp/mover-ordem", {
+            method: 'POST',
+            body: JSON.stringify({
+              OrdemId: pedido.id,
+              EtapaAnterior: pedido.current_stage || pedido.stage || 'Recebido',
+              NovaEtapa: destino,
+              UsuarioId: null,
+              ResponsavelId: 'Sistema',
+              QuantidadePecas: Number(pedido.quantity) || 1
+            })
+          });
+        } catch (e) {
+          console.warn('Erro ao mover', id, e.message);
+        }
+      }
+    }
+    setMessage(ids.length + ' ordem(ns) movida(s) para ' + destino + '.');
+    setSelecionados(new Set());
+    await carregarTudo();
+  }
+
+  async function moverOrdemOrigem(pedido, visualStage) {
+    const etapaAtual = pedido.current_stage || pedido.stage || 'Recebido';
+
+    const pedidosAntes = pedidos;
+    setPedidos(prev => prev.map(p => p.id === pedido.id ? { ...p, current_stage: visualStage } : p));
+
+    try {
+      await api("/api/pcp/mover-ordem", {
+        method: 'POST',
+        body: JSON.stringify({
+          OrdemId: pedido.id,
+          EtapaAnterior: etapaAtual,
+          NovaEtapa: visualStage,
+          UsuarioId: null,
+          ResponsavelId: 'Sistema',
+          QuantidadePecas: Number(pedido.quantity) || 1
+        })
+      });
+      setMessage('Ordem movida para ' + visualStage + '.');
+        await carregarTudo();
+    } catch (e) {
+      setPedidos(pedidosAntes);
+      setMessage(e.message || 'Não foi possível mover a ordem.');
+    }
+  }
+
+    async function moverOrdem(pedido, visualStage) {
     let target = visualStage;
     if (visualStage === 'Fechamento') {
       target = etapasBackend.find(s => ETAPA_BACKEND_ALIASES.Fechamento.includes(s)) || 'Montagem';
@@ -604,13 +681,16 @@ export default function ProductionBoardPage() {
     }
 
     try {
-      await api(`/api/pcp/orders/${pedido.id}/stage`, {
-        method: 'PATCH',
+      await api("/api/pcp/mover-ordem", {
+        method: 'POST',
         body: JSON.stringify({
-          stage: target,
-          operador_id: operador.id,
-          operador_nome: operador.nome
-        })
+            OrdemId: pedido.id,
+            EtapaAnterior: etapaAtual,
+            NovaEtapa: visualStage,
+            UsuarioId: operador.id,
+            ResponsavelId: operador.nome,
+            QuantidadePecas: Number(pedido.quantity) || 1
+          })
       });
 
       setMessage('Ordem #' + (pedido.order_number || pedido.numero) + ' avançada por ' + operador.nome + '.');
@@ -694,11 +774,8 @@ export default function ProductionBoardPage() {
             <div className="mb-1 text-sm font-black tracking-wide">ORIGEM DOS PEDIDOS</div>
             <div className="grid grid-cols-7 gap-3">
               {origemStats.map(o => (
-                <div key={o.id} className="overflow-hidden rounded-xl border border-slate-700 bg-[#0a1117]">
-                  <div className={`h-16 px-4 flex items-center justify-center gap-3 font-black ${
-                    o.color === 'orange' ? 'bg-orange-500' :
-                    o.color === 'yellow' ? 'bg-yellow-400 text-slate-900' : 'bg-blue-600'
-                  }`}>
+                <div key={o.id} onClick={() => setOrigemAberta(origemAberta === o.id ? null : o.id)} className={`cursor-pointer overflow-hidden rounded-xl border transition hover:shadow-lg ${origemAberta === o.id ? 'border-orange-500 ring-2 ring-orange-500/40' : 'border-slate-700 hover:border-orange-500/60'} bg-[#0a1117]`}>
+                  <div className={`h-16 px-4 flex items-center justify-center gap-3 font-black ${corOrigemBg(o.id)}`}>
                     <span className="text-3xl flex-shrink-0">{o.icon}</span><span className="text-sm tracking-wide whitespace-nowrap text-center">{o.label}</span>
                   </div>
                   <div className="grid grid-cols-2 divide-x divide-slate-700 p-3 text-center">
@@ -710,6 +787,118 @@ export default function ProductionBoardPage() {
             </div>
           </div>
         </div>
+
+        {/* PAINEL DE FILTRO POR ORIGEM */}
+        {origemAberta && (
+          <div className="mt-3 rounded-xl border border-slate-700 bg-[#071017] p-3">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`rounded-lg px-4 py-1.5 text-sm font-black text-white ${corOrigemBg(origemAberta)}`}>
+                  {ORIGENS.find(o => o.id === origemAberta)?.label || origemAberta}
+                </span>
+                <span className="text-sm text-slate-400">
+                  {pedidos.filter(p => {
+                    const v = String(p.origem || p.origin || p.source || p.order_source || '').toLowerCase().replace(/\s+/g, '_');
+                    return v === origemAberta;
+                  }).length} pedidos
+                </span>
+              </div>
+              <button 
+                onClick={() => setOrigemAberta(null)} 
+                className="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-bold text-slate-300 hover:bg-slate-800"
+              >
+                ✕ Fechar filtro
+              </button>
+            </div>
+            <div className="grid grid-cols-7 gap-3">
+              {pedidos
+                .filter(p => {
+                  const v = String(p.origem || p.origin || p.source || p.order_source || '').toLowerCase().replace(/\s+/g, '_');
+                  return v === origemAberta;
+                })
+                .map(pedido => {
+                  const img = pedido.image_url || pedido.image || pedido.foto || pedido.product_image || '';
+                  return (
+                    <div 
+                      key={pedido.id} 
+                      className="group relative overflow-hidden rounded-lg border border-slate-700 bg-slate-900 cursor-pointer hover:border-orange-500 transition"
+                      onClick={() => setZoomImage(img)}
+                    >
+                      {img ? (
+                        <img src={img} alt="" className="aspect-square w-full object-contain p-2" />
+                      ) : (
+                        <div className="aspect-square flex items-center justify-center bg-slate-800 text-[9px] text-slate-500">
+                          Sem foto
+                        </div>
+                      )}
+                      <div className={`px-2 py-1.5 text-center text-[10px] font-black text-white ${corOrigemBg(origemAberta)} tracking-wider`}>
+                        {(ORIGENS.find(o => o.id === origemAberta)?.label || origemAberta || '').toUpperCase()}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
+
+        {/* BARRA DE AÇÕES EM MASSA */}
+        {selecionados.size > 0 && (
+          <div className="fixed bottom-4 left-1/2 z-[9997] -translate-x-1/2 transform">
+            <div className="flex items-center gap-3 rounded-2xl border-2 border-orange-500 bg-slate-900 px-6 py-4 shadow-2xl shadow-orange-500/40">
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500 text-lg font-black text-white">
+                  {selecionados.size}
+                </div>
+                <div className="text-sm">
+                  <div className="font-bold text-white">selecionada(s)</div>
+                  <div className="text-[10px] text-slate-400">Escolha uma ação:</div>
+                </div>
+              </div>
+
+              <div className="mx-2 h-8 w-px bg-slate-700"></div>
+
+              <button
+                onClick={selecionarTodas}
+                className="rounded-lg bg-slate-700 px-4 py-2 text-xs font-bold text-white hover:bg-slate-600"
+                title="Selecionar todas as ordens do quadro"
+              >
+                ✓ Selecionar Tudo
+              </button>
+
+              <button
+                onClick={() => moverSelecionados('Pronto')}
+                disabled={saving}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 disabled:opacity-50"
+              >
+                → Mover p/ Pronto
+              </button>
+
+              <button
+                onClick={() => moverSelecionados('produção')}
+                disabled={saving}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-500 disabled:opacity-50"
+              >
+                → Mover p/ Produção
+              </button>
+
+              <button
+                onClick={deletarSelecionados}
+                disabled={saving}
+                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-black text-white hover:bg-red-500 disabled:opacity-50"
+              >
+                🗑 DELETAR
+              </button>
+
+              <button
+                onClick={limparSelecao}
+                className="rounded-lg border border-slate-600 px-3 py-2 text-xs font-bold text-slate-300 hover:bg-slate-800"
+                title="Cancelar seleção"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Título */}
         <div className="mt-3 flex items-center justify-between rounded-xl border border-slate-800 bg-[#071017] px-4 py-3">
@@ -739,15 +928,79 @@ export default function ProductionBoardPage() {
         )}
 
         {/* Quadro */}
-        <div className="mt-3 overflow-x-auto pb-3">
-          <div className="flex min-w-[1500px] gap-2">
+        
+        <style>{`
+          .scroll-top::-webkit-scrollbar { height: 14px; }
+          .scroll-top::-webkit-scrollbar-track { background: #0a1117; border-radius: 7px; }
+          .scroll-top::-webkit-scrollbar-thumb { background: #f97316; border-radius: 7px; }
+          .scroll-top::-webkit-scrollbar-thumb:hover { background: #ea580c; }
+          .scroll-top { scrollbar-width: thin; scrollbar-color: #f97316 #0a1117; }
+        `}</style>
+        <div className="mt-3 overflow-x-auto pb-3 scroll-top" style={{ transform: "rotateX(180deg)" }}>
+          <div className="flex min-w-[1500px] gap-2" style={{ transform: "rotateX(180deg)" }}>
+            {ORIGENS.map(o => {
+              const cardsOrigem = pedidos.filter(p => {
+                const v = String(p.origem || p.origin || p.source || p.order_source || '').toLowerCase().replace(/\s+/g, '_');
+                return v === o.id;
+              });
+              const bgColor =
+                o.color === 'orange' ? 'bg-orange-500' :
+                o.color === 'yellow' ? 'bg-yellow-400 text-slate-900' :
+                o.color === 'green' ? 'bg-emerald-600' :
+                o.color === 'purple' ? 'bg-purple-600' :
+                o.color === 'black' ? 'bg-black' :
+                'bg-blue-600';
+              return (
+                <section key={'origem-' + o.id} style={{ width: larguraColuna }} className="w-[220px] shrink-0 rounded-lg border border-slate-800 bg-[#091117]">
+                  <div className={`flex items-center justify-between rounded-t-lg px-3 py-2 ${bgColor}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-base font-black">{o.icon}</span>
+                      <span className="text-[11px] font-black text-white">{o.label}</span>
+                    </div>
+                    <span className="rounded bg-black/30 px-2 py-0.5 text-[10px] font-black text-white">{cardsOrigem.length}</span>
+                  </div>
+                  <div className="border-b border-slate-800 p-2">
+                    <button type="button" onClick={() => abrirNovo(o.id)} className="w-full rounded-md bg-orange-500 py-1.5 text-[11px] font-black text-white hover:bg-orange-600">+ Nova ordem</button>
+                  </div>
+                  <div className="min-h-[200px] space-y-2 p-2">
+                    {cardsOrigem.length === 0 ? (
+                      <div className="py-8 text-center text-[10px] text-slate-500">Nenhum pedido</div>
+                    ) : (
+                      cardsOrigem.map(pedido => {
+                          const img = pedido.image_url || pedido.image || pedido.foto || pedido.product_image || '';
+                          const etapaAtualOrigem = stageForVisual(pedido.current_stage || pedido.stage, etapasVisuais);
+                          const idxOrigem = etapasVisuais.indexOf(etapaAtualOrigem);
+                          return (
+                            <div key={pedido.id} className={`relative overflow-hidden rounded-lg border ${selecionados.has(pedido.id) ? 'border-orange-500 ring-2 ring-orange-500/40' : 'border-slate-700'} bg-slate-900`}>
+                              <input type="checkbox" checked={selecionados.has(pedido.id)} onChange={() => toggleSel(pedido.id)} className="absolute top-2 left-2 z-10 h-5 w-5 cursor-pointer accent-orange-500" title="Selecionar" />
+                              {img ? (<img src={img} alt="" className="h-28 w-full cursor-zoom-in object-cover" onClick={() => setZoomImage(img)} />) : (<div className="flex h-28 items-center justify-center bg-slate-800 text-[10px] text-slate-500">Sem foto</div>)}
+                              <div className={`px-2 py-1 text-center text-[9px] font-black text-white ${bgColor}`}>{o.label}</div>
+                              {o.id === 'venda_adiantada' && pedido.data_prevista && (
+                                <div className="bg-pink-900/60 px-2 py-0.5 text-center text-[8px] font-bold text-pink-200">
+                                  📅 {new Date(pedido.data_prevista).toLocaleDateString('pt-BR')}
+                                </div>
+                              )}
+                              <div className="flex items-center justify-end gap-1 p-1 bg-slate-950">
+                                <button onClick={() => abrirEdicao(pedido)} className="rounded p-1 text-slate-400 hover:bg-slate-700" title="Editar"><Edit3 size={12}/></button>
+                                <button onClick={() => moverOrdemOrigem(pedido, etapasVisuais[idxOrigem - 1])} disabled={idxOrigem <= 0} className="rounded bg-blue-500 p-1 text-white hover:bg-blue-600 disabled:opacity-30 disabled:cursor-not-allowed" title="Voltar etapa"><ChevronLeft size={12}/></button>
+                                <button onClick={() => moverOrdemOrigem(pedido, 'produção')} className="rounded bg-orange-500 p-1 text-white hover:bg-orange-600" title="Mover para produção"><ChevronRight size={12}/></button>
+                                <button onClick={() => excluirOrdem(pedido)} className="rounded p-1 text-red-400 hover:bg-red-950" title="Excluir"><Trash2 size={12}/></button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                  </div>
+                </section>
+              );
+            })}
             {colunas.map(({ etapa, pedidos: coluna }) => (
               <section
                 key={etapa}
                 onDragOver={e => { e.preventDefault(); setDragOver(etapa); }}
                 onDrop={e => { e.preventDefault(); if (dragged) moverOrdem(dragged, etapa); }}
                 style={{ width: larguraColuna }}
-                className={`w-[145px] shrink-0 rounded-lg border ${dragOver === etapa ? 'border-orange-500 bg-orange-950/20' : 'border-slate-800 bg-[#091117]'}`}
+                className={`w-[220px] shrink-0 rounded-lg border ${dragOver === etapa ? 'border-orange-500 bg-orange-950/20' : 'border-slate-800 bg-[#091117]'}`}
               >
                 {(
                   <div className="border-b border-slate-800 p-2">
@@ -797,9 +1050,11 @@ export default function ProductionBoardPage() {
                         draggable
                         onDragStart={() => setDragged(pedido)}
                         onDragEnd={() => { setDragged(null); setDragOver(null); }}
-                        className="cursor-grab rounded-lg border border-slate-700 bg-[#10191f] p-2 shadow-lg active:cursor-grabbing"
+                        className={`relative cursor-grab rounded-lg border ${selecionados.has(pedido.id) ? "border-orange-500 ring-2 ring-orange-500/40" : "border-slate-700"} bg-[#10191f] p-2 shadow-lg active:cursor-grabbing`}
                       >
-                        <div className="flex gap-2">
+                        
+                          <input type="checkbox" checked={selecionados.has(pedido.id)} onChange={() => toggleSel(pedido.id)} className="absolute top-1 right-1 z-10 h-5 w-5 cursor-pointer accent-orange-500" title="Selecionar" />
+                          <div className="flex gap-2">
                           <div onClick={() => { const src = pedido?.image_url || pedido?.image || pedido?.foto || pedido?.product_image; if (src) setZoomImage(src); }} className="cursor-zoom-in inline-block"><ProductThumb order={pedido}/></div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-1">
@@ -825,9 +1080,22 @@ export default function ProductionBoardPage() {
                           <span className={`rounded px-1.5 py-1 text-[8px] font-black ${
                             origem.color === 'orange' ? 'bg-orange-500' : origem.color === 'yellow' ? 'bg-yellow-400 text-slate-900' : 'bg-blue-600'
                           }`}>{origem.label}</span>
-                          <button onClick={() => abrirEdicao(pedido)} className="ml-auto rounded p-1 text-slate-400 hover:bg-slate-700"><Edit3 size={13}/></button>
-                          {idx < etapasVisuais.length - 1 && (
-                            <button onClick={() => moverOrdem(pedido, etapasVisuais[idx + 1])} className="rounded bg-orange-500 p-1 text-white hover:bg-orange-600"><ChevronRight size={13}/></button>
+                          <button onClick={() => abrirEdicao(pedido)} className="ml-auto rounded p-1 text-slate-400 hover:bg-slate-700" title="Editar"><Edit3 size={13}/></button>
+                            {idx > 0 && (
+                              <button onClick={() => moverOrdem(pedido, etapasVisuais[idx - 1])} className="rounded bg-blue-500 p-1 text-white hover:bg-blue-600" title="Voltar etapa"><ChevronLeft size={13}/></button>
+                            )}
+                            {idx < etapasVisuais.length - 1 && (
+                            <div className="relative">
+  <button onClick={() => setMenuMover(menuMover === pedido.id ? null : pedido.id)} className="rounded bg-orange-500 p-1 text-white hover:bg-orange-600" title="Mover para..."><ChevronRight size={13}/></button>
+  {menuMover === pedido.id && (
+    <div className="absolute right-0 top-full z-50 mt-1 w-32 rounded-lg border border-slate-700 bg-slate-900 shadow-xl">
+      <div className="border-b border-slate-700 px-2 py-1 text-[10px] font-bold text-slate-400">Mover para:</div>
+      {etapasVisuais.map(e => (
+        <button key={e} type="button" onClick={() => { moverOrdem(pedido, e); setMenuMover(null); }} disabled={e === (pedido.current_stage || pedido.stage)} className="block w-full px-2 py-1.5 text-left text-[11px] hover:bg-slate-800 disabled:opacity-30">{e}</button>
+      ))}
+    </div>
+  )}
+</div>
                           )}
                           <button onClick={() => excluirOrdem(pedido)} className="rounded p-1 text-red-400 hover:bg-red-950"><Trash2 size={13}/></button>
                         </div>
@@ -858,17 +1126,16 @@ export default function ProductionBoardPage() {
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white"><X/></button>
             </div>
 
-            <form onSubmit={salvarOrdem} className="grid grid-cols-2 gap-4 p-5">
-              {/* RESPONSAVEL-CADASTRO-SELECT */}
-              <div className="col-span-2">
-                <label className="mb-1 block text-xs font-bold text-orange-400">Responsável pelo cadastro *</label>
+            <form onSubmit={salvarOrdem} className="p-5 space-y-4">
+              {/* RESPONSÁVEL */}
+              <div>
+                <label className="mb-1 block text-xs font-bold text-orange-400">Responsável pelo cadastro (opcional)</label>
                 <select
                   value={(responsavelCadastro && responsavelCadastro.id) ? responsavelCadastro.id : ""}
                   onChange={function(e) {
                     var op = operadores.find(function(o) { return String(o.id) === String(e.target.value); });
                     setResponsavelCadastro(op || null);
                   }}
-                  required
                   className="field"
                 >
                   <option value="">Selecione o responsável...</option>
@@ -877,47 +1144,122 @@ export default function ProductionBoardPage() {
                   })}
                 </select>
               </div>
+
+              {/* FOTO GRANDE EM CIMA */}
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-300">Foto da peça</label>
-                <div className="flex gap-3">
-                  <ProductThumb order={form} large/>
-                  <label className="flex h-36 flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-600 text-center text-xs text-slate-400 hover:border-orange-500">
-                    <Upload size={28} className="mb-2"/>
-                    Clique ou <b className="text-orange-400">Ctrl+V</b> para colar
-                    <input type="file" accept="image/*" className="hidden" onChange={e => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setFotoOrdem(file);
-                        setForm(f => ({...f, image_url: URL.createObjectURL(file)}));
+                <div
+                  onClick={() => document.getElementById('foto-input').click()}
+                  onPaste={(e) => {
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+                    for (let i = 0; i < items.length; i++) {
+                      if (items[i].type.indexOf('image') === 0) {
+                        const file = items[i].getAsFile();
+                        if (file) {
+                          setFotoOrdem(file);
+                          setForm(f => ({...f, image_url: URL.createObjectURL(file)}));
+                        }
                       }
-                    }}/>
-                  </label>
+                    }
+                  }}
+                  className="w-full h-[200px] cursor-pointer flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-600 text-center text-xs text-slate-400 hover:border-orange-500 transition overflow-hidden bg-slate-950"
+                >
+                  {form.image_url ? (
+                    <img src={form.image_url} alt="Foto" className="w-full h-full object-contain" />
+                  ) : (
+                    <>
+                      <Upload size={40} className="mb-2 text-slate-500" />
+                      <div className="text-sm font-bold text-slate-300">Clique ou <b className="text-orange-400">Ctrl+V</b> para colar</div>
+                      <div className="text-[10px] text-slate-500 mt-1">JPG, PNG até 5MB</div>
+                    </>
+                  )}
+                </div>
+                <input
+                  id="foto-input"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFotoOrdem(file);
+                      setForm(f => ({...f, image_url: URL.createObjectURL(file)}));
+                    }
+                  }}
+                />
+              </div>
+
+              {/* 4 PRODUTOS + SKUs */}
+              <div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-300">SKU</label>
+                    <input value={form.sku} onChange={e=>setForm({...form,sku:e.target.value})} placeholder="SKU (opcional)" className="field"/>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-300">Pedaleira</label>
+                    <input value={form.sku_pedaleira} onChange={e=>setForm({...form,sku_pedaleira:e.target.value})} placeholder="SKU Pedaleira (opcional)" className="field"/>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-300">Soleira</label>
+                    <input value={form.sku_soleira} onChange={e=>setForm({...form,sku_soleira:e.target.value})} placeholder="SKU Soleira (opcional)" className="field"/>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-300">Descanso</label>
+                    <input value={form.sku_descanso} onChange={e=>setForm({...form,sku_descanso:e.target.value})} placeholder="SKU Descanso (opcional)" className="field"/>
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-300">Emblema</label>
+                    <input value={form.sku_emblema} onChange={e=>setForm({...form,sku_emblema:e.target.value})} placeholder="SKU Emblema (opcional)" className="field"/>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <div><label className="mb-1 block text-xs font-bold text-slate-300">Nome da peça</label><input value={form.product_name} onChange={e=>setForm({...form,product_name:e.target.value})} placeholder="Nome da peça" required className="field"/></div>
-                <div><label className="mb-1 block text-xs font-bold text-slate-300">SKU</label><input value={form.sku} onChange={e=>setForm({...form,sku:e.target.value})} placeholder="SKU da peça" className="field"/></div>
-                <div><label className="mb-1 block text-xs font-bold text-slate-300">Quantidade</label><input type="number" min="1" value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})} className="field"/></div>
+              {/* QUANTIDADE + OBSERVAÇÃO */}
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">Quantidade</label>
+                <input type="number" min="0" value={form.quantity} onChange={e=>setForm({...form,quantity:e.target.value})} className="field"/>
               </div>
 
-              <div className="col-span-2"><label className="mb-1 block text-xs font-bold text-slate-300">Observação</label><textarea rows="2" value={form.observations} onChange={e=>setForm({...form,observations:e.target.value})} placeholder="Observações da ordem..." className="field resize-none"/></div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">Observação</label>
+                <textarea rows="2" value={form.observations} onChange={e=>setForm({...form,observations:e.target.value})} placeholder="Observações..." className="field resize-none"/>
+              </div>
 
-              <div className="col-span-2">
+              {/* DATA PREVISTA (só pra venda adiantada) */}
+              {form.origem === 'venda_adiantada' && (
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-pink-400">📅 Data prevista da venda adiantada</label>
+                  <input 
+                    type="date" 
+                    value={form.data_prevista || ''} 
+                    onChange={e => setForm({...form, data_prevista: e.target.value})} 
+                    className="field"
+                  />
+                </div>
+              )}
+
+              {/* ORIGEM */}
+              <div>
                 <label className="mb-2 block text-xs font-bold text-slate-300">Origem do pedido</label>
-                <div className="grid grid-cols-5 gap-4">
-                  {ORIGENS.map(o => (
+                <div className="grid grid-cols-4 gap-3">
+                  {ORIGENS.filter(o => editing || !form.origem || o.id === form.origem).map(o => (
                     <button type="button" key={o.id} onClick={()=>setForm({...form,origem:o.id})}
-                      className={`rounded-lg border-2 p-3 text-center ${form.origem===o.id ? 'border-orange-500 bg-slate-800' : 'border-slate-700 bg-slate-900'}`}>
-                      <div className="text-xl">{o.icon}</div><div className="mt-1 text-[10px] font-black">{o.label}</div>
+                      className={`rounded-lg border-2 p-2 text-center ${form.origem===o.id ? 'border-orange-500 bg-slate-800' : 'border-slate-700 bg-slate-900'}`}>
+                      <div className="text-lg">{o.icon}</div>
+                      <div className="mt-1 text-[10px] font-black">{o.label}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="col-span-2 flex justify-end gap-2 border-t border-slate-700 pt-4">
+              {/* BOTÕES */}
+              <div className="flex justify-end gap-2 border-t border-slate-700 pt-4">
                 <button type="button" onClick={()=>setShowModal(false)} className="rounded-lg border border-slate-600 px-5 py-2.5 text-sm font-bold">Cancelar</button>
-                <button disabled={saving} className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-black hover:bg-orange-600">{saving ? 'Salvando...' : 'Criar ordem'}</button>
+                <button disabled={saving} className="rounded-lg bg-orange-500 px-5 py-2.5 text-sm font-black hover:bg-orange-600">{saving ? 'Salvando...' : (editing?.id ? 'Salvar' : 'Criar ordem')}</button>
               </div>
             </form>
           </div>
@@ -1012,6 +1354,59 @@ export default function ProductionBoardPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

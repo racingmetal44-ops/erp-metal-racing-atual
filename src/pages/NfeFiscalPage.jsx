@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle2, FileCheck2, FileUp, Landmark, Loader2, RefreshCw, Send, ShieldAlert, Wifi, Printer, FileText, FilePlus2, FileDown, ExternalLink } from 'lucide-react';
 import { NfeEntradaPanel } from '../components/fiscal/NfeEntradaPanel';
 import NfeEntradaRelatorio from '../components/fiscal/NfeEntradaRelatorio';
+import EntradaManualNfe from '../components/Nfe/EntradaManualNfe';
 
 const Empty = {
   numero: '',
@@ -20,6 +21,7 @@ const Tag = ({ ok, children }) => <span className={`nf-tag ${ok ? 'yes' : 'no'}`
 
 export default function NfeFiscalPage() {
   const [tab, setTab] = useState('emitir');
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [form, setForm] = useState(Empty);
   const [erros, setErros] = useState(null);
   const [resultado, setResultado] = useState(null);
@@ -41,10 +43,10 @@ export default function NfeFiscalPage() {
 
   const validarLocal = () => {
     const e = [];
-    if (!form.nome || !form.documento) e.push('Preencha nome e CPF/CNPJ do destinatário.');
-    if (!form.ibge) e.push('Informe o código IBGE do destinatário.');
+    if (!form.nome || !form.documento) e.push('Preencha nome e CPF/CNPJ do destinatÃ¡rio.');
+    if (!form.ibge) e.push('Informe o cÃ³digo IBGE do destinatÃ¡rio.');
     if (!form.descricao || !form.ncm || !form.cfop || !form.csosn) {
-      e.push('Complete descrição, NCM, CFOP e CSOSN/CST do item.');
+      e.push('Complete descriÃ§Ã£o, NCM, CFOP e CSOSN/CST do item.');
     }
     setErros(e.length ? e : null);
     return e.length === 0;
@@ -93,7 +95,7 @@ export default function NfeFiscalPage() {
       cliente,
       produtos,
       natureza_operacao: 'VENDA DE MERCADORIA',
-      observacao: 'NF-e emitida em homologação pelo ERP Metal Racing'
+      observacao: 'NF-e emitida em homologaÃ§Ã£o pelo ERP Metal Racing'
     };
   };
 
@@ -211,7 +213,7 @@ export default function NfeFiscalPage() {
     } catch (error) {
 
       console.error(
-        'Erro ao testar conexão com SEFAZ:',
+        'Erro ao testar conexÃ£o com SEFAZ:',
         error
       );
 
@@ -234,7 +236,7 @@ export default function NfeFiscalPage() {
 
   const gerarDanfe = async (nfe) => {
     if (!nfe?.id) {
-      alert('NF-e inválida.');
+      alert('NF-e invÃ¡lida.');
       return;
     }
 
@@ -254,7 +256,7 @@ export default function NfeFiscalPage() {
       if (!resposta.ok || !data.success) {
         throw new Error(
           data.error ||
-          'Não foi possível gerar o DANFE.'
+          'NÃ£o foi possÃ­vel gerar o DANFE.'
         );
       }
 
@@ -274,7 +276,7 @@ export default function NfeFiscalPage() {
   const baixarDanfe = async (nfe) => {
 
     if (!nfe?.id) {
-      alert('NF-e inválida.');
+      alert('NF-e invÃ¡lida.');
       return;
     }
 
@@ -297,7 +299,7 @@ export default function NfeFiscalPage() {
       if (!gerarResponse.ok || !gerarData.success) {
         throw new Error(
           gerarData.error ||
-          'Não foi possível gerar o DANFE.'
+          'NÃ£o foi possÃ­vel gerar o DANFE.'
         );
       }
 
@@ -308,7 +310,7 @@ export default function NfeFiscalPage() {
 
       if (!resposta.ok) {
         throw new Error(
-          'Não foi possível baixar o DANFE.'
+          'NÃ£o foi possÃ­vel baixar o DANFE.'
         );
       }
 
@@ -351,7 +353,7 @@ export default function NfeFiscalPage() {
 
   const abrirDanfe = (nfe) => {
     if (!nfe?.id) {
-      alert('NF-e inválida.');
+      alert('NF-e invÃ¡lida.');
       return;
     }
 
@@ -372,7 +374,7 @@ export default function NfeFiscalPage() {
 
   const imprimirDanfe = (nfe) => {
     if (!nfe?.id) {
-      alert('NF-e inválida.');
+      alert('NF-e invÃ¡lida.');
       return;
     }
 
@@ -395,7 +397,7 @@ export default function NfeFiscalPage() {
     const xml = nfe?.xmlAutorizado || nfe?.xml;
 
     if (!xml) {
-      alert('XML não disponível para esta NF-e.');
+      alert('XML nÃ£o disponÃ­vel para esta NF-e.');
       return;
     }
 
@@ -432,59 +434,60 @@ export default function NfeFiscalPage() {
     <main className="nf-page">
       <style>{`.nf-page{max-width:1260px;margin:auto;padding:28px;color:#dce7f6;font-family:Inter,Segoe UI,sans-serif}.nf-head{display:flex;justify-content:space-between;align-items:start;border-bottom:1px solid #314158;padding-bottom:19px;margin-bottom:20px}.nf-kicker{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#7e94b0;margin:0 0 7px}.nf-head h1{margin:0;font-size:28px;color:#fff}.nf-head p{margin:6px 0 0;color:#8ea0b8;font-size:14px}.nf-tag{display:inline-flex;gap:6px;align-items:center;border-radius:20px;padding:7px 11px;font-size:12px;font-weight:700}.nf-tag.yes{color:#a9efc4;background:#103e2b;border:1px solid #20794e}.nf-tag.no{color:#ffda7d;background:#4d3510;border:1px solid #a7781c}.nf-tabs{display:flex;gap:7px;padding:6px;border:1px solid #2c3d54;border-radius:12px;background:#101a2b;margin-bottom:18px}.nf-tabs button{flex:1;border:0;border-radius:8px;padding:12px;background:transparent;color:#93a5bd;font-weight:700;cursor:pointer}.nf-tabs button.active{background:#1779dd;color:#fff}.nf-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.nf-card{background:#101a2b;border:1px solid #2b3c54;border-radius:13px;padding:20px;margin-bottom:18px}.nf-card h2{display:flex;align-items:center;gap:8px;font-size:15px;color:#f4f8fd;margin:0 0 15px}.nf-alert{background:#382716;border:1px solid #a46b20;border-radius:9px;padding:13px;color:#ffd990;font-size:13px;line-height:1.45}.nf-alert b{display:block}.nf-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.nf-kpi{background:#0a1321;border:1px solid #2c3d55;border-radius:8px;padding:13px}.nf-kpi span,.nf-field span{font-size:11px;color:#8fa2ba}.nf-kpi b{display:block;font-size:17px;color:#edf4fd;margin-top:4px}.nf-fields{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.nf-field{display:flex;gap:6px;flex-direction:column}.nf-field input{background:#0b1321;border:1px solid #354861;border-radius:7px;padding:10px;color:#edf4fd;outline:none}.nf-field input:focus{border-color:#2585ec}.nf-wide{grid-column:span 2}.nf-section{margin:20px 0 11px;font-size:13px;color:#b9c9dc}.nf-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:17px}.nf-button{border:0;border-radius:8px;padding:11px 14px;display:inline-flex;gap:8px;align-items:center;font-weight:700;cursor:pointer}.nf-button.blue{background:#1779dd;color:#fff}.nf-button.dark{background:#273951;color:#e7eff9}.nf-button:disabled{opacity:.5;cursor:not-allowed}.nf-result{font-size:12px;line-height:1.55;background:#0a1321;border-radius:8px;margin-top:13px;padding:11px;color:#c0cede}.nf-result ul{margin:7px 0 0;padding-left:18px}.nf-check{padding:10px 0;border-bottom:1px solid #293950;font-size:13px;color:#becbdd;display:flex;gap:8px}.nf-check:last-child{border:0}.nf-check i{color:#ffbd57;font-style:normal}.nf-table{width:100%;border-collapse:collapse;font-size:12px}.nf-table th,.nf-table td{text-align:left;padding:9px;border-bottom:1px solid #293950};.nf-table button{white-space:nowrap}.nf-table th{color:#8fa2ba}.nf-empty{text-align:center;color:#8fa2ba;padding:25px;font-size:13px}@media(max-width:850px){.nf-grid{grid-template-columns:1fr}.nf-fields{grid-template-columns:1fr}.nf-wide{grid-column:auto}.nf-head{gap:13px;flex-direction:column}}`}</style>
       <header className="nf-head">
-        <div>
+        <div className={showManualEntry ? 'hidden' : ''}>
           <p className="nf-kicker">Centro fiscal</p>
           <h1>NF-e</h1>
-          <p>Emissão, autorização, entrada XML e documentos recebidos.</p>
+          <p>EmissÃ£o, autorizaÃ§Ã£o, entrada XML e documentos recebidos.</p>
         </div>
-        <Tag ok={sefaz?.success === true}>SEFAZ homologação conectada</Tag>
+        <Tag ok={sefaz?.success === true}>SEFAZ homologaÃ§Ã£o conectada</Tag>
       </header>
       <nav className="nf-tabs">
-        <button className={tab === 'emitir' ? 'active' : ''} onClick={() => setTab('emitir')}>Emitir NF-e</button>
-        <button className={tab === 'entrada' ? 'active' : ''} onClick={() => setTab('entrada')}>Entrada e XML</button>
-        <button className={tab === 'relatorio' ? 'active' : ''} onClick={() => setTab('relatorio')}>Tirar Relatório</button>
+        <button className={tab === 'emitir' ? 'active' : ''} onClick={() => { setTab('emitir'); setShowManualEntry(false); }}>Emitir NF-e</button>
+        <button className={tab === 'entrada' ? 'active' : ''} onClick={() => { setTab('entrada'); setShowManualEntry(false); }}>Entrada e XML</button>
+                <button className={tab === 'relatorio' ? 'active' : ''} onClick={() => { setTab('relatorio'); setShowManualEntry(false); }}>Tirar RelatÃ³rio</button>
+                <button className={showManualEntry ? 'active' : ''} onClick={() => { setShowManualEntry(true); setTab(''); }}>Entrada Manual</button>
       </nav>
       {tab === 'relatorio' ? (
         <NfeEntradaRelatorio onClose={() => setTab('entrada')} />
       ) : tab === 'entrada' ? (
         <NfeEntradaPanel empresaId="1" />
       ) : (
-        <div className="nf-grid">
+<div className="nf-grid" style={{ display: showManualEntry ? "none" : "block" }}>
           <section>
             <div className="nf-card">
-              <h2><CheckCircle2 size={18} color="#66d78a" /> Homologação SEFAZ</h2>
+              <h2><CheckCircle2 size={18} color="#66d78a" /> HomologaÃ§Ã£o SEFAZ</h2>
               <div className="nf-alert" style={{ borderColor: "#20794e", background: "#103e2b", color: "#a9efc4" }}>
-                <b>Comunicação com a SEFAZ funcionando</b>
+                <b>ComunicaÃ§Ã£o com a SEFAZ funcionando</b>
                 O ERP gera XML, assina com A1, transmite para SVRS/SC e interpreta o retorno da SEFAZ.
-                A autorização final depende do credenciamento IE/CNPJ no ambiente de homologação.
+                A autorizaÃ§Ã£o final depende do credenciamento IE/CNPJ no ambiente de homologaÃ§Ã£o.
               </div>
             </div>
             <div className="nf-card">
               <h2><Landmark size={18} color="#80b9ff" /> Emitente e ambiente</h2>
               <div className="nf-kpis">
-                <div className="nf-kpi"><span>Ambiente</span><b>Homologação</b></div>
+                <div className="nf-kpi"><span>Ambiente</span><b>HomologaÃ§Ã£o</b></div>
                 <div className="nf-kpi"><span>Certificado</span><b>A1 configurado</b></div>
                 <div className="nf-kpi"><span>Cadastro CNPJ / IE</span><b style={{ color: '#ffcf73' }}>Validar na SEFAZ</b></div>
-                <div className="nf-kpi"><span>Numeração</span><b>Reserva exigida</b></div>
+                <div className="nf-kpi"><span>NumeraÃ§Ã£o</span><b>Reserva exigida</b></div>
               </div>
             </div>
             <div className="nf-card">
-              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saída</h2>
+              <h2><FileCheck2 size={18} color="#80b9ff" /> Nova NF-e de saÃ­da</h2>
               <div className="nf-fields">
-                {input('Número reservado *', 'numero', 'Ex.: 18128')}
-                {input('Série *', 'serie')}
-                {input('Código IBGE destinatário *', 'ibge', '4209102')}
-                {input('Nome / razão social *', 'nome', 'Destinatário')}
+                {input('NÃºmero reservado *', 'numero', 'Ex.: 18128')}
+                {input('SÃ©rie *', 'serie')}
+                {input('CÃ³digo IBGE destinatÃ¡rio *', 'ibge', '4209102')}
+                {input('Nome / razÃ£o social *', 'nome', 'DestinatÃ¡rio')}
                 {input('CPF ou CNPJ *', 'documento', '11144477735')}
-                {input('Descrição do item *', 'descricao', 'Produto ou serviço')}
+                {input('DescriÃ§Ã£o do item *', 'descricao', 'Produto ou serviÃ§o')}
               </div>
               <p className="nf-section">Dados fiscais do item</p>
               <div className="nf-fields">
                 {input('NCM *', 'ncm', '83023000')}
-                {input('CFOP *', 'cfop', '4 dígitos')}
+                {input('CFOP *', 'cfop', '4 dÃ­gitos')}
                 {input('CSOSN / CST *', 'csosn')}
                 {input('Quantidade', 'quantidade', '', 'number')}
-                {input('Valor unitário', 'valor', '0,00', 'number')}
+                {input('Valor unitÃ¡rio', 'valor', '0,00', 'number')}
               </div>
               <div className="nf-actions">
 
@@ -533,7 +536,7 @@ export default function NfeFiscalPage() {
     <Tag ok={resultado.autorizado}>
       {resultado.autorizado
         ? 'NF-e autorizada'
-        : 'NF-e não autorizada'}
+        : 'NF-e nÃ£o autorizada'}
     </Tag>
 
     <p>
@@ -596,33 +599,33 @@ export default function NfeFiscalPage() {
           </section>
           <aside>
             <div className="nf-card">
-              <h2><Wifi size={18} color="#80b9ff" /> Serviço SEFAZ</h2>
-              <p style={{ fontSize: 13, color: '#99aabd', marginTop: 0 }}>Teste separado da emissão; não gera NF-e.</p>
+              <h2><Wifi size={18} color="#80b9ff" /> ServiÃ§o SEFAZ</h2>
+              <p style={{ fontSize: 13, color: '#99aabd', marginTop: 0 }}>Teste separado da emissÃ£o; nÃ£o gera NF-e.</p>
               <button className="nf-button dark" onClick={testar} disabled={testando}>
                 {testando ? <Loader2 size={16} /> : <RefreshCw size={16} />}
-                {testando ? 'Testando...' : 'Testar conexão'}
+                {testando ? 'Testando...' : 'Testar conexÃ£o'}
               </button>
               {sefaz && (
                 <div className="nf-result">
-                  <Tag ok={sefaz.success}>{sefaz.success ? 'Serviço em operação' : 'Conexão não confirmada'}</Tag>
+                  <Tag ok={sefaz.success}>{sefaz.success ? 'ServiÃ§o em operaÃ§Ã£o' : 'ConexÃ£o nÃ£o confirmada'}</Tag>
                   <p>{sefaz.xMotivo || sefaz.error || 'Sem detalhe retornado.'}</p>
                 </div>
               )}
             </div>
             <div className="nf-card">
-              <h2><AlertTriangle size={18} color="#ffbd57" /> Checklist de produção</h2>
+              <h2><AlertTriangle size={18} color="#ffbd57" /> Checklist de produÃ§Ã£o</h2>
               {[
                 'IE vinculada ao CNPJ e credenciamento confirmado',
-                'Responsável técnico configurado',
-                'Certificado compatível com o emitente',
-                'Numeração transacional reservada',
-                'Homologação SEFAZ validada; produção permanece bloqueada'
+                'ResponsÃ¡vel tÃ©cnico configurado',
+                'Certificado compatÃ­vel com o emitente',
+                'NumeraÃ§Ã£o transacional reservada',
+                'HomologaÃ§Ã£o SEFAZ validada; produÃ§Ã£o permanece bloqueada'
               ].map(x => (
                 <div className="nf-check" key={x}><i>?</i>{x}</div>
               ))}
             </div>
             <div className="nf-card">
-              <h2><FileUp size={18} color="#80b9ff" /> Últimas NF-e</h2>
+              <h2><FileUp size={18} color="#80b9ff" /> Ãšltimas NF-e</h2>
               {lista.length ? (
                 <table className="nf-table">
                   <thead>
@@ -630,7 +633,7 @@ export default function NfeFiscalPage() {
     <th>NF-e</th>
     <th>Status</th>
     <th>SEFAZ</th>
-    <th>Ações</th>
+    <th>AÃ§Ãµes</th>
   </tr>
 </thead>
                   <tbody>
@@ -730,8 +733,20 @@ export default function NfeFiscalPage() {
               )}
             </div>
           </aside>
+        
+    
+    </div>
+      )}
+        <div className="mt-6">
+        </div>
+      )}
+      {showManualEntry && (
+        <div className="mt-6">
+          <EntradaManualNfe onClose={() => setShowManualEntry(false)} />
         </div>
       )}
     </main>
   );
 }
+
+

@@ -47,6 +47,29 @@ export default function StockPage() {
   const [pendingFiles, setPendingFiles] = useState([]);
   const [gallery, setGallery] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // CTRL-V-PASTE-FOTO-ESTOQUE
+  useEffect(() => {
+    function handlePaste(e) {
+      if (!editingId) return;
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.indexOf('image') === 0) {
+          const file = item.getAsFile();
+          if (file) {
+            const url = URL.createObjectURL(file);
+            setPendingFiles(prev => [...prev, { file, preview: URL.createObjectURL(file) }]);
+            setMessage('Imagem colada! Clique em "Salvar alterações" para enviar.');
+          }
+        }
+      }
+    }
+    window.addEventListener('paste', handlePaste);
+    return function () { window.removeEventListener('paste', handlePaste); };
+  }, [editingId]);
+
   const [bipeModalOpen, setBipeModalOpen] = useState(false);
   const [bipeCode, setBipeCode] = useState('');
   const [bipeProduct, setBipeProduct] = useState(null);
@@ -267,12 +290,35 @@ export default function StockPage() {
   }, [bipeModalOpen]);
 
   function resetForm() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setOriginalForm(emptyForm);
-    setPendingFiles([]);
-    setGallery([]);
-  }
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+
+      // 🔒 BLOQUEIA o scroll do body temporariamente
+      const originalOverflow = document.body.style.overflow;
+      const originalScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.scrollBehavior = 'auto';
+
+      setEditingId(null);
+      setForm(emptyForm);
+      setOriginalForm(emptyForm);
+      setPendingFiles([]);
+      setGallery([]);
+
+      // 🔓 Restaura depois de 3 frames (tempo do React re-renderizar)
+      let frames = 0;
+      function restore() {
+        frames++;
+        if (frames < 3) {
+          requestAnimationFrame(restore);
+          return;
+        }
+        window.scrollTo(scrollX, scrollY);
+        document.body.style.overflow = originalOverflow;
+        document.documentElement.style.scrollBehavior = originalScrollBehavior;
+      }
+      requestAnimationFrame(restore);
+    }
 
   function handleFileChange(event) {
     const files = Array.from(event.target.files || []);
@@ -419,9 +465,37 @@ export default function StockPage() {
           : 'Produto cadastrado com sucesso.'
       );
 
-      resetForm();
-      setSearch('');
-      await loadProducts();
+            // === FIX SCROLL: nao recarregar tudo, so atualizar o item na lista ===
+      const scrollSalvo = window.scrollY || window.pageYOffset || 0;
+      
+      // Fecha o modal (resetForm ja tem sua propria logica, mas vamos garantir)
+      setEditingId(null);
+      setForm(emptyForm);
+      setOriginalForm(emptyForm);
+      setPendingFiles([]);
+      setGallery([]);
+      
+      // Atualiza o produto na lista em memoria (SEM recarregar tudo)
+      if (editingId) {
+        setProducts(prev => prev.map(p => 
+          String(p.id) === String(produtoSalvo.id) ? { ...p, ...produtoSalvo } : p
+        ));
+      } else {
+        // Criou novo produto: adiciona no topo da lista
+        setProducts(prev => [produtoSalvo, ...prev]);
+      }
+      
+      // Restaura o scroll depois do React re-renderizar
+      let framesRestore = 0;
+      function restaurarScroll() {
+        framesRestore++;
+        if (framesRestore < 5) {
+          requestAnimationFrame(restaurarScroll);
+          return;
+        }
+        window.scrollTo({ top: scrollSalvo, behavior: 'instant' });
+      }
+      requestAnimationFrame(restaurarScroll);
 
     } catch (error) {
       console.error('[ESTOQUE] Erro ao salvar produto:', error);
@@ -1304,6 +1378,19 @@ export default function StockPage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

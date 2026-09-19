@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       devOptions: {
-        enabled: false,              // <-- NÃO gera Service Worker em dev
+        enabled: false,
         type: 'module',
         navigateFallback: 'index.html'
       },
@@ -36,9 +36,17 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3002,
+    strictPort: true,
     allowedHosts: [
-      'massive-masculine-demotion.ngrok-free.dev'
+      'massive-masculine-demotion.ngrok-free.dev',
+      'localhost',
+      '.ngrok-free.dev'
     ],
+    hmr: {
+      clientPort: 443,
+      protocol: 'wss'
+    },
+    cors: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

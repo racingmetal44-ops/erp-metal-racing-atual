@@ -1,268 +1,331 @@
-import { useState } from 'react';
-import {
-  UserPlus,
-  User,
-  Shield,
-  Lock,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  ClipboardCheck,
-  Package,
-  QrCode
-} from 'lucide-react';
-import { supabase } from '../lib/supabase';
+﻿import { useEffect, useState } from 'react';
+import { UserPlus, Pencil, Trash2, Users as UsersIcon, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+
+const API = '/api/auth/usuarios';
 
 export default function UsersPage() {
+  const [usuarios, setUsuarios] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('info');
+  const [salvando, setSalvando] = useState(false);
+
   const [form, setForm] = useState({
-    nome_completo: '',
-    cargo: 'Estoquista',
-    pin: '',
-    permissoes: {
-      movimentacoes: true,
-      consultar_estoque: true,
-      bipagem: true,
-    }
+    nome: '',
+    email: '',
+    password: '',
+    perfil: 'USUARIO',
+    ativo: 1,
   });
 
-  const [mostrarPin, setMostrarPin] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(null);
-
-  const cargos = [
-    'Estoquista',
-    'Supervisor',
-    'Administrador',
-    'Gerente',
-    'Operador'
-  ];
-
-  const permissoesLista = [
-    { id: 'movimentacoes', label: 'Registrar movimentações', icon: ClipboardCheck },
-    { id: 'consultar_estoque', label: 'Consultar estoque', icon: Package },
-    { id: 'bipagem', label: 'Bipagem', icon: QrCode },
-  ];
-
-  function handlePermissaoChange(id) {
-    setForm(prev => ({
-      ...prev,
-      permissoes: {
-        ...prev.permissoes,
-        [id]: !prev.permissoes[id]
-      }
-    }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
+  async function carregar() {
     setLoading(true);
-    setMessage('');
-
-    if (form.pin && !/^\d{4}$/.test(form.pin)) {
-      setMessage('O PIN deve ter exatamente 4 dígitos');
-      setMessageType('error');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const payload = {
-        nome_completo: form.nome_completo,
-        cargo: form.cargo,
-        pin: form.pin || null,
-        permissoes: form.permissoes,
-        created_at: new Date().toISOString()
-      };
-
-      const { error } = await supabase
-        .from('profiles')
-        .insert(payload);
-
-      if (error) throw error;
-
-      setMessage('Perfil criado com sucesso!');
-      setMessageType('success');
-
-      setForm({
-        nome_completo: '',
-        cargo: 'Estoquista',
-        pin: '',
-        permissoes: {
-          movimentacoes: true,
-          consultar_estoque: true,
-          bipagem: true,
-        }
-      });
-
-    } catch (error) {
-      setMessage(`Erro ao criar perfil: ${error.message}`);
+      const r = await fetch(API);
+      const j = await r.json();
+      if (j.success) setUsuarios(j.data || j.usuarios || []);
+    } catch (e) {
+      console.error(e);
+      setMessage('Erro ao carregar usuários.');
       setMessageType('error');
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => { carregar(); }, []);
+
+  function abrirNovo() {
+    setEditando(null);
+    setForm({ nome: '', email: '', password: '', perfil: 'USUARIO', ativo: 1 });
+    setShowModal(true);
+  }
+
+  function abrirEditar(u) {
+    setEditando(u);
+    setForm({
+      nome: u.nome || '',
+      email: u.email || '',
+      password: '',
+      perfil: u.perfil || 'USUARIO',
+      ativo: Number(u.ativo) === 1 ? 1 : 0,
+    });
+    setShowModal(true);
+  }
+
+  async function salvar(e) {
+    e.preventDefault();
+    if (!form.nome.trim()) {
+      setMessage('Informe o nome.');
+      setMessageType('error');
+      return;
+    }
+
+    setSalvando(true);
+    try {
+      const url = editando ? API + '/' + editando.id : API;
+      const method = editando ? 'PUT' : 'POST';
+
+      const r = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const j = await r.json();
+
+      if (!j.success) throw new Error(j.error || 'Erro ao salvar');
+
+      setMessage(editando ? 'Usuário atualizado!' : 'Usuário criado!');
+      setMessageType('success');
+      setShowModal(false);
+      await carregar();
+    } catch (e) {
+      setMessage(e.message);
+      setMessageType('error');
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function desativar(u) {
+    if (!confirm('Desativar o usuário "' + u.nome + '"?')) return;
+    try {
+      const r = await fetch(API + '/' + u.id, { method: 'DELETE' });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error);
+      setMessage('Usuário desativado.');
+      setMessageType('success');
+      await carregar();
+    } catch (e) {
+      setMessage(e.message);
+      setMessageType('error');
+    }
+  }
+
+  async function reativar(u) {
+    try {
+      const r = await fetch(API + '/' + u.id + '/reativar', { method: 'PATCH' });
+      const j = await r.json();
+      if (!j.success) throw new Error(j.error);
+      setMessage('Usuário reativado.');
+      setMessageType('success');
+      await carregar();
+    } catch (e) {
+      setMessage(e.message);
+      setMessageType('error');
+    }
+  }
+
   return (
-    <div className="space-y-6">
-      {/* HEADER */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <p className="text-sm text-orange-400">Módulo</p>
-        <h1 className="mt-2 text-3xl font-semibold">Usuários</h1>
-        <p className="mt-2 text-sm text-slate-400">Criação e gerenciamento de perfis de usuário.</p>
+    <div className="p-6 text-slate-100">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <div className="text-sm text-orange-500 font-bold">Equipe</div>
+          <h1 className="text-3xl font-black text-white flex items-center gap-2">
+            <UsersIcon size={28}/> Usuários
+          </h1>
+          <p className="text-sm text-slate-400">Cadastre operadores que aparecerão no Quadro de Produção.</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={carregar}
+            className="flex items-center gap-2 rounded-lg border border-slate-700 px-4 py-2 text-sm font-bold text-slate-300 hover:bg-slate-800"
+          >
+            <RefreshCw size={16}/> Atualizar
+          </button>
+          <button
+            onClick={abrirNovo}
+            className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-black text-white hover:bg-orange-600"
+          >
+            <UserPlus size={16}/> Novo usuário
+          </button>
+        </div>
       </div>
 
-      {/* FORMULéRIO */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
-        <h2 className="text-xl font-semibold text-white mb-6">Novo Perfil de Usuário</h2>
+      {message && (
+        <div className={
+          'mb-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-bold ' +
+          (messageType === 'success'
+            ? 'border-emerald-700 bg-emerald-950 text-emerald-300'
+            : messageType === 'error'
+              ? 'border-red-700 bg-red-950 text-red-300'
+              : 'border-slate-700 bg-slate-900 text-slate-300')
+        }>
+          {messageType === 'success' ? <CheckCircle size={16}/> : <AlertCircle size={16}/>}
+          {message}
+        </div>
+      )}
 
-        {message && (
-          <div className={`mb-4 p-4 rounded-xl border ${
-            messageType === 'success'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-400'
-          }`}>
-            {message}
+      <div className="rounded-xl border border-slate-800 bg-[#091117] overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-slate-400">Carregando...</div>
+        ) : usuarios.length === 0 ? (
+          <div className="p-8 text-center text-slate-400">
+            Nenhum usuário cadastrado. Clique em "Novo usuário" para começar.
           </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="border-b border-slate-800 text-left text-xs font-black text-slate-400">
+              <tr>
+                <th className="px-4 py-3">NOME</th>
+                <th className="px-4 py-3">E-MAIL</th>
+                <th className="px-4 py-3">PERFIL</th>
+                <th className="px-4 py-3">STATUS</th>
+                <th className="px-4 py-3 text-right">AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody>
+              {usuarios.map(u => (
+                <tr key={u.id} className="border-b border-slate-800/50 hover:bg-slate-900/50">
+                  <td className="px-4 py-3 font-bold text-slate-100">{u.nome}</td>
+                  <td className="px-4 py-3 text-slate-300">{u.email || <span className="text-slate-500">—</span>}</td>
+                  <td className="px-4 py-3 text-slate-300">{u.perfil || 'USUARIO'}</td>
+                  <td className="px-4 py-3">
+                    {Number(u.ativo) === 1 ? (
+                      <span className="rounded bg-emerald-900/50 px-2 py-0.5 text-[10px] font-black text-emerald-300">ATIVO</span>
+                    ) : (
+                      <span className="rounded bg-red-900/50 px-2 py-0.5 text-[10px] font-black text-red-300">INATIVO</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => abrirEditar(u)}
+                      className="mr-2 rounded p-1.5 text-blue-400 hover:bg-slate-800"
+                      title="Editar"
+                    >
+                      <Pencil size={14}/>
+                    </button>
+                    {Number(u.ativo) === 1 ? (
+                      <button
+                        onClick={() => desativar(u)}
+                        className="rounded p-1.5 text-red-400 hover:bg-red-950"
+                        title="Desativar"
+                      >
+                        <Trash2 size={14}/>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => reativar(u)}
+                        className="rounded p-1.5 text-emerald-400 hover:bg-emerald-950"
+                        title="Reativar"
+                      >
+                        <CheckCircle size={14}/>
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Nome Completo */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Nome completo <span className="text-rose-400">*</span>
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-              <input
-                type="text"
-                required
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-10 pr-4 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                placeholder="Digite o nome completo do usuário"
-                value={form.nome_completo}
-                onChange={(e) => setForm({ ...form, nome_completo: e.target.value })}
-              />
-            </div>
-          </div>
-
-          {/* Cargo */}
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
-              Cargo <span className="text-rose-400">*</span>
-            </label>
-            <div className="relative">
-              <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-              <select
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-10 pr-4 py-3 text-white focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                value={form.cargo}
-                onChange={(e) => setForm({ ...form, cargo: e.target.value })}
-              >
-                {cargos.map((cargo) => (
-                  <option key={cargo} value={cargo}>{cargo}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* PIN */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <label className="block text-sm font-medium text-slate-300">
-                PIN de 4 dígitos <span className="text-slate-500">(opcional)</span>
-              </label>
-            </div>
-            <p className="text-xs text-slate-500 mb-2">
-              O PIN protege a identidade do operador na bipagem
-            </p>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-              <input
-                type={mostrarPin ? 'text' : 'password'}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 pl-10 pr-12 py-3 text-white placeholder:text-slate-500 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                placeholder="Digite um PIN de 4 dígitos (opcional)"
-                value={form.pin}
-                onChange={(e) => setForm({ ...form, pin: e.target.value })}
-                maxLength={4}
-                pattern="\d{4}"
-              />
+      {showModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4" onClick={() => setShowModal(false)}>
+          <form
+            onClick={e => e.stopPropagation()}
+            onSubmit={salvar}
+            className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-black text-white">
+                {editando ? 'Editar usuário' : 'Novo usuário'}
+              </h2>
               <button
                 type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition"
-                onClick={() => setMostrarPin(!mostrarPin)}
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-white text-2xl leading-none"
+              >×</button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">
+                  Nome <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.nome}
+                  onChange={e => setForm({ ...form, nome: e.target.value })}
+                  placeholder="Ex: João Silva"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">E-mail (opcional)</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={e => setForm({ ...form, email: e.target.value })}
+                  placeholder="email@exemplo.com"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">
+                  Senha (opcional)
+                </label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  placeholder={editando ? 'Deixe em branco para não alterar' : 'Mínimo 6 caracteres'}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-300">Perfil</label>
+                <select
+                  value={form.perfil}
+                  onChange={e => setForm({ ...form, perfil: e.target.value })}
+                  className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-orange-500"
+                >
+                  <option value="USUARIO">Usuário</option>
+                  <option value="OPERADOR">Operador</option>
+                  <option value="SUPERVISOR">Supervisor</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+
+              {editando && (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="ativo"
+                    checked={Number(form.ativo) === 1}
+                    onChange={e => setForm({ ...form, ativo: e.target.checked ? 1 : 0 })}
+                    className="h-4 w-4"
+                  />
+                  <label htmlFor="ativo" className="text-sm text-slate-300">Ativo</label>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-bold text-slate-300"
               >
-                {mostrarPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={salvando}
+                className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-black text-white hover:bg-orange-600 disabled:opacity-50"
+              >
+                {salvando ? 'Salvando...' : (editando ? 'Salvar' : 'Criar')}
               </button>
             </div>
-            {form.pin && form.pin.length > 0 && form.pin.length !== 4 && (
-              <p className="mt-1 text-xs text-amber-400">O PIN deve ter exatamente 4 dígitos</p>
-            )}
-          </div>
-
-          {/* Permissões */}
-          <div className="rounded-xl border border-slate-700 bg-slate-950/50 p-4">
-            <p className="text-sm font-medium text-slate-300 mb-3">
-              Permissões do perfil selecionado:
-            </p>
-            <div className="space-y-2">
-              {permissoesLista.map((permissao) => {
-                const Icon = permissao.icon;
-                const isChecked = form.permissoes[permissao.id];
-                return (
-                  <label
-                    key={permissao.id}
-                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition ${
-                      isChecked
-                        ? 'bg-orange-500/10 border border-orange-500/30'
-                        : 'hover:bg-slate-800/50'
-                    }`}
-                  >
-                    <div className={`p-1 rounded ${isChecked ? 'text-orange-400' : 'text-slate-500'}`}>
-                      <Icon size={18} />
-                    </div>
-                    <span className={`flex-1 text-sm ${isChecked ? 'text-slate-200' : 'text-slate-400'}`}>
-                      {permissao.label}
-                    </span>
-                    <div
-                      className={`w-5 h-5 rounded border-2 flex items-center justify-center transition ${
-                        isChecked
-                          ? 'bg-orange-500 border-orange-500'
-                          : 'border-slate-600 hover:border-slate-400'
-                      }`}
-                      onClick={() => handlePermissaoChange(permissao.id)}
-                    >
-                      {isChecked && <CheckCircle size={14} className="text-white" />}
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Botão */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-semibold text-white hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-orange-500/20"
-          >
-            {loading ? (
-              <span className="animate-pulse">Criando...</span>
-            ) : (
-              <>
-                <UserPlus size={20} />
-                Criar Perfil
-              </>
-            )}
-          </button>
-        </form>
-      </div>
-
-      {/* TOAST */}
-      {message && messageType === 'success' && (
-        <div className="fixed bottom-4 right-4 z-[9999] px-6 py-4 rounded-xl shadow-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-          {message}
+          </form>
         </div>
       )}
     </div>
   );
 }
-

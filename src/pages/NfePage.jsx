@@ -1,13 +1,23 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import EntradaManualNfe from '../components/Nfe/EntradaManualNfe';
+
 
 const NfePage = () => {
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [activeTab, setActiveTab] = useState('entrada');
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [operacao, setOperacao] = useState('entrada');
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [xmlFile, setXmlFile] = useState(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [xmlFileName, setXmlFileName] = useState('Nenhum XML selecionado');
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [xmlSigned, setXmlSigned] = useState(null);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [xmlSignedName, setXmlSignedName] = useState('');
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [emitidas, setEmitidas] = useState([]);
+  const [showManualEntry, setShowManualEntry] = useState(false);
   const [assinando, setAssinando] = useState(false);
 
   useEffect(() => {
@@ -28,7 +38,7 @@ const NfePage = () => {
   }, [emitidas]);
 
   // ============================================================
-  //  FUNÇÃO PARA ASSINAR XML COM ASSINADOR SERPRO
+  //  FUNÃ‡ÃƒO PARA ASSINAR XML COM ASSINADOR SERPRO
   // ============================================================
   const handleAssinarXML = async () => {
     if (!xmlFile) {
@@ -67,8 +77,8 @@ const NfePage = () => {
 
         alert('? XML assinado com sucesso!');
         
-        // Adicionar ao histórico
-        const operacaoNome = operacao === 'entrada' ? 'ENTRADA' : 'SAÍDA';
+        // Adicionar ao histÃ³rico
+        const operacaoNome = operacao === 'entrada' ? 'ENTRADA' : 'SAÃDA';
         const novaEmitida = {
           id: Date.now(),
           empresa: 'ART GRAV',
@@ -92,7 +102,7 @@ const NfePage = () => {
   };
 
   // ============================================================
-  //  FUNÇÃO PARA ABRIR ASSINADOR SERPRO MANUALMENTE
+  //  FUNÃ‡ÃƒO PARA ABRIR ASSINADOR SERPRO MANUALMENTE
   // ============================================================
   const handleAbrirAssinador = () => {
     // Tenta abrir o Assinador Serpro
@@ -108,7 +118,7 @@ const NfePage = () => {
   };
 
   // ============================================================
-  //  FUNÇÃO PARA BUSCAR XML
+  //  FUNÃ‡ÃƒO PARA BUSCAR XML
   // ============================================================
   const handleBuscarXML = () => {
     const input = document.createElement('input');
@@ -128,7 +138,7 @@ const NfePage = () => {
   };
 
   // ============================================================
-  //  FUNÇÃO PARA GERAR DANFE
+  //  FUNÃ‡ÃƒO PARA GERAR DANFE
   // ============================================================
   const handleGerarDanfe = () => {
     if (!xmlSigned) {
@@ -136,26 +146,26 @@ const NfePage = () => {
       return;
     }
 
-    const operacaoNome = operacao === 'entrada' ? 'ENTRADA' : 'SAÍDA';
+    const operacaoNome = operacao === 'entrada' ? 'ENTRADA' : 'SAÃDA';
 
     alert(
       '?? DANFE GERADO COM SUCESSO!\n\n' +
       '?? Empresa: ART GRAV COMUNICACAO INDUSTRIAL LTDA\n' +
-      '?? Operação: ' + operacaoNome + '\n' +
+      '?? OperaÃ§Ã£o: ' + operacaoNome + '\n' +
       '?? XML: ' + xmlSignedName + '\n\n' +
-      '? NF-e adicionada ao histórico!'
+      '? NF-e adicionada ao histÃ³rico!'
     );
   };
 
   // ============================================================
-  //  FUNÇÃO PARA VISUALIZAR DANFE
+  //  FUNÃ‡ÃƒO PARA VISUALIZAR DANFE
   // ============================================================
   const handleVisualizarDanfe = () => {
     if (!xmlSigned) {
       alert('?? Primeiro assine o XML!');
       return;
     }
-    alert('??? VISUALIZANDO DANFE\n\n?? XML: ' + xmlSignedName + '\n\n?? Função em desenvolvimento.');
+    alert('??? VISUALIZANDO DANFE\n\n?? XML: ' + xmlSignedName + '\n\n?? FunÃ§Ã£o em desenvolvimento.');
   };
 
   // ============================================================
@@ -416,7 +426,7 @@ const NfePage = () => {
       <div style={styles.header}>
         <div>
           <h1 style={styles.title}>?? NF-e</h1>
-          <p style={styles.subtitle}>Nota Fiscal Eletrônica - Gestão de entrada e emissão</p>
+          <p style={styles.subtitle}>Nota Fiscal EletrÃ´nica - GestÃ£o de entrada e emissÃ£o</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={styles.statusAssinatura(!!xmlSigned)}>
@@ -440,7 +450,7 @@ const NfePage = () => {
           style={styles.tab(activeTab === 'emitir')}
           onClick={() => setActiveTab('emitir')}
         >
-          ?? Emissão NF-e
+          ?? EmissÃ£o NF-e
         </button>
       </div>
 
@@ -467,7 +477,7 @@ const NfePage = () => {
         </div>
       )}
 
-      {/* TAB EMISS�O NF-e */}
+      {/* TAB EMISSï¿½O NF-e */}
       {activeTab === 'emitir' && (
         <div>
           {/* EMPRESA */}
@@ -478,7 +488,7 @@ const NfePage = () => {
                 <div style={styles.empresaNome}>ART GRAV COMUNICACAO INDUSTRIAL LTDA</div>
                 <div style={styles.empresaCnpj}>CNPJ: 13.862.162/0001-80 | IE: 253.456.789</div>
                 <div style={{ fontSize: '13px', color: '#4a6a8a', marginTop: '4px' }}>
-                  ?? Ambiente: Homologação | ?? Joinville - SC
+                  ?? Ambiente: HomologaÃ§Ã£o | ?? Joinville - SC
                 </div>
               </div>
               <div>
@@ -487,11 +497,11 @@ const NfePage = () => {
             </div>
           </div>
 
-          {/* TIPO DE OPERA��O */}
+          {/* TIPO DE OPERAï¿½ï¿½O */}
           <div style={styles.card}>
-            <h3 style={styles.cardTitle}>?? Tipo de Operação</h3>
+            <h3 style={styles.cardTitle}>?? Tipo de OperaÃ§Ã£o</h3>
             <p style={{ fontSize: '13px', color: '#6b7a8a', margin: '-8px 0 12px 0' }}>
-              Clique em uma opção para selecionar
+              Clique em uma opÃ§Ã£o para selecionar
             </p>
             <div style={styles.radioGroup}>
               <div 
@@ -505,7 +515,7 @@ const NfePage = () => {
                 style={styles.opcaoButton(operacao === 'saida', 'saida')}
                 onClick={() => setOperacao('saida')}
               >
-                <span style={styles.saidaColor}>?? Saída</span>
+                <span style={styles.saidaColor}>?? SaÃ­da</span>
                 {operacao === 'saida' && <span style={styles.checkmark}>?</span>}
               </div>
             </div>
@@ -513,7 +523,7 @@ const NfePage = () => {
               {operacao === 'entrada' ? (
                 <span style={{ color: '#28a745', fontWeight: '600' }}>?? Entrada selecionada</span>
               ) : (
-                <span style={{ color: '#dc3545', fontWeight: '600' }}>?? Saída selecionada</span>
+                <span style={{ color: '#dc3545', fontWeight: '600' }}>?? SaÃ­da selecionada</span>
               )}
             </div>
           </div>
@@ -573,21 +583,21 @@ const NfePage = () => {
             </div>
           </div>
 
-          {/* HIST�RICO */}
+          {/* HISTï¿½RICO */}
           <div style={styles.card}>
             <h3 style={styles.cardTitle}>?? NF-e Emitidas</h3>
             {emitidas.length === 0 ? (
               <div style={styles.emptyState}>
                 <div style={{ fontSize: '40px', marginBottom: '8px' }}>??</div>
                 <p style={{ margin: 0, fontSize: '16px', fontWeight: '500' }}>Nenhuma NF-e emitida ainda.</p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#8a9aaa' }}>Assine um XML para começar.</p>
+                <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#8a9aaa' }}>Assine um XML para comeÃ§ar.</p>
               </div>
             ) : (
               <table style={styles.grid}>
                 <thead>
                   <tr>
                     <th style={styles.gridHeader}>Empresa</th>
-                    <th style={styles.gridHeader}>Operação</th>
+                    <th style={styles.gridHeader}>OperaÃ§Ã£o</th>
                     <th style={styles.gridHeader}>NF-e</th>
                     <th style={styles.gridHeader}>Data/Hora</th>
                     <th style={styles.gridHeader}>DANFE</th>
@@ -622,3 +632,4 @@ const NfePage = () => {
 };
 
 export default NfePage;
+

@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import express from 'express';
+import { XMLParser } from 'fast-xml-parser';
 import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
@@ -22,16 +23,29 @@ import certificateRoutes from './src/backend/routes/certificateRoutes.js';
 import assinaturaRoutes from './src/backend/routes/assinatura.js';
 import nfeRoutes from './src/backend/routes/nfeRoutes.js';
 import pcpRoutes from './src/backend/routes/pcpRoutes.js';
+import alertasRoutes from './src/backend/routes/alertasRoutes.js';
 import devolucoesRoutes from './src/backend/routes/devolucoesRoutes.js';
 import { listarEmpresas } from './src/backend/services/empresa/EmpresaService.js';
+import Database from 'better-sqlite3';
+
+// Imports para integração SEFAZ
+import https from 'https';
+import axios from 'axios';
+import { SignedXml } from 'xml-crypto';
+import forge from 'node-forge';
+
+// DESABILITA VALIDACAO SSL GLOBAL (apenas homologacao SEFAZ)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 // ============================================
 // CONFIGURA??O
 // ============================================
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -199,14 +213,13 @@ function getNFe() {
 
     try {
 
-        const data =
-            fs.readFileSync(
+            const data = fs.readFileSync(
                 NFE_FILE,
                 'utf8'
             );
 
         const nfeList =
-            JSON.parse(data);
+            JSON.parse(data.replace(/^\uFEFF/, ''));
 
         return Array.isArray(nfeList)
             ? nfeList
@@ -301,7 +314,6 @@ app.get('/api/empresas', (req, res) => {
 
     try {
 
-        const companies =
             getCompanies();
 
         res.json(companies);
@@ -334,7 +346,6 @@ app.post('/api/empresas', (req, res) => {
 
     try {
 
-        const companies =
             getCompanies();
 
         const body =
@@ -441,7 +452,6 @@ app.put('/api/empresas/:id', (req, res) => {
 
     try {
 
-        const companies =
             getCompanies();
 
         const id =
@@ -530,10 +540,8 @@ app.delete('/api/empresas/:id', (req, res) => {
 
     try {
 
-        const companies =
             getCompanies();
 
-        const id =
             Number(
                 req.params.id
             );
@@ -600,7 +608,228 @@ app.delete('/api/empresas/:id', (req, res) => {
 // NF-e
 // ============================================
 
+
 app.use('/api/etiquetas', etiquetasRoutes);
+
+
+// ============================================
+// NF-e — CONSULTA SEFAZ (rotas ANTES do router genérico)
+// ============================================
+
+// NF-e — CONSULTA SEFAZ (SVRS - SC)
+// ============================================
+
+
+// Carrega o certificado A1 (apenas lê o buffer, https.request aceita pfx direto)
+let certificadoCache = null;
+function carregarCertificado() {
+  if (certificadoCache) return certificadoCache;
+
+  const pfxPath = process.env.CERT_PATH || './certificados/empresa_1.pfx';
+  const senha = process.env.CERT_SENHA;
+
+  if (!senha) throw new Error('CERT_SENHA nao configurada');
+
+  const pfxBuffer = fs.readFileSync(pfxPath);
+  console.log('[NFE] Certificado A1 carregado:', pfxBuffer.length, 'bytes');
+
+  certificadoCache = {
+    pfxBuffer: pfxBuffer,
+    senha: senha
+  };
+
+  return certificadoCache;
+}
+// Cliente SOAP que cuida de headers/envelope automaticamente
+import soap from 'soap';
+
+async function chamarSefazSOAP(url, action, xmlBody) {
+  const cert = carregarCertificado();
+
+  // Extrai o corpo interno do envelope (o que o SEFAZ realmente espera)
+  // O cliente SOAP envolve automaticamente
+  const match = xmlBody.match(/<nfeDadosMsg[^>]*>([\s\S]*?)<\/nfeDadosMsg>/);
+  const corpoInterno = match ? match[1].trim() : xmlBody;
+
+  // Cria client com certificado
+  const agent = new https.Agent({
+    pfx: cert.pfxBuffer,
+    passphrase: cert.senha,
+    rejectUnauthorized: false,
+    keepAlive: true
+  });
+
+  // Baixa o WSDL manualmente com axios (que respeita o httpsAgent)
+  const wsdlResp = await axios.get(url + '?wsdl', {
+    httpsAgent: agent,
+    timeout: 30000
+  });
+  const wsdlXml = wsdlResp.data;
+
+  // Cria client a partir do WSDL em string (nao tenta baixar de novo)
+  const client = await soap.createClientAsync(wsdlXml, {
+    httpsAgent: agent,
+    disableCache: true,
+    forceSoap12Headers: false,
+    endpoint: url,
+  });
+
+  // Detecta o método e chama
+  const metodo = action.split('/').pop();
+  if (typeof client[metodo + 'Async'] !== 'function') {
+    throw new Error('Metodo SOAP nao encontrado: ' + metodo);
+  }
+
+  const [resultado, rawResponse] = await client[metodo + 'Async']({ nfeDadosMsg: corpoInterno });
+
+  return {
+    status: 200,
+    body: typeof rawResponse === 'string' ? rawResponse : JSON.stringify(rawResponse)
+  };
+}
+// Rota: consultar NF-e pela chave de acesso
+app.post('/api/nfe/consultar', async (req, res) => {
+  try {
+    const { chave } = req.body;
+
+    if (!chave || chave.length !== 44 || !/^\d+$/.test(chave)) {
+      return res.status(400).json({ success: false, error: 'Chave deve ter 44 dígitos numéricos' });
+    }
+
+    const empresa = getCompanies()[0];
+    const cnpj = (empresa?.cnpj || '').replace(/\D/g, '');
+    const uf = empresa?.uf || 'SC';
+
+    // SC usa SVRS
+    const url = 'https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx';
+    const action = 'http://www.portalfiscal.inf.br/nfe/wsdl/NFeConsulta4/nfeConsultaNF';
+
+    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <nfeConsultaNF xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeConsulta4">
+      <nfeDadosMsg>
+        <consSitNFe versao="4.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+          <tpAmb>2</tpAmb>
+          <xServ>CONSULTAR</xServ>
+          <chNFe>${chave}</chNFe>
+        </consSitNFe>
+      </nfeDadosMsg>
+    </nfeConsultaNF>
+  </soap:Body>
+</soap:Envelope>`;
+
+    const resposta = await chamarSefazSOAP(url, action, xmlBody);
+
+    // Extrai cStat e xMotivo do XML de retorno
+    const parser = new XMLParser({ ignoreAttributes: false });
+    let cStat = null, xMotivo = null;
+
+    try {
+      const parsed = parser.parse(resposta.body);
+      const ret = parsed?.['soap:Envelope']?.['soap:Body']?.['nfeConsultaNFResponse']?.['nfeResultMsg']?.['retConsSitNFe'];
+      if (ret) {
+        cStat = ret.cStat;
+        xMotivo = ret.xMotivo;
+      }
+    } catch (e) {
+      console.error('[NFE] Erro ao parsear resposta:', e.message);
+    }
+
+    res.json({
+      success: cStat === '100' || cStat === '101' || cStat === '110',
+      httpStatus: resposta.status,
+      cStat,
+      xMotivo,
+      respostaCompleta: resposta.body.substring(0, 2000)
+    });
+
+  } catch (error) {
+    console.error('[NFE] Erro na consulta SEFAZ:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Rota: enviar manifestação do destinatário
+app.post('/api/nfe/manifestar', async (req, res) => {
+  try {
+    const { chave, tipoEvento } = req.body;
+    // tipoEvento: 210200=Confirmação, 210210=Ciência, 210220=Desconhecimento, 210240=Não Realizada
+
+    if (!chave || chave.length !== 44) {
+      return res.status(400).json({ success: false, error: 'Chave inválida' });
+    }
+
+    if (!['210200', '210210', '210220', '210240'].includes(tipoEvento)) {
+      return res.status(400).json({ success: false, error: 'Tipo de evento inválido' });
+    }
+
+    const empresa = getCompanies()[0];
+    const cnpj = (empresa?.cnpj || '').replace(/\D/g, '');
+    const url = 'https://nfe-homologacao.svrs.rs.gov.br/ws/RecepcaoEvento/RecepcaoEvento4.asmx';
+    const action = 'http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4/nfeRecepcaoEvento';
+
+    const dhEvento = new Date().toISOString();
+    const nSeqEvento = '1';
+    const idEvento = `ID${tipoEvento}${chave}${nSeqEvento.padStart(2, '0')}`;
+
+    const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <nfeRecepcaoEvento xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeRecepcaoEvento4">
+      <nfeDadosMsg>
+        <envEvento versao="1.00" xmlns="http://www.portalfiscal.inf.br/nfe">
+          <idLote>1</idLote>
+          <evento versao="1.00">
+            <infEvento Id="${idEvento}">
+              <cOrgao>42</cOrgao>
+              <tpAmb>2</tpAmb>
+              <CNPJ>${cnpj}</CNPJ>
+              <chNFe>${chave}</chNFe>
+              <dhEvento>${dhEvento}</dhEvento>
+              <tpEvento>${tipoEvento}</tpEvento>
+              <nSeqEvento>${nSeqEvento}</nSeqEvento>
+              <verEvento>1.00</verEvento>
+              <detEvento versao="1.00">
+                <descEvento>${tipoEvento === '210200' ? 'Confirmacao da Operacao' : tipoEvento === '210210' ? 'Ciencia da Operacao' : tipoEvento === '210220' ? 'Desconhecimento da Operacao' : 'Operacao Nao Realizada'}</descEvento>
+              </detEvento>
+            </infEvento>
+          </evento>
+        </envEvento>
+      </nfeDadosMsg>
+    </nfeRecepcaoEvento>
+  </soap:Body>
+</soap:Envelope>`;
+
+    const resposta = await chamarSefazSOAP(url, action, xmlBody);
+    const parser = new XMLParser({ ignoreAttributes: false });
+
+    let cStat = null, xMotivo = null;
+    try {
+      const parsed = parser.parse(resposta.body);
+      const ret = parsed?.['soap:Envelope']?.['soap:Body']?.['nfeRecepcaoEventoResponse']?.['nfeResultMsg']?.['retEnvEvento'];
+      if (ret) {
+        cStat = ret.cStat;
+        xMotivo = ret.xMotivo;
+      }
+    } catch (e) {
+      console.error('[NFE] Erro ao parsear resposta:', e.message);
+    }
+
+    res.json({
+      success: cStat === '128' || cStat === '135',
+      httpStatus: resposta.status,
+      cStat,
+      xMotivo,
+      respostaCompleta: resposta.body.substring(0, 2000)
+    });
+
+  } catch (error) {
+    console.error('[NFE] Erro na manifestação SEFAZ:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 
 app.use('/api/nfe', nfeRoutes);
 
@@ -666,6 +895,12 @@ app.use(
     authRoutes
 );
 
+
+// ============================================
+// ROTAS DE ALERTAS
+// ============================================
+app.use('/api/alertas', alertasRoutes);
+
 // ============================================
 // TRATAMENTO DE ROTA N?O ENCONTRADA
 // ============================================
@@ -729,6 +964,11 @@ app.use(
 export default app;
 
 if (!process.env.VERCEL) {
+
+
+
+
+// ============================================
 app.listen(
     PORT,
     '0.0.0.0',
@@ -777,6 +1017,21 @@ app.listen(
     }
 );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
