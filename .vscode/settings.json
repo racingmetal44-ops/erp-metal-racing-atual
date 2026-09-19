@@ -1,0 +1,10 @@
+﻿{
+  "gitdoc.enabled": true,
+  "gitdoc.autoCommitDelay": 30000,
+  "gitdoc.autoPush": "push",
+  "gitdoc.autoPull": "pull",
+  "gitdoc.commitValidationLevel": "none",
+  "git.autofetch": true,
+  "git.autofetchPeriod": 60,
+  "git.enableSmartCommit": true
+}
